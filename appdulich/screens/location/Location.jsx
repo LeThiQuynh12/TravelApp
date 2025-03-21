@@ -35,18 +35,29 @@ const LocationScreen = () => {
 
   return (
     <MapView
-      initialRegion={
-        location || {
-          latitude: 21.0285, // Hà Nội (dự phòng nếu chưa lấy được vị trí)
-          longitude: 105.8542,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }
-      }
-      style={styles.mapStyle}
-    >
-      {location && <Marker coordinate={location} title="Vị trí của bạn" />}
-    </MapView>
+  showsUserLocation={true}  // Hiển thị chấm xanh vị trí người dùng
+  followsUserLocation={true} // Bản đồ tự động theo dõi vị trí người dùng
+  initialRegion={
+    location || {
+      latitude: 21.0285, // Hà Nội (dự phòng)
+      longitude: 105.8542,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    }
+  }
+  style={styles.mapStyle}
+>
+{location && (
+  <Marker 
+    coordinate={location} 
+    title="Vị trí của bạn"
+    description="Bạn đang ở đây"
+    pinColor="red" // Chấm màu xanh
+  />
+)}
+
+</MapView>
+
   );
 };
 

@@ -51,6 +51,8 @@ const styles = StyleSheet.create({
         left: left,
         right: right,
         justifyContent: 'center',
+        zIndex:10,
+       
     }),
     box: (color) => ({
         backgroundColor: color,

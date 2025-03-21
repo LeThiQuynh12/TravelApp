@@ -6,14 +6,14 @@ import {
   View,
 } from 'react-native';
 
-const BusTicket = () => {
+const Signin = () => {
   return (
     <View>
-      <Text>BusTicket</Text>
+      <Text>Signin</Text>
     </View>
   )
 }
 
-export default BusTicket
+export default Signin
 
 const styles = StyleSheet.create({})

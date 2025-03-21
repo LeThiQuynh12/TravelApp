@@ -1,80 +1,127 @@
-// import React, { useState } from 'react';
-
-// import {
-//   Image,
-//   StyleSheet,
-//   Text,
-//   TouchableOpacity,
-//   View,
-// } from 'react-native';
-
-// import AirlineTicket from './AirlineTicket';
-// import BusTicket from './BusTicket';
-
-// const Vehicle = () => {
-//   const [selectedTab, setSelectedTab] = useState("bus");
-
-//   return (
-//     <View style={styles.container}>
-//       <Image source={{ uri: "https://i.pinimg.com/736x/04/9f/7e/049f7e527c460a082e3ae3f46f026ada.jpg" }} style={styles.image} />
-//       <View style={styles.tabContainer}>
-//         <TouchableOpacity
-//           style={[styles.tab, selectedTab === "airline" && styles.activeTab]}
-//           onPress={() => setSelectedTab("airline")}
-//         >
-//           <Text style={[styles.tabText, selectedTab === "airline" && styles.activeText]}>
-//             ✈️ Vé máy bay
-//           </Text>
-//         </TouchableOpacity>
-//         <TouchableOpacity
-//           style={[styles.tab, selectedTab === "bus" && styles.activeTab]}
-//           onPress={() => setSelectedTab("bus")}
-//         >
-//           <Text style={[styles.tabText, selectedTab === "bus" && styles.activeText]}>
-//             🚌 Vé xe khách
-//           </Text>
-//         </TouchableOpacity>
-//       </View>
-
-//       {selectedTab === "airline" ? <AirlineTicket /> : <BusTicket />}
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: { flex: 1, backgroundColor: "#fff" },
-//   image: { width: "100%", height: 230, resizeMode: "cover" },
-//   tabContainer: { flexDirection: "row", justifyContent: "center", marginVertical: 10 },
-//   tab: {
-//     flex: 1,
-//     padding: 10,
-//     alignItems: "center",
-//     borderBottomWidth: 2,
-//     borderColor: "#ccc",
-//   },
-//   activeTab: { borderColor: "green", backgroundColor: "#e0f2e9" },
-//   tabText: { fontSize: 16, color: "#555" },
-//   activeText: { fontWeight: "bold", color: "green" },
-// });
-
-// export default Vehicle;
-
-import React from 'react';
+import React, { useState } from 'react';
 
 import {
+  Image,
+  ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 
-const Vehicle = () => {
+import { FontAwesome5 } from '@expo/vector-icons';
+
+import AppBar from '../../components/Reusable/AppBar';
+import {
+  COLORS,
+  SHADOWS,
+  SIZES,
+  TEXT,
+} from '../../constants/theme';
+import AirlineTicket from './AirlineTicket';
+import BusTicket from './BusTicket';
+
+const Vehicle = ({ navigation }) => {
+  const [selectedTab, setSelectedTab] = useState("airplane");
+  const images = {
+    bus: "https://i.pinimg.com/736x/b8/96/2d/b8962d6460555231b8838ee62eb665bc.jpg",
+    airplane: "https://i.pinimg.com/736x/e4/13/6c/e4136c6857a9914b81a7298a766e9844.jpg"
+  }
   return (
-    <View>
-      <Text>Vehicle</Text>
+    <View style={styles.container}>
+      <AppBar
+        title="Di chuyển"
+        color={COLORS.white}
+        // icon="search1"
+        top={50}
+        left={10}
+        right={10}
+        onPress={() => navigation.goBack()}
+        // onPress1={() => navigation.navigate("HotelSearch")}
+      />
+
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Hình ảnh */}
+        <Image 
+          source={{uri: images[selectedTab]}}
+          style={styles.image}
+        />
+
+        {/* Tabs Container */}
+        <View style={styles.tabWrapper}>
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === "airplane" && styles.activeTab]}
+            onPress={() => setSelectedTab("airplane")}
+          >
+            <FontAwesome5 name="plane" size={20} color={selectedTab === "airplane" ? COLORS.white : COLORS.red} />
+            <Text style={[styles.tabText, selectedTab === "airplane" && styles.activeText]}>Vé máy bay</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === "bus" && styles.activeTab]}
+            onPress={() => setSelectedTab("bus")}
+          >
+            <FontAwesome5 name="bus" size={20} color={selectedTab === "bus" ? COLORS.white : COLORS.red} />
+            <Text style={[styles.tabText, selectedTab === "bus" && styles.activeText]}>Vé xe khách</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Hiển thị nội dung tương ứng */}
+        {selectedTab === "bus" ? <BusTicket /> : <AirlineTicket />}
+      </ScrollView>
     </View>
-  )
-}
+  );
+};
 
-export default Vehicle
+const styles = StyleSheet.create({
+  container: { 
+    flex: 1, 
+    // backgroundColor: COLORS.white
+  },
+  scrollContainer: {
+    paddingBottom: 20, 
+  },
+  image: { 
+    width: "100%", 
+    height: 240, 
+    resizeMode: "cover", 
+    borderRadius: 30,
+    alignSelf: "center",
+    marginBottom: -50,
+    marginTop: 90,
+    paddingHorizontal: 5,
+   
+  },
+  tabWrapper: {
+    flexDirection: "row",
+    backgroundColor: COLORS.white,
+    borderRadius: 15,
+    padding: 10,
+    marginHorizontal: SIZES.large,
+    ...SHADOWS.medium,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    marginHorizontal: 5,
+    
+  },
+  activeTab: { 
+    backgroundColor: COLORS.green 
+  },
+  tabText: { 
+    fontSize: TEXT.medium, 
+    color: COLORS.red, 
+    marginTop: 5,
+    fontWeight: "bold",
+  },
+  activeText: { 
+    color: COLORS.white, 
+    fontWeight: "bold" 
+  },
+});
 
-const styles = StyleSheet.create({})
+export default Vehicle;
