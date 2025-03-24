@@ -8,6 +8,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HotelList from './components/Tiles/Hotels/HotelList.jsx';
 import ReviewsList from './components/Tiles/Hotels/ReviewsList.jsx';
+import SelectRoom from './components/Tiles/Hotels/SelectRoom.jsx';
 import PlaceList from './components/Tiles/Place/PlaceList.jsx';
 import BottomTabNavigation from './navigation/BottomTabNavigation';
 import CountryDetails from './screens/details/CountryDetails.jsx';
@@ -56,6 +57,7 @@ export default function App() {
         <Stack.Screen name='HotelList' component={HotelList} options={{headerShown: false}}/>
         <Stack.Screen name='HotelSearch' component={HotelSearch} options={{headerShown: false}}/>
         <Stack.Screen name='ReviewsList' component={ReviewsList} options={{headerShown: false}}/>
+        <Stack.Screen name='SelectRoom' component={SelectRoom} options={{headerShown: false}}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

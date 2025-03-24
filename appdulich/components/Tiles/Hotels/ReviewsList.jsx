@@ -9,6 +9,7 @@ import {
 import ReviewTile from '../../../screens/review/ReviewTile';
 
 const ReviewsList = ({ reviews }) => {
+  
     return (
       <FlatList
         data={reviews}

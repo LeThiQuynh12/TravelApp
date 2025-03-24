@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   FlatList,
   Modal,
+  ScrollView,
   StyleSheet,
   Switch,
   Text,
@@ -24,16 +25,19 @@ const today = new Date().toISOString().split("T")[0]; // Lấy ngày hôm nay
 
 
 const AirlineTicket = () => {
+  // Có khứ hồi hay không mặc định là không
     const [isRoundTrip, setIsRoundTrip] = useState(false);
+  // Điểm đến và điểm đi
     const [departure, setDeparture] = useState(null);
     const [destination, setDestination] = useState(null);
+  // Ngày đi và ngày về 
     const [departureDate, setDepartureDate] = useState(null);
     const [returnDate, setReturnDate] = useState(null);
-  
+  // Lịch chọn  ngày
     const [showCalendar, setShowCalendar] = useState(false);
     const [selectingDeparture, setSelectingDeparture] = useState(true);
+  // Số lg hành khách
     const [showGuestModal, setShowGuestModal] = useState(false);
-  
     const [adults, setAdults] = useState(1);
     const [children, setChildren] = useState(0);
     const [infants, setInfants] = useState(0);
@@ -53,6 +57,7 @@ const AirlineTicket = () => {
     const [showDestinationModal, setShowDestinationModal] = useState(false);
     
   return (
+    <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
     <View style={styles.container}>
       <Text style={styles.title}>Đặt vé xe khách giá rẻ</Text>
 
@@ -251,6 +256,7 @@ const AirlineTicket = () => {
         </View>
       </Modal>
     </View>
+    </ScrollView>
   );
 };
 

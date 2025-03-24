@@ -12,6 +12,7 @@ const HotelMap = ({coordinates}) => {
         <MapView style={styles.maps} region={coordinates}>
             <Marker
             coordinates={coordinates} title={coordinates.title}
+             pinColor="blue"
             >
             </Marker>
         </MapView>
@@ -20,8 +21,8 @@ const HotelMap = ({coordinates}) => {
 }
 const styles = StyleSheet.create({
     maps:{
-        marginVertical: 10,
-        height: 120,
+        marginVertical: 20,
+        height: 140,
         borderRadius: 12,
     }
 })
