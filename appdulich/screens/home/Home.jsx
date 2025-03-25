@@ -109,7 +109,7 @@ const Home = ({ navigation }) => {
           ))}
         </View>
         <HeightSpacer height={15} />
-        <ReusableText text={"Cảnh đẹp Việt Nam trực tiếp"} family={"medium"} size={TEXT.large} color={COLORS.black} />
+        <ReusableText text={"Thước phim cảnh đẹp Việt Nam"} family={"medium"} size={TEXT.large} color={COLORS.black} />
         <HeightSpacer height={10} />
         <YoutubePlayer height={200} play={false} videoId="Au6LqK1UH8g" />
       </ScrollView>

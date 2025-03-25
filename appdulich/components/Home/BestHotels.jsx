@@ -67,13 +67,13 @@ const BestHotels = () => {
     <FlatList
     data ={hotels} // mang du lieu
     horizontal // theo chieu ngang
-    keyExtractor={(item) => item._id}  // id uy nhat
+    keyExtractor={(item) => item.id}  // id uy nhatidid
     showsHorizontalScrollIndicator={false} // an cuon ngang
     contentContainerStyle={{columnGap: SIZES.medium}} // tạo khoảng cách giữa các phần tử
     renderItem={({item}) => (
        <HotelCard item={item} margin={10} 
        
-       onPress={()=>navigation.navigate("HotelDetails", { _id: item._id })
+       onPress={()=>navigation.navigate("HotelDetails", { id: item.id })
        } 
        />
        

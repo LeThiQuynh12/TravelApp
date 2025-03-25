@@ -1,7 +1,12 @@
-import React from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   FlatList,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,32 +24,28 @@ import {
 import AppBar from '../../Reusable/AppBar';
 import HeightSpacer from '../../Reusable/HeightSpacer';
 
-const mockRooms = [
-  {
-    id: "1",
-    name: "Phòng tiêu chuẩn giường đôi",
-    capacity: "Giá cho 2 người lớn",
-    bed: "1 giường đôi lớn",
-    size: "20 m²",
-    facilities:
-      "Wifi miễn phí, phòng tắm riêng, điều hòa không khí, TV màn hình phẳng và tầm nhìn xung quanh",
-    oldPrice: "300.000 VND",
-    newPrice: "250.000 VND",
-  },
-  {
-    id: "2",
-    name: "Phòng Superior giường đôi",
-    capacity: "Giá cho 2 người lớn",
-    bed: "1 giường đôi lớn",
-    size: "20 m²",
-    facilities:
-      "Wifi miễn phí, phòng tắm riêng, điều hòa không khí, TV màn hình phẳng và tầm nhìn xung quanh",
-    oldPrice: "300.000 VND",
-    newPrice: "250.000 VND",
-  },
-];
+const SelectRoom = ({ route, navigation }) => {
 
-const SelectRoom = ({ navigation, route }) => {
+  const hotelId = route.params?.hotelId; // Lay hotelId tu params
+  const [rooms, setRooms] = useState([]);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+        try {
+            let response = await fetch(`https://67e017447635238f9aac7da4.mockapi.io/api/v1/rooms?hotelid=${hotelId}`);
+            if (!response.ok) {  // Kiểm tra nếu response lỗi
+                throw new Error(`Lỗi HTTP! Status: ${response.status}`);
+            }
+            let data = await response.json();  // Chuyển response thành JSON
+            setRooms(data);
+        } catch (error) {
+            console.error("Lỗi khi fetch dữ liệu phòng:", error);
+        }
+    };
+
+    if (hotelId) fetchRooms();  // Chỉ gọi API nếu có hotelId
+  }, [hotelId]);  // Chạy lại khi hotelId thay đổi
+
   const hotel = route.params?.hotel || { title: "Khách sạn LuxGo" };
 
   return (
@@ -53,59 +54,90 @@ const SelectRoom = ({ navigation, route }) => {
         top={50}
         left={20}
         right={20}
-        title={hotel.title}
+        title={`Phòng của Khách sạn ${hotelId}`}
         color={COLORS.white}
-        icon={"search1"}
-        color1={COLORS.white}
+        // icon={"search1"}
+        // color1={COLORS.white}
         onPress={() => navigation.goBack()}
-        onPress1={() => navigation.navigate("HotelSearch")}
-        style={{ marginBottom: 50 }}
+        // onPress1={() => navigation.navigate("HotelSearch")}
+        style={{ marginBottom: 20 }}
       />
-
       <HeightSpacer height={80} />
-
-      {/* Danh sách phòng */}
       <FlatList
-        data={mockRooms}
+        data={rooms}
         keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <RoomCard room={item} navigation={navigation} />} // Truyền navigation vào RoomCard
+      />
+    </View>
+  );
+};
+
+// Component RoomCard - hiển thị từng phòng
+const RoomCard = ({ room, navigation }) => {
+  const flatListRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prevIndex) => {
+        const nextIndex = prevIndex === room.images.length - 1 ? 0 : prevIndex + 1;
+        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+        return nextIndex;
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [room.images.length]);
+
+  return (
+    <View style={styles.roomCard}>
+      {/* Slider ảnh sử dụng FlatList */}
+      <FlatList
+        ref={flatListRef}
+        data={room.images}
+        horizontal
+        pagingEnabled
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <View style={styles.roomCard}>
-            <Text style={styles.roomTitle}>{item.name}</Text>
-            <View style={styles.infoRow}>
-              <Ionicons name="person-outline" size={22} color={COLORS.gray} />
-              <Text style={styles.roomInfo}>{item.capacity}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="bed-outline" size={22} color={COLORS.gray} />
-              <Text style={styles.roomInfo}>{item.bed}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="resize-outline" size={22} color={COLORS.gray} />
-              <Text style={styles.roomInfo}>{item.size}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="wifi-outline" size={22} color={COLORS.gray} />
-              <Text style={styles.roomInfo}>{item.facilities}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Ionicons name="wallet-outline" size={22} color={COLORS.gray} />
-              <Text style={styles.roomInfo}>Giá cho một đêm </Text>
-            </View>
-
-            {/* Giá tiền */}
-            <View style={styles.priceContainer}>
-              <Text style={styles.oldPrice}>{item.oldPrice}</Text>
-              <Text style={styles.newPrice}>{item.newPrice}</Text>
-            </View>
-
-            {/* Nút chọn phòng */}
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Chọn phòng</Text>
-            </TouchableOpacity>
-          </View>
+          <Image source={{ uri: item.uri }} style={styles.sliderImage} />
         )}
       />
+
+      <Text style={styles.roomTitle}>{room.name}</Text>
+      <View style={styles.infoRow}>
+        <Ionicons name="person-outline" size={22} color={COLORS.gray} />
+        <Text style={styles.roomInfo}>{room.capacity}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Ionicons name="bed-outline" size={22} color={COLORS.gray} />
+        <Text style={styles.roomInfo}>{room.bed}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Ionicons name="resize-outline" size={22} color={COLORS.gray} />
+        <Text style={styles.roomInfo}>{room.size}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Ionicons name="wifi-outline" size={22} color={COLORS.gray} />
+        <Text style={styles.roomInfo}>{room.facilities}</Text>
+      </View>
+
+      <View style={styles.infoRow}>
+        <Ionicons name="wallet-outline" size={22} color={COLORS.gray} />
+        <Text style={styles.roomInfo}>Giá cho một đêm</Text>
+      </View>
+
+      {/* Giá tiền */}
+      <View style={styles.priceContainer}>
+        <Text style={styles.oldPrice}>{room.oldPrice}</Text>
+        <Text style={styles.newPrice}>{room.newPrice}</Text>
+      </View>
+
+      {/* Nút chọn phòng */}
+      <TouchableOpacity style={styles.button}
+        onPress={() => navigation.navigate("CustomerInfo")}
+      >
+        <Text style={styles.buttonText}>Chọn phòng</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -115,7 +147,7 @@ export default SelectRoom;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.lightGrey,
+    // backgroundColor: COLORS.lightGrey,
     padding: SIZES.medium,
   },
   roomCard: {
@@ -125,11 +157,17 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.medium,
     ...SHADOWS.small,
   },
+  sliderImage: {
+    width: SIZES.width - 50,
+    height: 130,
+    borderRadius: 10,
+    resizeMode: "cover",
+  },
   roomTitle: {
     fontSize: TEXT.large,
     fontWeight: "bold",
     color: COLORS.dark,
-    marginBottom: SIZES.xSmall,
+    marginTop: SIZES.small,
   },
   infoRow: {
     flexDirection: "row",

@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import CustomerInfo from './components/Reusable/CustomerInfo.jsx';
 import HotelList from './components/Tiles/Hotels/HotelList.jsx';
 import ReviewsList from './components/Tiles/Hotels/ReviewsList.jsx';
 import SelectRoom from './components/Tiles/Hotels/SelectRoom.jsx';
@@ -58,6 +59,7 @@ export default function App() {
         <Stack.Screen name='HotelSearch' component={HotelSearch} options={{headerShown: false}}/>
         <Stack.Screen name='ReviewsList' component={ReviewsList} options={{headerShown: false}}/>
         <Stack.Screen name='SelectRoom' component={SelectRoom} options={{headerShown: false}}/>
+        <Stack.Screen name="CustomerInfo" component={CustomerInfo} options={{headerShown: false}}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

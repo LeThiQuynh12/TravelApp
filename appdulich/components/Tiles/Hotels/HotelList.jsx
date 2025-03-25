@@ -44,7 +44,7 @@ const HotelList = ({navigation}) => {
       <AppBar title={"Danh sách khách sạn gần đây"} 
       color={COLORS.white} color1={COLORS.white} 
       icon="search1" 
-      top = {40} 
+      top = {0} 
       left = {0}
       right = {0} 
       onPress={()=>navigation.goBack()}
@@ -52,7 +52,7 @@ const HotelList = ({navigation}) => {
       />
     </View>
 
-    <View style={{paddingTop: 40}}>
+    <View style={{paddingTop: 10}}>
      
      <FlatList
      data={hotels}
