@@ -50,13 +50,10 @@
     "react-native-screens": "^4.9.1",
     "react-native-snap-carousel": "^3.9.1",
     "react-native-stock-star-rating": "^1.0.6",
-<<<<<<< HEAD
-    "react-native-svg": "^15.11.2",
-=======
+
     "react-native-svg": "15.8.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
->>>>>>> 636f5c9382c825bf28e516771208628073c67af5
     "react-native-youtube-iframe": "^2.3.0"
   },
   "devDependencies": {
