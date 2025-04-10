@@ -11,6 +11,7 @@ import HotelList from './components/Tiles/Hotels/HotelList.jsx';
 import ReviewsList from './components/Tiles/Hotels/ReviewsList.jsx';
 import SelectRoom from './components/Tiles/Hotels/SelectRoom.jsx';
 import PlaceList from './components/Tiles/Place/PlaceList.jsx';
+import AirList from './components/Tiles/Vehicle/AirList.jsx';
 import BottomTabNavigation from './navigation/BottomTabNavigation';
 import CountryDetails from './screens/details/CountryDetails.jsx';
 import HotelDetails from './screens/details/HotelDetails.jsx';
@@ -60,6 +61,8 @@ export default function App() {
         <Stack.Screen name='ReviewsList' component={ReviewsList} options={{headerShown: false}}/>
         <Stack.Screen name='SelectRoom' component={SelectRoom} options={{headerShown: false}}/>
         <Stack.Screen name="CustomerInfo" component={CustomerInfo} options={{headerShown: false}}/>
+
+        <Stack.Screen name="AirList" component={AirList} options={{headerShown: false}}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -24,7 +24,7 @@ const cities = ["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Nha Trang", "
 const today = new Date().toISOString().split("T")[0]; // Lấy ngày hôm nay
 
 
-const AirlineTicket = () => {
+const AirlineTicket = ({navigation}) => {
   // Có khứ hồi hay không mặc định là không
     const [isRoundTrip, setIsRoundTrip] = useState(false);
   // Điểm đến và điểm đi
@@ -160,7 +160,7 @@ const AirlineTicket = () => {
       {/* Nút tìm kiếm */}
               
               <ReusableBtn
-              onPress={()=>{}}
+              onPress={()=>{navigation.navigate("AirList")}}
               btnText={"Tìm kiếm"}
               textColor={COLORS.white}
             //   width={SIZES.xLarge}
