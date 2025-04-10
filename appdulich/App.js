@@ -63,6 +63,7 @@ export default function App() {
         <Stack.Screen name="CustomerInfo" component={CustomerInfo} options={{headerShown: false}}/>
 
         <Stack.Screen name="AirList" component={AirList} options={{headerShown: false}}/>
+
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -20,10 +20,10 @@ const Country = ({ item }) => {
     return (
       <TouchableOpacity onPress={() => navigation.navigate("CountryDetails", { item })}>
         <View>
-          <NetworkImage source={{ uri: item.imageUrl }} width={85} height={85} radius={12} />
+          <NetworkImage source={{ uri: item.image }} width={85} height={85} radius={12} />
           <HeightSpacer height={5} />
           <ReusableText
-            text={item.country}
+            text={item.name}
             family={"medium"}
             size={TEXT.medium}
             color={COLORS.black}
