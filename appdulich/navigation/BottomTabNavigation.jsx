@@ -9,7 +9,7 @@ import Home from '../screens/home/Home';
 import Location from '../screens/location/Location';
 import Profile from '../screens/profile/Profile';
 import Vehicle from '../screens/vehicle/Vehicle';
-
+import authentication from '../screens/authentication/authentication'
 const Tab = createBottomTabNavigator();
 //ios
 const tabBarStyle = {
@@ -101,7 +101,7 @@ const BottomTabNavigation = () => {
                     )
                 }} 
                 />
-                <Tab.Screen name="Profile" component={Profile} 
+                <Tab.Screen name="authentication" component={authentication} 
                 options={{
                     tabBarStyle: tabBarStyle,
                     tabBarShowLabel: false,headerShown: false,

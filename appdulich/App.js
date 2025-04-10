@@ -60,6 +60,7 @@ export default function App() {
         <Stack.Screen name='ReviewsList' component={ReviewsList} options={{headerShown: false}}/>
         <Stack.Screen name='SelectRoom' component={SelectRoom} options={{headerShown: false}}/>
         <Stack.Screen name="CustomerInfo" component={CustomerInfo} options={{headerShown: false}}/>
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
