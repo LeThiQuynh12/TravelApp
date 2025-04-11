@@ -15,6 +15,7 @@ export const COLORS = {
   dark: "#3D3A45",
   gray: "#8C8C8C",
   lightGrey: "#D1CFD5",
+  lightCyan: "#F6FBFF",
 };
 const SIZES = {
     xSmall: 10,

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import {
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -27,7 +28,8 @@ const CustomerInfo = ({ navigation }) => {
   ];
 
   return (
-    <View style={styles.container}>
+    <ScrollView>
+          <View style={styles.container}>
       <AppBar
         top={50}
         left={20}
@@ -81,14 +83,15 @@ const CustomerInfo = ({ navigation }) => {
           </TouchableOpacity>
         ))}
       </View>
-<HeightSpacer height={20}/>
-<TouchableOpacity style={styles.button}
-        onPress={() => navigation.navigate("CustomerInfo")}
-      >
+        <HeightSpacer height={20}/>
+        <TouchableOpacity style={styles.button}
+            onPress={() => navigation.navigate("CustomerInfo")}
+        >
         <Text style={styles.buttonText}>Đặt ngay</Text>
       </TouchableOpacity>
       
     </View>
+    </ScrollView>
   );
 };
 

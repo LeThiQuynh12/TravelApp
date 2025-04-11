@@ -7,11 +7,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import CustomerInfo from './components/Reusable/CustomerInfo.jsx';
+import AirDetail from './components/Tiles/Air/AirDetail.jsx';
+import AirList from './components/Tiles/Air/AirList.jsx';
 import HotelList from './components/Tiles/Hotels/HotelList.jsx';
 import ReviewsList from './components/Tiles/Hotels/ReviewsList.jsx';
 import SelectRoom from './components/Tiles/Hotels/SelectRoom.jsx';
 import PlaceList from './components/Tiles/Place/PlaceList.jsx';
-import AirList from './components/Tiles/Vehicle/AirList.jsx';
 import BottomTabNavigation from './navigation/BottomTabNavigation';
 import CountryDetails from './screens/details/CountryDetails.jsx';
 import HotelDetails from './screens/details/HotelDetails.jsx';
@@ -63,7 +64,8 @@ export default function App() {
         <Stack.Screen name="CustomerInfo" component={CustomerInfo} options={{headerShown: false}}/>
 
         <Stack.Screen name="AirList" component={AirList} options={{headerShown: false}}/>
-
+        <Stack.Screen name="AirDetail" component={AirDetail} options={{headerShown: false}}/>
+      
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -22,13 +22,13 @@ const Onboarding = () => {
     },
     {
         id: 2,
-        image: { uri: "https://i.pinimg.com/474x/06/bb/0e/06bb0e0a9dd8220682edf62a69994612.jpg" },
-        title: "Tìm địa điểm hoàn hảo du lịch"
+        image: { uri: "https://i.pinimg.com/736x/f3/82/cd/f382cd043c6a2db96552bb97c3f8d4bc.jpg" },
+        title: "Địa điểm hoàn hảo du lịch"
     },
     {
         id: 3,
-        image: { uri: "https://i.pinimg.com/736x/c6/90/01/c690013bb075d9724f3d18ad454b7070.jpg" },
-        title: "Trải nghiệm khách sạn tuyệt vời"
+        image: { uri: "https://i.pinimg.com/736x/52/62/7c/52627caa0015b2f833fbdc632d37dc82.jpg" },
+        title: "Trải nghiệm dịch vụ khách sạn tuyệt vời"
     },
   ];
 
