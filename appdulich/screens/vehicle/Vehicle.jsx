@@ -67,7 +67,7 @@ const Vehicle = ({ navigation }) => {
         </View>
 
         {/* Hiển thị nội dung tương ứng */}
-        {selectedTab === "bus" ? <BusTicket /> : <AirlineTicket navigation={navigation} />}
+        {selectedTab === "bus" ? <BusTicket navigation={navigation} /> : <AirlineTicket navigation={navigation} />}
       </ScrollView>
     </View>
   );

@@ -23,7 +23,7 @@ import {
 const cities =["Hà Nội", "Đà Nẵng"];
 const today = new Date().toISOString().split("T")[0];
 
-const BusTicket = () => {
+const BusTicket = (navigation) => {
   const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [departure, setDeparture] = useState(null);
   const [destination, setDestination] = useState(null);
@@ -154,8 +154,8 @@ const BusTicket = () => {
       </Modal>
    {/* Nút tìm kiếm */}
               
-   <ReusableBtn
-              onPress={()=>{}}
+         <ReusableBtn
+              onPress={()=>navigation.navigation.navigate("BusList")}
               btnText={"Tìm kiếm"}
               textColor={COLORS.white}
             //   width={SIZES.xLarge}
