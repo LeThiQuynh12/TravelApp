@@ -1,17 +1,28 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
-import Signin from "./Signin";
-import Registration from "./Registration";
+import React, { useState } from 'react';
+
+import {
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+import { TEXT } from '../../constants/theme';
+import Registration from './Registration';
+import Signin from './Signin';
 
 const Authentication = () => {
   const [selectedTab, setSelectedTab] = useState("signin");
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Hình ảnh */}
       <Image
         source={{
-          uri: "https://www.vietnambooking.com/wp-content/uploads/2023/03/dich-vu-du-lich-1.jpg",
+          // uri: "https://i.pinimg.com/474x/ba/94/26/ba9426e86e1e4b9675f1c83c84970a03.jpg",
+          uri: "https://i.pinimg.com/474x/57/81/ee/5781ee3858125aaa7494c2bff48b9d19.jpg",
         }}
         style={styles.image}
       />
@@ -23,7 +34,7 @@ const Authentication = () => {
           onPress={() => setSelectedTab("signin")}
         >
           <Text style={[styles.tabText, selectedTab === "signin" && styles.activeText]}>
-            Đăng nhập
+            ĐĂNG NHẬP
           </Text>
         </TouchableOpacity>
 
@@ -32,51 +43,49 @@ const Authentication = () => {
           onPress={() => setSelectedTab("registration")}
         >
           <Text style={[styles.tabText, selectedTab === "registration" && styles.activeText]}>
-            Đăng ký
+            ĐĂNG KÝ
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Hiển thị form tương ứng */}
       {selectedTab === "registration" ? <Registration /> : <Signin />}
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        backgroundColor: "#fff",
-        paddingTop: 60,
-        flexDirection:'column',
-      },
-      image: {
-        width:400,
-        height: 200,
-        resizeMode: "contain",
-        resizeMode: "contain",
-      },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#fff",
+    flexDirection: 'column',
+  },
+  image: {
+    width: '100%', // Giảm chiều rộng để ảnh không chiếm toàn màn hình
+    height: 240, // Giảm chiều cao để cân đối
+    // resizeMode: "contain", // Đảm bảo ảnh hiển thị đầy đủ, không bị cắt
+    marginTop: -45, // Thêm khoảng cách phía trên để bố cục đẹp hơn
+  },
   tabWrapper: {
     flexDirection: "row",
-    padding:30
+    paddingTop: 20,
+    width: '100%', // Đảm bảo tab chiếm toàn chiều rộng
   },
   tab: {
     flex: 1,
-    padding:10,
+    padding: 10,
     alignItems: "center",
-    justifyContent: "center", 
+    justifyContent: "center",
   },
   activeTab: {
-   
-    borderBottomWidth:3,
-    borderBottomColor:'#3CA684'
+    borderBottomWidth: 3,
+    borderBottomColor: '#3CA684',
   },
   tabText: {
-    fontSize: 16,
+    fontSize: TEXT.medium-1,
     fontWeight: "bold",
     color: "#777",
-    
   },
   activeText: {
     color: "#3CA684",

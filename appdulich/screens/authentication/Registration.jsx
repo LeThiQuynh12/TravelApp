@@ -1,17 +1,20 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
-  View,
   Text,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
-  Keyboard,
-  ScrollView,
-} from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome6";
+  View,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome6';
+
+import { TEXT } from '../../constants/theme';
 
 const Registration = () => {
   const [user, setUser] = useState("");
@@ -40,7 +43,7 @@ const Registration = () => {
             {/* Tên người dùng */}
             <Text style={styles.labelText}> Tên người dùng </Text>
             <View style={styles.inputContainer}>
-              <Icon name="user" size={25} color="#777" style={styles.icon} />
+              <Icon name="user" size={20} color="#777" style={styles.icon} />
               <TextInput
                 style={styles.input}
                 placeholder="Nhập tên người dùng"
@@ -52,7 +55,7 @@ const Registration = () => {
             {/* Email */}
             <Text style={styles.labelText}> Email </Text>
             <View style={styles.inputContainer}>
-              <Icon name="envelope" size={25} color="#777" style={styles.icon} />
+              <Icon name="envelope" size={20} color="#777" style={styles.icon} />
               <TextInput
                 style={styles.input}
                 placeholder="Nhập email"
@@ -64,7 +67,7 @@ const Registration = () => {
             {/* Password */}
             <Text style={styles.labelText}>Password</Text>
             <View style={styles.inputContainer}>
-              <Icon name="lock" size={25} color="#777" style={styles.icon} />
+              <Icon name="lock" size={20} color="#777" style={styles.icon} />
               <TextInput
                 style={styles.input}
                 placeholder="Nhập password"
@@ -75,7 +78,7 @@ const Registration = () => {
               <TouchableOpacity onPress={togglePasswordVisibility}>
                 <Icon
                   name={showPassword ? "eye" : "eye-slash"} // Thay đổi biểu tượng dựa vào trạng thái
-                  size={25}
+                  size={20}
                   color="#777"
                   style={styles.icon}
                 />
@@ -104,7 +107,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#ddd",
     borderRadius: 10,
     padding: 10,
@@ -118,7 +121,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: TEXT.medium,
   },
   button: {
     backgroundColor: "#3CA684",
@@ -128,16 +131,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: "80%",
     alignItems: "center",
+
   },
   labelText: {
-    fontSize: 18,
+    fontSize: TEXT.medium,
     fontWeight: "bold",
     paddingBottom: 10,
     color: "#777",
+    marginVertical: 10,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: TEXT.medium-1,
     fontWeight: "bold",
   },
 });
