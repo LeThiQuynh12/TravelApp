@@ -8,17 +8,17 @@ module.exports = {
             await User.findByIdAndDelete(req.user.id); // Xóa theo ID
             res.status(200).json({
                 status: true,
-                message: "Xóa thành công người dùng" // ✅ Sửa lại lỗi chính tả: 'succesfully' → 'successfully'
+                message: "Xóa thành công người dùng" // 
             });
         } catch (error) {
             return next(error); // Đẩy lỗi cho middleware xử lý
         }
     },
-
+// Hàm getUser lấy thông tin người dùng hiện tại dựa trên id từ token
     // Lấy thông tin người dùng hiện tại
     getUser: async (req, res, next) => {
         const user_id = req.user.id; // Lấy từ token
-
+        console.log(user_id); 
         try {
             const user = await User.findById(user_id, {
                 password: 0,     // Không trả về mật khẩu

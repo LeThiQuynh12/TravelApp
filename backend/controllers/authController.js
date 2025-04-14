@@ -1,94 +1,98 @@
-const User = require("../models/User"); // Import model User từ thư mục models
-
-const CryptoJS = require("crypto-js"); // Dùng để mã hóa/giải mã mật khẩu
-const jwt = require("jsonwebtoken"); // Thư viện tạo JWT token cho đăng nhập
+// controllers/authController.js
+const User = require("../models/User");
+const CryptoJS = require("crypto-js");
+const jwt = require("jsonwebtoken");
 
 module.exports = {
-    //  API tạo người dùng mới
-    createUser: async (req, res, next) => {
-        try {
-            //  Kiểm tra email đã tồn tại chưa trong hệ thống
-            const existingUser = await User.findOne({ email: req.body.email });
-            if (existingUser) {
-                return res.status(400).json({
-                    status: false,
-                    message: "Email đã được sử dụng", // Báo lỗi nếu trùng email
-                });
-            }
+  createUser: async (req, res, next) => {
+    try {
+      // Kiểm tra req.body có tồn tại không
+      if (!req.body) {
+        return res.status(400).json({
+          status: false,
+          message: "Dữ liệu gửi lên không hợp lệ!",
+        });
+      }
 
-            //  Tạo mới user, mã hóa mật khẩu bằng AES
-            const newUser = new User({
-                username: req.body.username,
-                email: req.body.email,
-                password: CryptoJS.AES.encrypt(
-                    req.body.password,
-                    process.env.SECRET // Khóa bí mật để mã hóa
-                ).toString(),
-                // Nếu có avatar riêng thì truyền lên, còn không sẽ dùng default từ schema
-            });
+      // Kiểm tra email đã tồn tại chưa
+      const existingUser = await User.findOne({ email: req.body.email });
+      if (existingUser) {
+        return res.status(400).json({
+          status: false,
+          message: "Email đã được sử dụng",
+        });
+      }
 
-            //  Lưu user vào MongoDB
-            await newUser.save();
+      // Tạo mới user, mã hóa mật khẩu bằng AES
+      const newUser = new User({
+        username: req.body.username,
+        email: req.body.email,
+        password: CryptoJS.AES.encrypt(
+          req.body.password,
+          process.env.SECRET
+        ).toString(),
+      });
 
-            //  Trả về kết quả khi tạo user thành công
-            res.status(201).json({
-                status: true,
-                message: "Tạo tài khoản thành công",
-            });
-        } catch (error) {
-            return next(error); // Gửi lỗi cho middleware xử lý lỗi chung
-        }
-    },
+      // Lưu user vào MongoDB
+      await newUser.save();
 
-    //  API đăng nhập
-    loginUser: async (req, res, next) => {
-        try {
-            //  Tìm user theo email
-            const user = await User.findOne({ email: req.body.email });
+      res.status(201).json({
+        status: true,
+        message: "Tạo tài khoản thành công",
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
 
-            if (!user) {
-                return res.status(404).json({
-                    status: false,
-                    message: "Tài khoản không tồn tại", // Không tìm thấy user
-                });
-            }
+  loginUser: async (req, res, next) => {
+    try {
+      // Kiểm tra req.body có tồn tại không
+      if (!req.body) {
+        return res.status(400).json({
+          status: false,
+          message: "Dữ liệu gửi lên không hợp lệ!",
+        });
+      }
 
-            //  Giải mã password từ database
-            const decryptedPassword = CryptoJS.AES.decrypt(
-                user.password,
-                process.env.SECRET
-            );
+      const user = await User.findOne({ email: req.body.email });
 
-            //  Lấy chuỗi mật khẩu sau khi giải mã
-            const decryptedString = decryptedPassword.toString(CryptoJS.enc.Utf8);
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "Tài khoản không tồn tại",
+        });
+      }
 
-            //  So sánh với password người dùng nhập
-            if (decryptedString !== req.body.password) {
-                return res.status(401).json({
-                    status: false,
-                    message: "Mật khẩu không đúng",
-                });
-            }
+      const decryptedPassword = CryptoJS.AES.decrypt(
+        user.password,
+        process.env.SECRET
+      );
 
-            //  Nếu đúng mật khẩu → tạo token chứa id user
-            const userToken = jwt.sign(
-                {
-                    id: user._id, // Payload là id user
-                },
-                process.env.JWT_SECRET, // Khóa bí mật ký token
-                { expiresIn: "21d" } // Token có hiệu lực trong 21 ngày
-            );
+      const decryptedString = decryptedPassword.toString(CryptoJS.enc.Utf8);
 
-            const user_id = user._id;
+      if (decryptedString !== req.body.password) {
+        return res.status(401).json({
+          status: false,
+          message: "Mật khẩu không đúng",
+        });
+      }
 
-            // Trả về token và id user khi đăng nhập thành công
-            res.status(200).json({
-                status: true,
-                id: user_id,
-                token: userToken,
-            });
-        } catch (error) {
-            return next(error); // Gửi lỗi cho middleware xử lý lỗi
-        }
-    },
+      const userToken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "21d" }
+      );
+
+      const user_id = user._id;
+
+      res.status(200).json({
+        status: true,
+        id: user_id,
+        token: userToken,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
 };
