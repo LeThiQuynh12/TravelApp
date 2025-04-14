@@ -15,32 +15,58 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
 import { TEXT } from '../../constants/theme';
+import { fetchDangKy } from '../../services/api'; // Import hàm đăng ký
 
 const Registration = () => {
   const [user, setUser] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State để hiển thị/ẩn mật khẩu
+  const [showPassword, setShowPassword] = useState(false);
 
   const togglePasswordVisibility = () => {
-    setShowPassword(true); // Hiển thị mật khẩu ngay khi nhấn vào mắt
-    // Sau 5 giây, ẩn mật khẩu
+    setShowPassword(true);
     setTimeout(() => {
-      setShowPassword(false); 
-    }, 800); 
+      setShowPassword(false);
+    }, 800);
   };
+
+  const handleRegister = async () => {
+    // Kiểm tra đầu vào
+    if (!user) {
+      alert("Vui lòng nhập tên người dùng!");
+      return;
+    }
+    if (!email.includes("@")) {
+      alert("Vui lòng nhập email hợp lệ!");
+      return;
+    }
+    if (password.length < 6) {
+      alert("Mật khẩu phải có ít nhất 6 ký tự!");
+      return;
+    }
+
+    try {
+      // Gọi API đăng ký
+      const data = await fetchDangKy(user, email, password);
+      alert("Đăng ký thành công!");
+      console.log("Dữ liệu trả về:", data); // In dữ liệu để kiểm tra
+    } catch (error) {
+      alert(error.message || "Đăng ký thất bại!");
+    }
+  };
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, width: "100%" }} // Đảm bảo phần này chiếm hết chiều rộng
+      style={{ flex: 1, width: "100%" }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
+          
         >
           <View>
-            {/* Tên người dùng */}
             <Text style={styles.labelText}> Tên người dùng </Text>
             <View style={styles.inputContainer}>
               <Icon name="user" size={20} color="#777" style={styles.icon} />
@@ -52,7 +78,6 @@ const Registration = () => {
               />
             </View>
 
-            {/* Email */}
             <Text style={styles.labelText}> Email </Text>
             <View style={styles.inputContainer}>
               <Icon name="envelope" size={20} color="#777" style={styles.icon} />
@@ -64,7 +89,6 @@ const Registration = () => {
               />
             </View>
 
-            {/* Password */}
             <Text style={styles.labelText}>Password</Text>
             <View style={styles.inputContainer}>
               <Icon name="lock" size={20} color="#777" style={styles.icon} />
@@ -77,7 +101,7 @@ const Registration = () => {
               />
               <TouchableOpacity onPress={togglePasswordVisibility}>
                 <Icon
-                  name={showPassword ? "eye" : "eye-slash"} // Thay đổi biểu tượng dựa vào trạng thái
+                  name={showPassword ? "eye" : "eye-slash"}
                   size={20}
                   color="#777"
                   style={styles.icon}
@@ -86,8 +110,7 @@ const Registration = () => {
             </View>
           </View>
 
-          {/* Nút Đăng ký */}
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
             <Text style={styles.buttonText}>TẠO TÀI KHOẢN</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -96,9 +119,10 @@ const Registration = () => {
   );
 };
 
+// Styles không thay đổi, giữ nguyên như bạn đã cung cấp
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1, // Đảm bảo có thể cuộn khi bàn phím hiện
+    flexGrow: 1,
     alignItems: "center",
     backgroundColor: "#fff",
     paddingTop: 20,
@@ -131,7 +155,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: "80%",
     alignItems: "center",
-
   },
   labelText: {
     fontSize: TEXT.medium,
@@ -142,7 +165,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: TEXT.medium-1,
+    fontSize: TEXT.medium - 1,
     fontWeight: "bold",
   },
 });

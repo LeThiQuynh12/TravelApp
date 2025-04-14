@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { COLORS } from '../constants/theme';
+import Authentication from '../screens/authentication/authentication';
 import Chat from '../screens/chat/Chat';
 import Home from '../screens/home/Home';
 import Location from '../screens/location/Location';
 import Profile from '../screens/profile/Profile';
 import Vehicle from '../screens/vehicle/Vehicle';
-import authentication from '../screens/authentication/authentication'
+
 const Tab = createBottomTabNavigator();
 //ios
 const tabBarStyle = {
@@ -29,7 +30,17 @@ const tabBarStyle = {
 //     left: 20,
 //     right: 20,
 // }
-const BottomTabNavigation = () => {
+const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
+
+    // Lắng nghe thay đổi của isLoggedIn và điêuf hướng
+
+    useEffect(()=>{
+        if(isLoggedIn){
+            navigation.navigate("Profile") // Điều hướng đến Profile khi đăng nhập thành công
+        }
+    },[isLoggedIn, navigation])
+
+    
   return (
 
       <Tab.Navigator
@@ -101,19 +112,39 @@ const BottomTabNavigation = () => {
                     )
                 }} 
                 />
-                <Tab.Screen name="authentication" component={authentication} 
-                options={{
-                    tabBarStyle: tabBarStyle,
-                    tabBarShowLabel: false,headerShown: false,
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons 
-                            name={focused ? "person" : "person-outline"} 
-                            color={focused ? COLORS.red : COLORS.gray} 
-                            size={26} 
-                        />
-                    )
-                }} 
+
+
+
+
+        <Tab.Screen
+            name={isLoggedIn ? "Profile" : "authentication"}
+            component={isLoggedIn ? Profile : Authentication}
+            options={{
+            headerShown: false,
+            tabBarStyle: tabBarStyle,
+            tabBarShowLabel: false,
+            tabBarIcon: ({ focused }) => (
+                <Ionicons
+                name={focused ? "person" : "person-outline"}
+                color={focused ? COLORS.red : COLORS.gray}
+                size={26}
                 />
+            ),
+            }}
+            initialParams={{ setIsLoggedIn }} // Truyền setIsLoggedIn vào params
+            listeners={({ navigation }) => ({
+            tabPress: (e) => {
+                if (!isLoggedIn) {
+                e.preventDefault();
+                navigation.navigate('authentication', { setIsLoggedIn });
+                }
+            },
+            })}
+        />
+
+
+
+
       </Tab.Navigator>
     
   )

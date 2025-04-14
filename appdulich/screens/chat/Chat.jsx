@@ -286,6 +286,8 @@ const Chat = () => {
             <Text style={styles.typingIndicator}>TravelBot đang nhập...</Text>
           )}
         </View>
+
+
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -300,6 +302,8 @@ const Chat = () => {
             <Ionicons name="send" size={24} color={COLORS.green} />
           </TouchableOpacity>
         </View>
+
+        
         {renderSupportButton()}
       </KeyboardAvoidingView>
     </SafeAreaView>

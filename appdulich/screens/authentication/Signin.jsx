@@ -14,21 +14,25 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
-import { TEXT } from '../../constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Signin = ({ navigation }) => {
+import { TEXT } from '../../constants/theme';
+import { fetchDangNhap } from '../../services/api';
+
+const Signin = ({ navigation, route }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State để hiển thị/ẩn mật khẩu
-  
-    const togglePasswordVisibility = () => {
-      setShowPassword(true); // Hiển thị mật khẩu ngay khi nhấn vào mắt
-      // Sau 5 giây, ẩn mật khẩu
-      setTimeout(() => {
-        setShowPassword(false); 
-      }, 800); 
-    };
-  const handleLogin = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const { setIsLoggedIn } = route.params || {}; // Nhận setIsLoggedIn từ route
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(true);
+    setTimeout(() => {
+      setShowPassword(false);
+    }, 800);
+  };
+
+  const handleLogin = async () => {
     if (!email.includes("@")) {
       alert("Vui lòng nhập email hợp lệ!");
       return;
@@ -37,12 +41,26 @@ const Signin = ({ navigation }) => {
       alert("Mật khẩu phải có ít nhất 6 ký tự!");
       return;
     }
-    alert("Đăng nhập thành công!");
+
+    try {
+      const data = await fetchDangNhap(email, password);
+      // Lưu token vào AsyncStorage
+      await AsyncStorage.setItem('token', data.token);
+      // Cập nhật trạng thái đăng nhập
+      if (setIsLoggedIn) {
+        setIsLoggedIn(true);
+      }
+      alert("Đăng nhập thành công!");
+      // Điều hướng đến BottomTabNavigation
+      navigation.replace('Bottom');
+    } catch (error) {
+      alert(error.message || "Đăng nhập thất bại!");
+    }
   };
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1,width:"100%" }}
+      style={{ flex: 1, width: "100%" }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -74,7 +92,7 @@ const Signin = ({ navigation }) => {
               />
               <TouchableOpacity onPress={togglePasswordVisibility}>
                 <Icon
-                  name={showPassword ? "eye" : "eye-slash"} // Thay đổi biểu tượng dựa vào trạng thái
+                  name={showPassword ? "eye" : "eye-slash"}
                   size={20}
                   color="#777"
                   style={styles.icon}
@@ -94,7 +112,7 @@ const Signin = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1, // 👈 quan trọng: để cuộn khi bàn phím xuất hiện
+    flexGrow: 1,
     alignItems: "center",
     backgroundColor: "#fff",
     paddingTop: 20,
@@ -128,7 +146,6 @@ const styles = StyleSheet.create({
     width: "80%",
     alignItems: "center",
     marginTop: 28,
-
   },
   labelText: {
     fontSize: TEXT.medium,

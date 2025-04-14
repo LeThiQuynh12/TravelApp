@@ -1,3 +1,4 @@
+// Authentication.jsx
 import React, { useState } from 'react';
 
 import {
@@ -13,15 +14,15 @@ import { TEXT } from '../../constants/theme';
 import Registration from './Registration';
 import Signin from './Signin';
 
-const Authentication = () => {
+const Authentication = ({ navigation, route }) => {
   const [selectedTab, setSelectedTab] = useState("signin");
+  const { setIsLoggedIn } = route.params || {}; // Nhận setIsLoggedIn từ route
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Hình ảnh */}
       <Image
         source={{
-          // uri: "https://i.pinimg.com/474x/ba/94/26/ba9426e86e1e4b9675f1c83c84970a03.jpg",
           uri: "https://i.pinimg.com/474x/57/81/ee/5781ee3858125aaa7494c2bff48b9d19.jpg",
         }}
         style={styles.image}
@@ -49,7 +50,11 @@ const Authentication = () => {
       </View>
 
       {/* Hiển thị form tương ứng */}
-      {selectedTab === "registration" ? <Registration /> : <Signin />}
+      {selectedTab === "registration" ? (
+        <Registration navigation={navigation} route={route} />
+      ) : (
+        <Signin navigation={navigation} route={route} />
+      )}
     </SafeAreaView>
   );
 };
@@ -62,15 +67,14 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   image: {
-    width: '100%', // Giảm chiều rộng để ảnh không chiếm toàn màn hình
-    height: 240, // Giảm chiều cao để cân đối
-    // resizeMode: "contain", // Đảm bảo ảnh hiển thị đầy đủ, không bị cắt
-    marginTop: -45, // Thêm khoảng cách phía trên để bố cục đẹp hơn
+    width: '100%',
+    height: 240,
+    marginTop: -45,
   },
   tabWrapper: {
     flexDirection: "row",
     paddingTop: 20,
-    width: '100%', // Đảm bảo tab chiếm toàn chiều rộng
+    width: '100%',
   },
   tab: {
     flex: 1,
@@ -83,7 +87,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#3CA684',
   },
   tabText: {
-    fontSize: TEXT.medium-1,
+    fontSize: TEXT.medium - 1,
     fontWeight: "bold",
     color: "#777",
   },
