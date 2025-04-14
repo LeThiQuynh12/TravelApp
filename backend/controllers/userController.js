@@ -18,7 +18,7 @@ module.exports = {
     // Lấy thông tin người dùng hiện tại
     getUser: async (req, res, next) => {
         const user_id = req.user.id; // Lấy từ token
-        console.log(user_id); 
+        // console.log(user_id); 
         try {
             const user = await User.findById(user_id, {
                 password: 0,     // Không trả về mật khẩu
