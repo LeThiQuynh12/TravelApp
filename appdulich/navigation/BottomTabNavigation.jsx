@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { COLORS } from '../constants/theme';
 import Authentication from '../screens/authentication/authentication';
-import Chat from '../screens/chat/Chat';
+import Contact from '../screens/chat/Contact';
 import Home from '../screens/home/Home';
 import Location from '../screens/location/Location';
 import Profile from '../screens/profile/Profile';
@@ -68,36 +68,6 @@ const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
         }} 
         />
 
-        <Tab.Screen name="Location" component={Location} 
-                options={{
-                    tabBarStyle: tabBarStyle,
-                    tabBarShowLabel: false,
-                    headerShown: false,
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons 
-                            name={focused ? "location" : "location-outline"} 
-                            color={focused ? COLORS.red : COLORS.gray} 
-                            size={26} 
-                        />
-                    )
-                }} 
-                />
-
-        <Tab.Screen name="Chat" component={Chat} 
-                options={{
-                    tabBarStyle: tabBarStyle,
-                    tabBarShowLabel: false,headerShown: false,
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons 
-                            name={focused ? "chatbubble" : "chatbubble-outline"} 
-                            color={focused ? COLORS.red : COLORS.gray} 
-                            size={26} 
-                        />
-                    )
-                }} 
-                />
-
-        
 
         <Tab.Screen name="Vehicle" component={Vehicle} 
                 options={{
@@ -114,7 +84,34 @@ const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
                 />
 
 
+<Tab.Screen name="Location" component={Location} 
+                options={{
+                    tabBarStyle: tabBarStyle,
+                    tabBarShowLabel: false,
+                    headerShown: false,
+                    tabBarIcon: ({ focused }) => (
+                        <Ionicons 
+                            name={focused ? "location" : "location-outline"} 
+                            color={focused ? COLORS.red : COLORS.gray} 
+                            size={26} 
+                        />
+                    )
+                }} 
+                />
 
+            <Tab.Screen name="Contact" component={Contact} 
+                    options={{
+                        tabBarStyle: tabBarStyle,
+                        tabBarShowLabel: false,headerShown: false,
+                        tabBarIcon: ({ focused }) => (
+                            <Ionicons 
+                                name={focused ? "chatbubble" : "chatbubble-outline"} 
+                                color={focused ? COLORS.red : COLORS.gray} 
+                                size={26} 
+                            />
+                        )
+                    }} 
+                    />
 
         <Tab.Screen
             name={isLoggedIn ? "Profile" : "authentication"}
