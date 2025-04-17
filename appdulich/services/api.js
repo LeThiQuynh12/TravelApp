@@ -5,7 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tạo instance Axios với cấu hình mặc định
 const api = axios.create({
-  baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend của bạn
+  // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
+  baseURL: 'http://192.168.1.14:5003/api',
+  
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
   },
@@ -89,5 +91,18 @@ export const getHotelById = async (id) => {
   } catch (error) {
     console.log('Lỗi khi lấy chi tiết khách sạn:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Lấy chi tiết khách sạn thất bại!');
+  }
+};
+
+// Hàm lấy danh sách phòng thep hotelId
+export const getRooms = async (hotelid) => {
+  try {
+    const response = await api.get('/rooms', {
+      params: { hotelid }, // Truyền hotelid như query parameter
+    });
+    return response.data.data; // Trả về danh sách phòng từ response
+  } catch (error) {
+    console.log('Lỗi lấy danh sách phòng:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy danh sách phòng thất bại!');
   }
 };

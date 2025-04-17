@@ -92,7 +92,7 @@ const HotelDetails = ({ navigation }) => {
               <View style={rowWithSpace('space-between')}>
                 <Rating maxStars={5} stars={hotel.rating} bordered={false} color={'#FD9942'} />
                 <ReusableText
-                  text={`(${hotel.review})`}
+                  text={`(${hotel.review} đánh giá)`}
                   family={'medium'}
                   size={SIZES.medium}
                   color={COLORS.gray}
@@ -146,14 +146,14 @@ const HotelDetails = ({ navigation }) => {
           <ReusableText
             text={`${hotel.price} VND`}
             family={'medium'}
-            size={SIZES.large}
+            size={SIZES.medium}
             color={COLORS.black}
           />
           <HeightSpacer height={5} />
           <ReusableText
             text={'01 thg 01 - 25 thg 12'}
             family={'medium'}
-            size={SIZES.medium - 2}
+            size={SIZES.medium - 3}
             color={COLORS.gray}
           />
         </View>
@@ -161,7 +161,7 @@ const HotelDetails = ({ navigation }) => {
         <ReusableBtn
           onPress={() => navigation.navigate('SelectRoom', { hotelId: hotel._id })}
           btnText={'Chọn phòng'}
-          width={(SIZES.width - 50) / 2.2}
+          width={(SIZES.width - 50) / 2.8}
           backgroundColor={COLORS.green}
           borderColor={COLORS.green}
           borderWidth={0}
