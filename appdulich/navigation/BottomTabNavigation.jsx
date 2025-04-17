@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { COLORS } from '../constants/theme';
 import Authentication from '../screens/authentication/authentication';
 import Contact from '../screens/chat/Contact';
+import Explore from '../screens/explore/Explore';
 import Home from '../screens/home/Home';
 import Location from '../screens/location/Location';
 import Profile from '../screens/profile/Profile';
@@ -16,7 +17,7 @@ const Tab = createBottomTabNavigator();
 const tabBarStyle = {
     padding: 20,
     borderRadius:20,
-    height: 80,
+    height: 82,
     position: "absolute",
     // bottom: 20,
     left: 20,
@@ -84,7 +85,7 @@ const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
                 />
 
 
-<Tab.Screen name="Location" component={Location} 
+            <Tab.Screen name="Location" component={Location} 
                 options={{
                     tabBarStyle: tabBarStyle,
                     tabBarShowLabel: false,
@@ -106,6 +107,21 @@ const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
                         tabBarIcon: ({ focused }) => (
                             <Ionicons 
                                 name={focused ? "chatbubble" : "chatbubble-outline"} 
+                                color={focused ? COLORS.red : COLORS.gray} 
+                                size={26} 
+                            />
+                        )
+                    }} 
+                    />
+
+        
+            <Tab.Screen name="Explore" component={Explore} 
+                    options={{
+                        tabBarStyle: tabBarStyle,
+                        tabBarShowLabel: false,headerShown: false,
+                        tabBarIcon: ({ focused }) => (
+                            <Ionicons 
+                                name={focused ? "compass" : "compass-outline"} 
                                 color={focused ? COLORS.red : COLORS.gray} 
                                 size={26} 
                             />

@@ -67,3 +67,27 @@ export const getUser = async () => {
     throw new Error(error.response?.data?.message || 'Lấy thông tin người dùng thất bại!');
   }
 };
+
+// Hàm lấy danh sách khách sạn
+export const getHotels = async () => {
+  try {
+    const response = await api.get('/hotels');
+    console.log('Danh sách khách sạn từ backend:', response.data);
+    return response.data.data; // Trả về mảng hotels từ response
+  } catch (error) {
+    console.log('Lỗi khi lấy danh sách khách sạn:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy danh sách khách sạn thất bại!');
+  }
+};
+
+// Hàm lấy chi tiết khách sạn theo ID
+export const getHotelById = async (id) => {
+  try {
+    const response = await api.get(`/hotels/${id}`);
+    console.log('Chi tiết khách sạn từ backend:', response.data);
+    return response.data.data; // Trả về object hotel từ response
+  } catch (error) {
+    console.log('Lỗi khi lấy chi tiết khách sạn:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy chi tiết khách sạn thất bại!');
+  }
+};

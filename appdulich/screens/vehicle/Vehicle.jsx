@@ -113,14 +113,15 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.green 
   },
   tabText: { 
-    fontSize: TEXT.medium, 
+    fontSize: TEXT.medium+1, 
     color: COLORS.red, 
     marginTop: 5,
     fontWeight: "bold",
   },
   activeText: { 
     color: COLORS.white, 
-    fontWeight: "bold" 
+    fontWeight: "bold",
+    fontSize: TEXT.medium+1
   },
 });
 

@@ -18,6 +18,7 @@ import ReusableBtn from '../../components/Buttons/ReusableBtn';
 import {
   COLORS,
   SIZES,
+  TEXT,
 } from '../../constants/theme';
 
 const cities =["Hà Nội", "Đà Nẵng"];
@@ -273,7 +274,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   title: {
-    fontSize: SIZES.large,
+    fontSize: TEXT.large,
     fontWeight: "bold",
     color: COLORS.dark,
     marginBottom: 10,

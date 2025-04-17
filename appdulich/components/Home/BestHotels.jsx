@@ -3,7 +3,6 @@ import {
   useState,
 } from 'react';
 
-import axios from 'axios';
 import {
   FlatList,
   StyleSheet,
@@ -19,24 +18,24 @@ import {
   SIZES,
   TEXT,
 } from '../../constants/theme.js';
+import { getHotels } from '../../services/api.js'; // Import hàm getHotels
 import { rowWithSpace } from '../Reusable/reusable.style.js';
 import ReusableText from '../Reusable/ReusableText.jsx';
 import HotelCard from '../Tiles/Hotels/HotelCard.jsx';
 
 const BestHotels = () => {
-    const navigation = useNavigation();
-    const [hotels, setHotels] = useState([]); // State chua list hotels
-    const [loading, setLoading] = useState(true); 
-    const API_URL = "https://67e017447635238f9aac7da4.mockapi.io/api/v1/hotels/";
+  const navigation = useNavigation();
+  const [hotels, setHotels] = useState([]); // State chứa list hotels
+  const [loading, setLoading] = useState(true);
 
-      // Gọi API khi component được render
+  // Gọi API khi component được render
   useEffect(() => {
     const fetchHotels = async () => {
       try {
-        const response = await axios.get(API_URL);
-        setHotels(response.data); // Cập nhật state với dữ liệu từ API
+        const response = await getHotels();
+        setHotels(response); // Cập nhật state với dữ liệu từ API
       } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu khách sạn:", error);
+        console.error('Lỗi khi lấy dữ liệu khách sạn:', error.message);
       } finally {
         setLoading(false); // Dừng loading
       }
@@ -44,52 +43,45 @@ const BestHotels = () => {
 
     fetchHotels();
   }, []);
-   
-    
+
   return (
     <View style={styles.container}>
-      <View style={[rowWithSpace('space-between'), { paddingBottom: 10 }]} >
+      <View style={[rowWithSpace('space-between'), { paddingBottom: 10 }]}>
+        <ReusableText
+          text={'Khách sạn gần'}
+          family={'medium'}
+          size={TEXT.large}
+          color={COLORS.black}
+        />
+        <TouchableOpacity onPress={() => navigation.navigate('HotelSearch')}>
+          <Feather name="list" size={20} />
+        </TouchableOpacity>
+      </View>
 
-      <ReusableText
-        text={'Khách sạn gần'}
-        family={"medium"}
-        size={TEXT.large}
-        color={COLORS.black}
-    />
-    <TouchableOpacity onPress={()=>navigation.navigate("HotelList")}>
-    <Feather
-    name="list"
-    size={20}
-    />
-    </TouchableOpacity>
+      <FlatList
+        data={hotels} // mảng dữ liệu
+        horizontal // theo chiều ngang
+        keyExtractor={(item) => item._id} // Sử dụng _id từ MongoDB thay vì id
+        showsHorizontalScrollIndicator={false} // ẩn cuộn ngang
+        contentContainerStyle={{ columnGap: SIZES.medium }} // tạo khoảng cách giữa các phần tử
+        renderItem={({ item }) => (
+          <HotelCard
+            item={item}
+            margin={10}
+            onPress={() =>
+              navigation.navigate('HotelDetails', { id: item._id })
+            }
+          />
+        )}
+      />
     </View>
+  );
+};
 
-    <FlatList
-    data ={hotels} // mang du lieu
-    horizontal // theo chieu ngang
-    keyExtractor={(item) => item.id}  // id uy nhatidid
-    showsHorizontalScrollIndicator={false} // an cuon ngang
-    contentContainerStyle={{columnGap: SIZES.medium}} // tạo khoảng cách giữa các phần tử
-    renderItem={({item}) => (
-       <HotelCard item={item} margin={10} 
-       
-       onPress={()=>navigation.navigate("HotelDetails", { id: item.id })
-       } 
-       />
-       
-    )}
-
-
-    />
-
-
-    </View>
-  )
-}
 const styles = StyleSheet.create({
-    container:{
-        paddingTop: 30
-    }
-})
+  container: {
+    paddingTop: 30,
+  },
+});
 
-export default BestHotels
+export default BestHotels;

@@ -18,8 +18,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 import {
-  AntDesign,
   Feather,
+  Ionicons,
 } from '@expo/vector-icons';
 
 import BestHotels from '../../components/Home/BestHotels.jsx';
@@ -62,11 +62,17 @@ const Home = ({ navigation }) => {
   return (
     <SafeAreaView style={reusable.container}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-        <View style={rowWithSpace("space-between")}>
-          <ReusableText text={"Xin Chào Quỳnh!"} family={"regular"} size={TEXT.large} color={COLORS.black} />
-          <TouchableOpacity style={styles.box} onPress={() => navigation.navigate("Search")}>
-            <AntDesign name="search1" size={26} />
-          </TouchableOpacity>
+        <View style={{flexDirection: "row", justifyContent:"space-between"}}>
+          <View style={{flexDirection: "row"}}>
+          <Ionicons name='moon-outline' size={25} color={"orange"}/>
+          <ReusableText text={" Xin Chào Quỳnh!"} family={"regular"} size={TEXT.large} color={COLORS.black} />
+          </View>
+
+        <View style={styles.logo}>
+          <Image source={{uri:"https://cdn-icons-png.flaticon.com/128/1585/1585600.png"}} style={{width: 22, height: 22}}/>
+        <Text style={{color:"orange", fontWeight:"500"}}>LuxGo</Text>
+        </View>
+            
         </View>
 
         <HeightSpacer height={15} />
@@ -118,6 +124,16 @@ const Home = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  logo:{
+    width:120,
+    height: 50,
+    alignItems: "center", 
+    backgroundColor: COLORS.lightWhite, 
+    borderRadius: 20, justifyContent: "center", 
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "orange",
+  },
   box: {
     backgroundColor: COLORS.white,
     width: 40,
