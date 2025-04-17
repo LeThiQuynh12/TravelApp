@@ -5,13 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tạo instance Axios với cấu hình mặc định
 const api = axios.create({
-<<<<<<< HEAD
   baseURL: 'http://172.20.10.3:5003/api', // Địa chỉ backend của bạn
-=======
   // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
   baseURL: 'http://192.168.1.14:5003/api',
   
->>>>>>> ed9da62f5cfa99fe8919e394c56c5f1a414d5eaa
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
   },

@@ -13,12 +13,8 @@
     "@expo/vector-icons": "^14.0.4",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/checkbox": "^0.5.17",
-<<<<<<< HEAD
-    "@react-native-community/datetimepicker": "8.2.0",
-=======
     "@react-native-community/cli": "^18.0.0",
     "@react-native-community/datetimepicker": "^8.3.0",
->>>>>>> ed9da62f5cfa99fe8919e394c56c5f1a414d5eaa
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/bottom-tabs": "^7.3.3",
     "@react-navigation/material-top-tabs": "^7.1.1",
