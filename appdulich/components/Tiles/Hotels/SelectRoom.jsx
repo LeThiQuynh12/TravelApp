@@ -21,32 +21,75 @@ import {
   SIZES,
   TEXT,
 } from '../../../constants/theme';
+import { getRooms } from '../../../services/api.js'; // Import hàm getRooms
 import AppBar from '../../Reusable/AppBar';
 import HeightSpacer from '../../Reusable/HeightSpacer';
 
 const SelectRoom = ({ route, navigation }) => {
-
-  const hotelId = route.params?.hotelId; // Lay hotelId tu params
+  const hotelId = route.params?.hotelId; // Lấy hotelId từ params
   const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchRooms = async () => {
-        try {
-            let response = await fetch(`https://67e017447635238f9aac7da4.mockapi.io/api/v1/rooms?hotelid=${hotelId}`);
-            if (!response.ok) {  // Kiểm tra nếu response lỗi
-                throw new Error(`Lỗi HTTP! Status: ${response.status}`);
-            }
-            let data = await response.json();  // Chuyển response thành JSON
-            setRooms(data);
-        } catch (error) {
-            console.error("Lỗi khi fetch dữ liệu phòng:", error);
-        }
+      if (!hotelId) {
+        setError('Không tìm thấy ID khách sạn!');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getRooms(hotelId); // Gọi API từ backend
+        setRooms(data);
+        setError(null);
+      } catch (err) {
+        setError(err.message || 'Không thể tải danh sách phòng!');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if (hotelId) fetchRooms();  // Chỉ gọi API nếu có hotelId
-  }, [hotelId]);  // Chạy lại khi hotelId thay đổi
+    fetchRooms();
+  }, [hotelId]);
 
-  const hotel = route.params?.hotel || { title: "Khách sạn LuxGo" };
+
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <AppBar
+          top={50}
+          left={20}
+          right={20}
+          title={"Danh sách phòng"}
+          color={COLORS.white}
+          onPress={() => navigation.goBack()}
+          style={{ marginBottom: 20 }}
+        />
+        <HeightSpacer height={80} />
+        <Text style={styles.loadingText}>Đang tải...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <AppBar
+          top={50}
+          left={20}
+          right={20}
+          title={"Danh sách phòng "}
+          color={COLORS.white}
+          onPress={() => navigation.goBack()}
+          style={{ marginBottom: 20 }}
+        />
+        <HeightSpacer height={80} />
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -54,19 +97,16 @@ const SelectRoom = ({ route, navigation }) => {
         top={50}
         left={20}
         right={20}
-        title={`Phòng của Khách sạn ${hotelId}`}
+        title={"Danh sách phòng"}
         color={COLORS.white}
-        // icon={"search1"}
-        // color1={COLORS.white}
         onPress={() => navigation.goBack()}
-        // onPress1={() => navigation.navigate("HotelSearch")}
         style={{ marginBottom: 20 }}
       />
       <HeightSpacer height={80} />
       <FlatList
         data={rooms}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <RoomCard room={item} navigation={navigation} />} // Truyền navigation vào RoomCard
+        keyExtractor={(item) => item._id} // Sử dụng _id từ backend thay vì id
+        renderItem={({ item }) => <RoomCard room={item} navigation={navigation} />}
       />
     </View>
   );
@@ -98,9 +138,7 @@ const RoomCard = ({ room, navigation }) => {
         horizontal
         pagingEnabled
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Image source={{ uri: item.uri }} style={styles.sliderImage} />
-        )}
+        renderItem={({ item }) => <Image source={{ uri: item.uri }} style={styles.sliderImage} />}
       />
 
       <Text style={styles.roomTitle}>{room.name}</Text>
@@ -133,8 +171,9 @@ const RoomCard = ({ room, navigation }) => {
       </View>
 
       {/* Nút chọn phòng */}
-      <TouchableOpacity style={styles.button}
-        onPress={() => navigation.navigate("CustomerInfo")}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('CustomerInfo', { roomId: room._id })} // Truyền roomId sang màn hình tiếp theo
       >
         <Text style={styles.buttonText}>Chọn phòng</Text>
       </TouchableOpacity>
@@ -147,7 +186,6 @@ export default SelectRoom;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: COLORS.lightGrey,
     padding: SIZES.medium,
   },
   roomCard: {
@@ -161,17 +199,18 @@ const styles = StyleSheet.create({
     width: SIZES.width - 50,
     height: 130,
     borderRadius: 10,
-    resizeMode: "cover",
+    resizeMode: 'cover',
   },
   roomTitle: {
     fontSize: TEXT.large,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.dark,
     marginTop: SIZES.small,
+    marginVertical: 14,
   },
   infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: SIZES.xSmall,
   },
   roomInfo: {
@@ -180,30 +219,42 @@ const styles = StyleSheet.create({
     marginLeft: SIZES.xSmall,
   },
   priceContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: SIZES.small,
   },
   oldPrice: {
-    textDecorationLine: "line-through",
+    textDecorationLine: 'line-through',
     color: COLORS.red,
     marginRight: SIZES.small,
   },
   newPrice: {
     fontSize: TEXT.medium,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.blue,
   },
   button: {
     backgroundColor: COLORS.green,
     padding: SIZES.medium,
     borderRadius: SIZES.small,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: SIZES.medium,
   },
   buttonText: {
     color: COLORS.white,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: TEXT.medium,
+  },
+  loadingText: {
+    fontSize: TEXT.medium,
+    color: COLORS.gray,
+    textAlign: 'center',
+    marginTop: SIZES.large,
+  },
+  errorText: {
+    fontSize: TEXT.medium,
+    color: COLORS.red,
+    textAlign: 'center',
+    marginTop: SIZES.large,
   },
 });

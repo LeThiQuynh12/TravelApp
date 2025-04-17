@@ -56,7 +56,7 @@ const HotelCard = ({item, margin, onPress}) => {
             <Rating rating={item.rating} />
             <WidthSpacer width={5} />
             <ReusableText
-              text={`(${item.review})`}  // Sửa lỗi cú pháp từ (${item.review}) => `(${item.review})`
+              text={`(${item.review} đánh giá)`}  // Sửa lỗi cú pháp từ (${item.review}) => `(${item.review})`
               family={"medium"}
               size={14}
               color={COLORS.gray}
@@ -73,7 +73,7 @@ export default HotelCard
 
 const styles = StyleSheet.create({
     card: (margin) =>({
-        width: SIZES.width/2.1,
+        width: SIZES.width/2.14,
         height: 285,
         borderRadius: 16,
         backgroundColor: COLORS.lightWhite,

@@ -5,7 +5,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tạo instance Axios với cấu hình mặc định
 const api = axios.create({
+<<<<<<< HEAD
   baseURL: 'http://172.20.10.3:5003/api', // Địa chỉ backend của bạn
+=======
+  // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
+  baseURL: 'http://192.168.1.14:5003/api',
+  
+>>>>>>> ed9da62f5cfa99fe8919e394c56c5f1a414d5eaa
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
   },
@@ -65,5 +71,42 @@ export const getUser = async () => {
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Lấy thông tin người dùng thất bại!');
+  }
+};
+
+// Hàm lấy danh sách khách sạn
+export const getHotels = async () => {
+  try {
+    const response = await api.get('/hotels');
+    console.log('Danh sách khách sạn từ backend:', response.data);
+    return response.data.data; // Trả về mảng hotels từ response
+  } catch (error) {
+    console.log('Lỗi khi lấy danh sách khách sạn:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy danh sách khách sạn thất bại!');
+  }
+};
+
+// Hàm lấy chi tiết khách sạn theo ID
+export const getHotelById = async (id) => {
+  try {
+    const response = await api.get(`/hotels/${id}`);
+    console.log('Chi tiết khách sạn từ backend:', response.data);
+    return response.data.data; // Trả về object hotel từ response
+  } catch (error) {
+    console.log('Lỗi khi lấy chi tiết khách sạn:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy chi tiết khách sạn thất bại!');
+  }
+};
+
+// Hàm lấy danh sách phòng thep hotelId
+export const getRooms = async (hotelid) => {
+  try {
+    const response = await api.get('/rooms', {
+      params: { hotelid }, // Truyền hotelid như query parameter
+    });
+    return response.data.data; // Trả về danh sách phòng từ response
+  } catch (error) {
+    console.log('Lỗi lấy danh sách phòng:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy danh sách phòng thất bại!');
   }
 };

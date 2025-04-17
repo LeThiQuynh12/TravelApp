@@ -1,18 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
+
+import axios from 'axios';
 import {
-  View,
-  Text,
   FlatList,
   ScrollView,
-  StyleSheet
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import axios from 'axios';
-import NetworkImage from '../../components/Reusable/NetworkImage';
 import MapView, { Marker } from 'react-native-maps';
 
-const PlaceDetails = () => {
+import { useRoute } from '@react-navigation/native';
+
+import NetworkImage from '../../components/Reusable/NetworkImage';
+
+const PlaceDetails = (navigation) => {
   const route = useRoute();
+  const id = route.params;
+  console.log(id);
   const { item } = route.params;
   const [loading, setLoading] = useState(false);
   const [all, setAll] = useState([]);
