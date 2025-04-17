@@ -16,6 +16,17 @@ export const COLORS = {
   gray: "#8C8C8C",
   lightGrey: "#D1CFD5",
   lightCyan: "#F6FBFF",
+  skyBlue: '#5D9CEC',
+  mint: '#48CFAD',
+  peach: '#FC6E51',
+  lavender: '#AC92EC',
+  pink: '#EC87C0',
+  coral: '#FF6B6B',
+  lightSkyBlue: '#E7F2FD',
+  lightMint: '#E8F8F3',
+  lightPeach: '#FEE9E5',
+  lightLavender: '#F2EDFC',
+  lightPink: '#FBEBF2',
 };
 const SIZES = {
     xSmall: 10,

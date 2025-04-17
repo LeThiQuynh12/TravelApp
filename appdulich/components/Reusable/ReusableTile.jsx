@@ -22,13 +22,13 @@ const ReusableTile = ({ item, onPress }) => {
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={rowWithSpace("flex-start")}>  
         {/* Hình ảnh địa điểm */}
-        <NetworkImage source={item.imageUrl} width={80} height={80} radius={12} />
+        <NetworkImage source={item.image} width={80} height={80} radius={12} />
         <WidthSpacer width={15} />
 
         <View>
           {/* Tiêu đề */}
           <ReusableText
-            text={item.title}
+            text={item.name}
             family={"medium"}
             size={SIZES.medium}
             color={COLORS.black}
@@ -37,7 +37,7 @@ const ReusableTile = ({ item, onPress }) => {
 
           {/* Địa điểm */}
           <ReusableText
-            text={item.location}  // item.location chưa được định nghĩa trong dữ liệu
+            text={item.address}  // item.location chưa được định nghĩa trong dữ liệu
             family={"medium"}
             size={14}
             color={COLORS.gray}

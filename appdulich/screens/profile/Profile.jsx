@@ -48,67 +48,92 @@ const Profile = ({ navigation, route }) => {
         title="Tài khoản"
         color={COLORS.white}
         top={50}
-        left={10}
-        right={10}
+        left={20}
+        right={20}
         onPress={() => navigation.goBack()}
       />
 
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: "https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180",
-          }}
-          style={styles.avatar}
-        />
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>LÊ THỊ QUỲNH</Text>
-          <TouchableOpacity style={styles.editImage}>
-            <Icon name="user-pen" size={20} />
-            <Text style={styles.editText}> Sửa ảnh</Text>
+      {/* Profile Header Section */}
+      <View style={styles.profileHeader}>
+        <View style={styles.avatarWrapper}>
+          <Image
+            source={{
+              uri: "https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180",
+            }}
+            style={styles.avatar}
+          />
+          <TouchableOpacity style={styles.editIcon} activeOpacity={0.8}>
+            <Icon name="camera" size={16} color={COLORS.white} />
           </TouchableOpacity>
+        </View>
+        
+        <View style={styles.userInfoContainer}>
+          <Text style={styles.userName}>LÊ THỊ QUỲNH</Text>
+          <Text style={styles.userEmail}>quynhlt@example.com</Text>
         </View>
       </View>
 
-      <View style={styles.listItem}>
-        <View style={styles.item}>
-          <Image
-            style={styles.imageItem}
-            source={{
-              uri: "https://images.icon-icons.com/1760/PNG/512/4105938-account-card-id-identification-identity-card-profile-user-profile_113929.png",
-            }}
-          />
-          <Text style={styles.itemText}> Thông tin cá nhân </Text>
-          <Icon name="angle-right" style={styles.iconItem} size={20} />
-        </View>
-        <View style={styles.under}></View>
-        <View style={styles.item}>
-          <Icons name="phone-call" style={styles.imageItem} size={30} />
-          <Text style={styles.itemText}> Số điện thoại </Text>
-          <Icon name="angle-right" style={styles.iconItem} size={20} />
-        </View>
-        <View style={styles.under}></View>
-        <View style={styles.item}>
-          <Icons name="mail" style={styles.imageItem} size={35} />
-          <Text style={styles.itemText}> Email </Text>
-          <Icon name="angle-right" style={styles.iconItem} size={20} />
-        </View>
-        <View style={styles.under}></View>
-        <View style={styles.item}>
-          <Icon name="user-lock" style={styles.imageItem} size={30} />
-          <Text style={styles.itemText}> Đổi mật khẩu </Text>
-          <Icon name="angle-right" style={styles.iconItem} size={20} />
-        </View>
-        <View style={styles.under}></View>
-        <View style={styles.item}>
-          <Image
-            style={styles.imageItem}
-            source={{
-              uri: "https://images.icon-icons.com/1947/PNG/512/4635002-bank_122546.png",
-            }}
-          />
-          <Text style={styles.itemText}> Liên kết ngân hàng </Text>
-          <Icon name="angle-right" style={styles.iconItem} size={20} />
-        </View>
+      {/* Profile Menu Section */}
+      <View style={styles.menuContainer}>
+        {/* Personal Info */}
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
+        onPress={() => navigation.navigate("PersonalInfoScreen")}>
+          <View style={[styles.menuIcon, { backgroundColor: COLORS.lightSkyBlue }]}>
+            <Icon name="user" size={20} color={COLORS.skyBlue} />
+          </View>
+          <Text style={styles.menuText}>Thông tin cá nhân</Text>
+          <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        {/* Phone Number */}
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
+        onPress={()=> navigation.navigate("PhoneNumber")}>
+          <View style={[styles.menuIcon, { backgroundColor: COLORS.lightMint }]}>
+            <Icon name="mobile-screen" size={20} color={COLORS.mint} />
+          </View>
+          <Text style={styles.menuText}>Số điện thoại</Text>
+          <Text style={styles.menuValue}>0987 654 321</Text>
+          <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        {/* Email */}
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
+        onPress={()=> navigation.navigate("Email")}>
+          <View style={[styles.menuIcon, { backgroundColor: COLORS.lightPeach }]}>
+            <Icon name="envelope" size={18} color={COLORS.peach} />
+          </View>
+          <Text style={styles.menuText}>Email</Text>
+          <Text style={styles.menuValue}>quynhlt@example.com</Text>
+          <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        {/* Change Password */}
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
+        onPress={()=> navigation.navigate("ChangePass")}>
+          <View style={[styles.menuIcon, { backgroundColor: COLORS.lightLavender }]}>
+            <Icon name="lock" size={20} color={COLORS.lavender} />
+          </View>
+          <Text style={styles.menuText}>Đổi mật khẩu</Text>
+          <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        {/* Bank Account */}
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
+        onPress={()=> navigation.navigate("Bank")}>
+          <View style={[styles.menuIcon, { backgroundColor: COLORS.lightPink }]}>
+            <Icon name="landmark" size={20} color={COLORS.pink} />
+          </View>
+          <Text style={styles.menuText}>Liên kết ngân hàng</Text>
+          <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
+        </TouchableOpacity>
       </View>
 
       <HeightSpacer height={30} />
@@ -128,76 +153,107 @@ const Profile = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "F5F5F5",
-    padding: 15,
+    backgroundColor: COLORS.lightWhite,
+    paddingHorizontal: 20,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 80,
-    paddingLeft: 20,
-    height: 100,
-    borderRadius: 20,
-    backgroundColor: "#E0F2F1",
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 100,
+    marginBottom: 25,
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    elevation: 2,
+    shadowColor: COLORS.lightShadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  avatarWrapper: {
+    position: 'relative',
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 3,
+    borderColor: COLORS.skyBlue,
   },
-  editImage: {
-    flexDirection: 'row',
-    paddingTop: 8,
+  editIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.skyBlue,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.white,
+    elevation: 3,
   },
-  userInfo: {
-    marginLeft: 15,
+  userInfoContainer: {
+    flex: 1,
+    marginLeft: 20,
   },
   userName: {
-    fontSize: TEXT.medium,
-    fontWeight: "bold",
-    color: "#D32F2F",
+    fontSize: TEXT.large,
+    fontWeight: '700',
+    color: COLORS.darkBlue,
+    marginBottom: 4,
   },
-  listItem: {
-    flexDirection: 'column',
-    padding: 10,
-    backgroundColor: 'white',
-    marginTop: 20,
-    borderRadius: 20,
+  userEmail: {
+    fontSize: TEXT.small,
+    color: COLORS.softGray,
+    fontWeight: '500',
   },
-  item: {
+  menuContainer: {
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 16,
+    elevation: 2,
+    shadowColor: COLORS.lightShadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  menuItem: {
     flexDirection: 'row',
-    padding: 10,
-    height: 65,
-    marginBottom: 1,
+    alignItems: 'center',
+    paddingVertical: 16,
   },
-  imageItem: {
-    height: 30,
+  menuIcon: {
     width: 40,
-    alignSelf: 'center',
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
-  itemText: {
-    fontSize: TEXT.medium,
-    fontWeight: 'bold',
-    alignSelf: 'center',
-    paddingLeft: 10,
-    justifyContent: 'space-between',
+  menuText: {
     flex: 1,
+    fontSize: TEXT.medium,
+    fontWeight: '600',
+    color: COLORS.darkBlue,
   },
-  iconItem: {
-    alignSelf: 'center',
+  menuValue: {
+    fontSize: TEXT.small,
+    color: COLORS.softGray,
+    marginRight: 12,
+    fontWeight: '500',
   },
-  under: {
+  divider: {
     height: 1,
-    width: "90%",
-    backgroundColor: "#eee",
-    marginVertical: 5,
-    alignSelf: 'center',
+    backgroundColor:"#eee",
+    
   },
-  editText: {
-    color: "#007AFF",
-    marginTop: 5,
-    fontSize: 15,
-    paddingLeft: 5,
+  bottomSection: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 30,
+    marginTop: 24,
   },
 });
 
