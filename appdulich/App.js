@@ -21,25 +21,27 @@ import HotelList from './components/Tiles/Hotels/HotelList.jsx';
 import ReviewsList from './components/Tiles/Hotels/ReviewsList.jsx';
 import SelectRoom from './components/Tiles/Hotels/SelectRoom.jsx';
 import PlaceList from './components/Tiles/Place/PlaceList.jsx';
+import VerificationScreen from './components/VerificationScreen.jsx';
 import BottomTabNavigation from './navigation/BottomTabNavigation';
+import ForgotPass from './screens/authentication/ForgotPass.jsx';
 import CountryDetails from './screens/details/CountryDetails.jsx';
 import HotelDetails from './screens/details/HotelDetails.jsx';
 import PlaceDetails from './screens/details/PlaceDetails.jsx';
 import Recommended from './screens/details/Recommended.jsx';
 import Onboarding from './screens/onboarding/Onboarding.jsx';
-import HotelSearch from './screens/search/HotelSearch.jsx';
-import Search from './screens/search/Search.jsx';
-import Profile from './screens/profile/Profile.jsx';
+import AccountDetail from './screens/profile/AccountDetail.jsx';
+import AddPaymentMethodScreen
+  from './screens/profile/AddPaymentMethodScreen.jsx';
+import Bank from './screens/profile/Bank.jsx';
+import ChangePass from './screens/profile/ChangePass.jsx';
+import Email from './screens/profile/Email.jsx';
+import LinkSuccessScreen from './screens/profile/LinkSuccessScreen.jsx';
 import PersonalInfoScreen from './screens/profile/PersonalInfoScreen.jsx';
 import PhoneNumber from './screens/profile/PhoneNumber.jsx';
-import Bank from './screens/profile/Bank.jsx'
-import ChangePass from './screens/profile/ChangePass.jsx'
-import Email from './screens/profile/Email.jsx'
-import ForgotPass from './screens/authentication/ForgotPass.jsx';
-import LinkSuccessScreen from './screens/profile/LinkSuccessScreen.jsx';
-import AddPaymentMethodScreen from './screens/profile/AddPaymentMethodScreen.jsx';
-import VerificationScreen from './components/VerificationScreen.jsx';
-import AccountDetail from './screens/profile/AccountDetail.jsx';
+import Profile from './screens/profile/Profile.jsx';
+import HotelSearch from './screens/search/HotelSearch.jsx';
+import Search from './screens/search/Search.jsx';
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {

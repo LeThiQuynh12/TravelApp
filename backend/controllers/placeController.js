@@ -352,6 +352,100 @@ exports.updatePlace = async (req, res, next) => {
   }
 };
 
+
+
+
+// Lấy danh sách highlights của một địa điểm
+exports.getPlaceHighlights = async (req, res, next) => {
+  try {
+    const place = await Place.findById(req.params.placeId)
+      .populate('highlights')
+      .lean();
+
+    if (!place) {
+      return res.status(404).json({
+        status: false,
+        message: 'Địa điểm không tồn tại',
+      });
+    }
+
+    // Thêm reviews cho mỗi highlight
+    const highlights = place.highlights || [];
+    for (let suggestion of highlights) {
+      const reviews = await mongoose.model('Review').find(
+        { targetType: 'Suggestion', targetId: suggestion._id },
+        'user review rating createdAt'
+      ).populate('user', 'name');
+      suggestion.reviews = reviews;
+    }
+
+    res.status(200).json({
+      status: true,
+      data: highlights,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Lấy danh sách suggestions của một địa điểm
+exports.getPlaceSuggestions = async (req, res, next) => {
+  try {
+    const place = await Place.findById(req.params.placeId)
+      .populate('suggestions')
+      .lean();
+
+    if (!place) {
+      return res.status(404).json({
+        status: false,
+        message: 'Địa điểm không tồn tại',
+      });
+    }
+
+    // Thêm reviews cho mỗi suggestion
+    const suggestions = place.suggestions || [];
+    for (let suggestion of suggestions) {
+      const reviews = await mongoose.model('Review').find(
+        { targetType: 'Suggestion', targetId: suggestion._id },
+        'user review rating createdAt'
+      ).populate('user', 'name');
+      suggestion.reviews = reviews;
+    }
+
+    res.status(200).json({
+      status: true,
+      data: suggestions,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Lấy danh sách nearbyProvinces của một địa điểm
+exports.getPlaceNearbyProvinces = async (req, res, next) => {
+  try {
+    const place = await Place.findById(req.params.placeId)
+      .populate('nearbyProvinces', 'name image location')
+      .lean();
+
+    if (!place) {
+      return res.status(404).json({
+        status: false,
+        message: 'Địa điểm không tồn tại',
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      data: place.nearbyProvinces || [],
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
+
 // Delete: Xóa địa điểm
 exports.deletePlace = async (req, res, next) => {
   try {

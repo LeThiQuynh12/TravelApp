@@ -1,36 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
+
 import {
+  FlatList,
+  Image,
+  SafeAreaView,
   StyleSheet,
   Text,
-  SafeAreaView,
-  FlatList,
-  View,
   TouchableOpacity,
-  Image,
+  View,
 } from 'react-native';
-import { COLORS, SIZES } from '../../../constants/theme';
+
+import { COLORS } from '../../../constants/theme';
+import { fetchPlaces } from '../../../services/api';
 import AppBar from '../../Reusable/AppBar';
-import Rating from '../../Reusable/Rating';
 
 const PlaceList = ({ navigation }) => {
-  const [place, setPlace] = useState([]);
+  const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
-  const API_URL = 'https://67eff56a2a80b06b88966c78.mockapi.io/dia_diem';
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchPlace = async () => {
+    const loadPlaces = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await axios.get(API_URL);
-        setPlace(response.data);
-      } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu:', error);
+        const placeList = await fetchPlaces();
+        setPlaces(placeList);
+      } catch (err) {
+        setError(err.message);
+        console.error('Lỗi khi lấy dữ liệu địa điểm:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPlace();
+    loadPlaces();
   }, []);
 
   const renderItem = ({ item }) => (
@@ -41,7 +48,7 @@ const PlaceList = ({ navigation }) => {
       <View style={styles.row}>
         {/* Ảnh */}
         <Image
-          source={{ uri: item.image }}
+          source={{ uri: item.image || item.image_url }}
           style={styles.image}
         />
 
@@ -49,18 +56,32 @@ const PlaceList = ({ navigation }) => {
         <View style={{ marginLeft: 15, flex: 1 }}>
           {/* Tên địa điểm */}
           <Text style={styles.name}>{item.name}</Text>
-
-          
         </View>
       </View>
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.statusText}>Đang tải dữ liệu...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={[styles.statusText, { color: COLORS.red }]}>{error}</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={{ marginHorizontal: 10 }}>
+    <SafeAreaView style={styles.container}>
       <View style={{ height: 50 }}>
         <AppBar
-          title={'Danh sách địa điểm '}
+          title={'Danh sách địa điểm'}
           color={COLORS.white}
           color1={COLORS.white}
           icon="search1"
@@ -74,9 +95,9 @@ const PlaceList = ({ navigation }) => {
 
       <View style={{ paddingTop: 10 }}>
         <FlatList
-          data={place}
+          data={places}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           contentContainerStyle={{ paddingBottom: 20 }}
         />
       </View>
@@ -87,6 +108,10 @@ const PlaceList = ({ navigation }) => {
 export default PlaceList;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginHorizontal: 10,
+  },
   tileContainer: {
     padding: 10,
     backgroundColor: COLORS.lightWhite,
@@ -95,8 +120,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: "center",
-  
+    alignItems: 'center',
   },
   image: {
     width: 80,
@@ -109,7 +133,10 @@ const styles = StyleSheet.create({
     fontFamily: 'medium',
     color: COLORS.black,
     marginBottom: 8,
-  
   },
-  
+  statusText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+  },
 });

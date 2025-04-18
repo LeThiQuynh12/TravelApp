@@ -50,7 +50,7 @@ const ReusableTile = ({ item, onPress }) => {
             <Rating rating={item.rating} />
             <WidthSpacer width={5} />
             <ReusableText
-              text={`(${item.review})`}  // Sửa lỗi cú pháp từ (${item.review}) => `(${item.review})`
+              text={`(${item.review} đánh giá)`}  // Sửa lỗi cú pháp từ (${item.review}) => `(${item.review})`
               family={"medium"}
               size={14}
               color={COLORS.gray}

@@ -1,61 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
 
 import {
+  Text,
   View,
   VirtualizedList,
 } from 'react-native';
 
-import { SIZES } from '../../constants/theme.js';
-import HeightSpacer from '../Reusable/HeightSpacer.jsx';
-import Country from '../Tiles/Country/Country.jsx';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
 
+import { SIZES } from '../../constants/theme';
+import { fetchPlaces } from '../../services/api';
+import HeightSpacer from '../Reusable/HeightSpacer';
+import Country from '../Tiles/Country/Country';
 
 const Places = () => {
   const navigation = useNavigation();
-  const [place, setPlace] = useState([]); 
-  const [loading, setLoading] = useState(true); 
-  const API_URL="https://67eff56a2a80b06b88966c78.mockapi.io/dia_diem";
+  const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Gọi API khi component được render
   useEffect(() => {
-    const fetchPlaces = async () => {
+    const loadPlaces = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await axios.get(API_URL);
-        setPlace(response.data); // Cập nhật state với dữ liệu từ API
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu ", error);
+        const placeList = await fetchPlaces();
+        setPlaces(placeList);
+      } catch (err) {
+        setError(err.message);
+        console.error('Lỗi khi lấy dữ liệu địa điểm:', err);
       } finally {
-        setLoading(false); // Dừng loading
+        setLoading(false);
       }
     };
 
-    fetchPlaces();
+    loadPlaces();
   }, []);
+
+  if (loading) {
+    return <Text>Đang tải dữ liệu...</Text>;
+  }
+
+  if (error) {
+    return <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>;
+  }
+
   return (
-    <View> 
-      <HeightSpacer height={10} /> 
-      {/* chỉ render các phần tử hiển thị trên màn hình thay vì toàn bộ danh sách. */}
-      <VirtualizedList               
-        data={place} 
-        horizontal 
-        keyExtractor={(item) => item.place_id} 
+    <View>
+      <HeightSpacer height={10} />
+      <VirtualizedList
+        data={places}
+        horizontal
+        keyExtractor={(item) => item._id} // Backend dùng _id thay vì place_id
         showsHorizontalScrollIndicator={false}
-        getItemCount={(data) => data.length} 
-        getItem={(data, index) => data[index]} 
-        renderItem={({ item, index }) => ( // Render từng item trong danh sách
-          <View style={{ marginRight: SIZES.medium }}> 
-          
-           {/* <Text>{item.country}</Text>         */}
-           <Country item={item} />
+        getItemCount={(data) => data.length}
+        getItem={(data, index) => data[index]}
+        renderItem={({ item }) => (
+          <View style={{ marginRight: SIZES.medium }}>
+            <Country
+              item={item}
+              onPress={() => navigation.navigate('CountryDetails', { item })}
+            />
           </View>
         )}
       />
     </View>
   );
-  
-  
-}
+};
 
-export default Places
+export default Places;
