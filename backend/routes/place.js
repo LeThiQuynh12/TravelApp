@@ -8,6 +8,18 @@ router.post('/places', placeController.createPlace);
 // Get all places
 router.get('/places', placeController.getAllPlaces);
 
+
+// Get highlights by place ID
+router.get('/places/:placeId/highlights', placeController.getPlaceHighlights);
+
+// Get suggestions by place ID
+router.get('/places/:placeId/suggestions', placeController.getPlaceSuggestions);
+
+// Get nearby provinces by place ID
+router.get('/places/:placeId/nearby', placeController.getPlaceNearbyProvinces);
+
+
+
 // Get place by ID
 router.get('/places/:id', placeController.getPlaceById);
 

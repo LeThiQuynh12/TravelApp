@@ -176,3 +176,85 @@ exports.deleteReview = async (req, res, next) => {
     return next(error);
   }
 };
+
+
+// Create: Tạo nhiều đánh giá cùng lúc
+exports.createMultipleReviews = async (req, res, next) => {
+  try {
+    const reviews = req.body; // Mong đợi một mảng các review
+
+    // Kiểm tra xem dữ liệu đầu vào có phải là mảng không
+    if (!Array.isArray(reviews) || reviews.length === 0) {
+      return res.status(400).json({
+        status: false,
+        message: 'Vui lòng cung cấp một mảng các đánh giá hợp lệ',
+      });
+    }
+
+    const savedReviews = [];
+    const errors = [];
+
+    // Duyệt qua từng review trong mảng
+    for (const reviewData of reviews) {
+      const { targetType, targetId, user, review, rating } = reviewData;
+
+      // Kiểm tra các trường bắt buộc
+      if (!targetType || !targetId || !user || !review || !rating) {
+        errors.push({
+          reviewData,
+          message: 'Vui lòng cung cấp đầy đủ thông tin (targetType, targetId, user, review, rating)',
+        });
+        continue;
+      }
+
+      // Kiểm tra targetType hợp lệ
+      if (!['Hotel', 'Suggestion'].includes(targetType)) {
+        errors.push({
+          reviewData,
+          message: 'targetType phải là Hotel hoặc Suggestion',
+        });
+        continue;
+      }
+
+      // Kiểm tra rating trong phạm vi 1-5
+      if (rating < 1 || rating > 5) {
+        errors.push({
+          reviewData,
+          message: 'Đánh giá phải nằm trong khoảng từ 1 đến 5',
+        });
+        continue;
+      }
+
+      // Tạo đánh giá mới
+      const newReview = new Review({
+        targetType,
+        targetId,
+        user,
+        review,
+        rating,
+      });
+
+      const savedReview = await newReview.save();
+      savedReviews.push(savedReview);
+    }
+
+    // Nếu có lỗi, trả về thông tin lỗi cùng với các đánh giá đã lưu
+    if (errors.length > 0) {
+      return res.status(400).json({
+        status: false,
+        message: 'Một số đánh giá không thể tạo',
+        data: savedReviews,
+        errors,
+      });
+    }
+
+    // Trả về phản hồi thành công
+    res.status(201).json({
+      status: true,
+      message: 'Tạo các đánh giá thành công',
+      data: savedReviews,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
