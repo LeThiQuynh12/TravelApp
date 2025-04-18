@@ -38,14 +38,7 @@ const PhoneNumber = ({ navigation }) => {
     setOtp(text);
   };
 
-//   const handleConfirmOtp = () => {
-//     if (otp.length === 6) {
-//       alert("Mã OTP hợp lệ!");
-//       setIsModalVisible(false);
-//     } else {
-//       alert("Vui lòng nhập đúng mã OTP!");
-//     }
-//   };
+
 
 //Giả sử set OTP đúng 
     const handleConfirmOtp = () => {
@@ -152,7 +145,7 @@ const PhoneNumber = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.White,
+    backgroundColor: COLORS.white,
     paddingHorizontal: 20,
   },
   content: {

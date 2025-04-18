@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Image,Platform } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Image, Platform } from "react-native";
 import { COLORS, SIZES } from "../../constants/theme";
 import AppBar from "../../components/Reusable/AppBar";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 20,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.lightGray,
+        borderBottomColor: COLORS.lightGrey,
         paddingBottom: 15,
     },
     accountLogo: {
