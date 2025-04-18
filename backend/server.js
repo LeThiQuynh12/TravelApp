@@ -13,6 +13,7 @@ const roomRoute = require('./routes/roomRoute');
 const placeRoute = require('./routes/place');
 const suggestionRoute = require('./routes/suggestion');
 const flightRoute = require('./routes/flight');
+const busRoute = require('./routes/buses');
 // Load biến môi trường từ file .env
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use('/api', roomRoute);
 app.use('/api', placeRoute);
 app.use('/api', suggestionRoute);
 app.use('/api', flightRoute);
+app.use('/api/bus', busRoute);
 // Route mặc định test server
 app.get('/', (req, res) => res.send('Hello World!'));
 
