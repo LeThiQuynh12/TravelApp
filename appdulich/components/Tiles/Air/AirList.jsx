@@ -19,6 +19,7 @@ import {
   COLORS,
   TEXT,
 } from '../../../constants/theme';
+import { searchFlights } from '../../../services/api';
 import AppBar from '../../Reusable/AppBar';
 import ReusableText from '../../Reusable/ReusableText';
 
@@ -48,181 +49,68 @@ const AirList = ({ navigation, route }) => {
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [selectedReturnFlight, setSelectedReturnFlight] = useState(null);
   const [isReturnTrip, setIsReturnTrip] = useState(false);
-  const [searchParams, setSearchParams] = useState({
-    from: 'HAN',
-    to: 'SGN',
-    departureDate: '18/3/2025',
-    returnDate: '20/3/2025',
-  });
+
+  // Lấy searchParams từ route.params
+  const { searchParams } = route.params || {};
+  const {
+    from,
+    to,
+    departureDate,
+    returnDate,
+    isRoundTrip,
+    adults = 0,
+    children = 0,
+    infants = 0,
+    departureDisplay,
+    destinationDisplay,
+  } = searchParams || {};
 
   useEffect(() => {
     const fetchFlights = async () => {
+      if (!from || !to || !departureDate) {
+        console.log('Thiếu tham số tìm kiếm:', { from, to, departureDate });
+        return;
+      }
+
       setIsLoading(true);
       try {
-        // Mock dữ liệu chuyến bay đi
-        const mockData = [
-          {
-            id: '1',
-            departureTime: '14:55',
-            arrivalTime: '17:00',
-            departureCity: 'HAN',
-            departureName: 'Hà Nội',
-            arrivalCity: 'SGN',
-            arrivalName: 'Hồ Chí Minh',
-            date: '18/3/2025',
-            flightNumber: 'VJ123', // Thêm trường flightNumber
-            airline: 'Vietjet Air',
-            ticketType: 'Eco',
-            price: '4.367.000 đ',
-            logo: 'https://logos-world.net/wp-content/uploads/2023/01/VietJet-Air-Logo.png',
-          },
-          {
-            id: '2',
-            departureTime: '15:30',
-            arrivalTime: '17:35',
-            departureCity: 'HAN',
-            departureName: 'Hà Nội',
-            arrivalCity: 'SGN',
-            arrivalName: 'Hồ Chí Minh',
-            date: '18/3/2025',
-            flightNumber: 'QH456', // Thêm trường flightNumber
-            airline: 'Bamboo Airways',
-            ticketType: 'Premium',
-            price: '5.200.000 đ',
-            logo: 'https://i.pinimg.com/originals/50/83/11/50831158220262d4079756c5a16365a2.png',
-          },
-          {
-            id: '3',
-            departureTime: '16:00',
-            arrivalTime: '18:05',
-            departureCity: 'HAN',
-            departureName: 'Hà Nội',
-            arrivalCity: 'SGN',
-            arrivalName: 'Hồ Chí Minh',
-            date: '19/3/2025',
-            flightNumber: 'VN789', // Thêm trường flightNumber
-            airline: 'Vietnam Airlines',
-            ticketType: 'Eco',
-            price: '3.900.000 đ',
-            logo: 'http://pluspng.com/img-png/vietnam-airlines-logo-vector-png-vietnam-airlines-logo-renewed-company-logo-2250.png',
-          },
-          {
-            id: '4',
-            departureTime: '16:30',
-            arrivalTime: '18:35',
-            departureCity: 'HAN',
-            departureName: 'Hà Nội',
-            arrivalCity: 'SGN',
-            arrivalName: 'Hồ Chí Minh',
-            date: '19/3/2025',
-            flightNumber: 'VJ234', // Thêm trường flightNumber
-            airline: 'Vietjet Air',
-            ticketType: 'Eco',
-            price: '4.100.000 đ',
-            logo: 'https://logos-world.net/wp-content/uploads/2023/01/VietJet-Air-Logo.png',
-          },
-        ];
+        const flightData = await searchFlights({
+          from,
+          to,
+          departureDate,
+          isRoundTrip,
+          returnDate,
+        });
 
-        // Mock dữ liệu chuyến bay khứ hồi
-        const mockReturnData = [
-          {
-            id: '5',
-            departureTime: '08:00',
-            arrivalTime: '10:05',
-            departureCity: 'SGN',
-            departureName: 'Hồ Chí Minh',
-            arrivalCity: 'HAN',
-            arrivalName: 'Hà Nội',
-            date: '20/3/2025',
-            flightNumber: 'VJ567', // Thêm trường flightNumber
-            airline: 'Vietjet Air',
-            ticketType: 'Eco',
-            price: '4.200.000 đ',
-            logo: 'https://logos-world.net/wp-content/uploads/2023/01/VietJet-Air-Logo.png',
-          },
-          {
-            id: '6',
-            departureTime: '09:30',
-            arrivalTime: '11:35',
-            departureCity: 'SGN',
-            departureName: 'Hồ Chí Minh',
-            arrivalCity: 'HAN',
-            arrivalName: 'Hà Nội',
-            date: '20/3/2025',
-            flightNumber: 'QH678', // Thêm trường flightNumber
-            airline: 'Bamboo Airways',
-            ticketType: 'Premium',
-            price: '5.500.000 đ',
-            logo: 'https://i.pinimg.com/originals/50/83/11/50831158220262d4079756c5a16365a2.png',
-          },
-          {
-            id: '7',
-            departureTime: '10:00',
-            arrivalTime: '12:05',
-            departureCity: 'SGN',
-            departureName: 'Hồ Chí Minh',
-            arrivalCity: 'HAN',
-            arrivalName: 'Hà Nội',
-            date: '21/3/2025',
-            flightNumber: 'VN890', // Thêm trường flightNumber
-            airline: 'Vietnam Airlines',
-            ticketType: 'Eco',
-            price: '3.800.000 đ',
-            logo: 'http://pluspng.com/img-png/vietnam-airlines-logo-vector-png-vietnam-airlines-logo-renewed-company-logo-2250.png',
-          },
-          {
-            id: '8',
-            departureTime: '11:30',
-            arrivalTime: '13:35',
-            departureCity: 'SGN',
-            departureName: 'Hồ Chí Minh',
-            arrivalCity: 'HAN',
-            arrivalName: 'Hà Nội',
-            date: '21/3/2025',
-            flightNumber: 'VJ345', // Thêm trường flightNumber
-            airline: 'Vietjet Air',
-            ticketType: 'Eco',
-            price: '4.000.000 đ',
-            logo: 'https://logos-world.net/wp-content/uploads/2023/01/VietJet-Air-Logo.png',
-          },
-        ];
+        const outboundFlights = [];
+        const returnFlightsData = [];
 
-        // Lọc dữ liệu dựa trên searchParams
-        const filteredFlights = mockData.filter(
-          (flight) =>
-            flight.departureCity === searchParams.from &&
-            flight.arrivalCity === searchParams.to &&
-            flight.date === searchParams.departureDate
-        );
+        flightData.forEach((item) => {
+          if (item.outbound) {
+            outboundFlights.push({
+              ...item.outbound,
+              id: item.outbound._id,
+            });
+          }
+          if (item.return) {
+            returnFlightsData.push({
+              ...item.return,
+              id: item.return._id,
+            });
+          }
+        });
 
-        const filteredReturnFlights = mockReturnData.filter(
-          (flight) =>
-            flight.departureCity === searchParams.to &&
-            flight.arrivalCity === searchParams.from &&
-            flight.date === searchParams.returnDate
-        );
-
-        setFlights(filteredFlights);
-        setReturnFlights(filteredReturnFlights);
+        setFlights(outboundFlights);
+        setReturnFlights(returnFlightsData);
       } catch (error) {
-        console.error('Error fetching flights:', error);
+        console.error('Lỗi khi lấy chuyến bay:', error.message);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchFlights();
-  }, [searchParams]);
-
-  // Hàm để cập nhật searchParams (sẽ được gọi từ nút tìm kiếm)
-  const handleSearch = (params) => {
-    setSearchParams({
-      from: params.from || searchParams.from,
-      to: params.to || searchParams.to,
-      departureDate: params.departureDate || searchParams.departureDate,
-      returnDate: params.returnDate || searchParams.returnDate,
-    });
-  };
+  }, [from, to, departureDate, returnDate, isRoundTrip]);
 
   // Hàm chuyển đổi thời gian sang phút để so sánh
   const timeToMinutes = (time) => {
@@ -232,7 +120,7 @@ const AirList = ({ navigation, route }) => {
 
   // Hàm chuyển đổi giá sang số để so sánh
   const priceToNumber = (price) => {
-    return parseFloat(price.replace(/[^\d]/g, '')); // Loại bỏ ký tự không phải số
+    return parseFloat(price.replace(/[^\d]/g, ''));
   };
 
   // Hàm sắp xếp chuyến bay
@@ -270,14 +158,16 @@ const AirList = ({ navigation, route }) => {
   const handleSelectFlight = (flight, isReturn = false) => {
     if (isReturn) {
       setSelectedReturnFlight(flight);
-      // Điều hướng sang màn hình AirDetail
       navigation.navigate('AirDetail', {
         departureFlight: selectedFlight,
         returnFlight: flight,
+        adults,
+        children,
+        infants,
       });
     } else {
       setSelectedFlight(flight);
-      setIsReturnTrip(true); // Chuyển sang danh sách chuyến về
+      setIsReturnTrip(true);
     }
   };
 
@@ -393,10 +283,8 @@ const AirList = ({ navigation, route }) => {
     );
   };
 
-  // Lấy departureName và arrivalName từ chuyến bay đầu tiên để hiển thị tiêu đề
-  const firstFlight = flights.length > 0 ? flights[0] : null;
-  const routeTitle = firstFlight
-    ? `${firstFlight.departureName} → ${firstFlight.arrivalName}`
+  const routeTitle = departureDisplay && destinationDisplay
+    ? `${departureDisplay} → ${destinationDisplay}`
     : 'Chọn chuyến bay';
 
   return (
@@ -411,7 +299,7 @@ const AirList = ({ navigation, route }) => {
       />
       <View style={styles.header}>
         <Text style={styles.tripInfo}>
-          {searchParams.departureDate}, 2 khách, Khứ hồi
+          {departureDate}, {adults + children + infants || 2} khách, {isRoundTrip ? 'Khứ hồi' : 'Một chiều'}
         </Text>
       </View>
       <View style={styles.textChooise}>
@@ -426,7 +314,6 @@ const AirList = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal sắp xếp */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -478,6 +365,14 @@ const AirList = ({ navigation, route }) => {
 
       {isLoading ? (
         <Text style={styles.loadingText}>Đang tải...</Text>
+      ) : (isReturnTrip ? returnFlights : flights).length === 0 ? (
+        <View style={styles.noResultsContainer}>
+          <Image
+            source={{ uri: 'https://via.placeholder.com/150?text=Không+Tìm+Thấy' }}
+            style={styles.noResultsImage}
+          />
+          <Text style={styles.noResultsText}>Không tìm thấy</Text>
+        </View>
       ) : (
         <FlatList
           data={isReturnTrip ? returnFlights : flights}
@@ -613,6 +508,22 @@ const styles = StyleSheet.create({
   loadingText: {
     textAlign: 'center',
     marginTop: 20,
+    fontSize: TEXT.medium,
+    color: COLORS.gray,
+  },
+  noResultsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+  },
+  noResultsImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 10,
+  },
+  noResultsText: {
+    textAlign: 'center',
     fontSize: TEXT.medium,
     color: COLORS.gray,
   },

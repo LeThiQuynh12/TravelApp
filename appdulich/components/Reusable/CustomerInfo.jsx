@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import {
   Image,
   ScrollView,
@@ -8,8 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS, SIZES, TEXT } from '../../constants/theme';
+
+import {
+  COLORS,
+  SIZES,
+  TEXT,
+} from '../../constants/theme';
 import AppBar from './AppBar';
 import HeightSpacer from './HeightSpacer';
 
@@ -51,9 +58,8 @@ const CustomerInfo = ({ navigation }) => {
           style={{ marginBottom: 20 }}
         />
         
-        <HeightSpacer height={100} />
+        <HeightSpacer height={85} />
         <Text style={styles.title}>Thông tin khách hàng</Text>
-        <HeightSpacer height={20} />
         
         {/* Customer information section */}
         <View style={styles.infoContainer}>
@@ -75,7 +81,7 @@ const CustomerInfo = ({ navigation }) => {
           />
         </View>
         
-        <HeightSpacer height={10} />
+      
         <Text style={styles.title}>Tài khoản thanh toán</Text>
 
         {/* Linked accounts section */}
@@ -117,7 +123,7 @@ const CustomerInfo = ({ navigation }) => {
         <TouchableOpacity 
           style={[
             styles.button,
-            !selectedPayment && { backgroundColor: COLORS.gray }
+            !selectedPayment && { backgroundColor: COLORS.red }
           ]}
           disabled={!selectedPayment}
           onPress={() => navigation.navigate("Confirmation")}
@@ -235,6 +241,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: SIZES.medium,
     marginHorizontal: 10,
+  
   },
   buttonText: {
     color: COLORS.white,

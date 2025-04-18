@@ -1,4 +1,7 @@
-import React from 'react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   Image,
@@ -10,10 +13,13 @@ import {
   View,
 } from 'react-native';
 
+import { Ionicons } from '@expo/vector-icons';
+
 import {
   COLORS,
   TEXT,
 } from '../../../constants/theme';
+import { getFlightById } from '../../../services/api';
 import AppBar from '../../Reusable/AppBar';
 import HeightSpacer from '../../Reusable/HeightSpacer';
 
@@ -35,25 +41,154 @@ const calculateFlightDuration = (departureTime, arrivalTime) => {
 };
 
 const AirDetail = ({ navigation, route }) => {
-  // Lấy dữ liệu từ route.params (được truyền từ AirList)
-  const { departureFlight, returnFlight, numberOfPassengers = 2 } = route.params;
+  const { departureFlight: departureFlightParam, returnFlight: returnFlightParam } = route.params;
+  const { adults = 0, children = 0, infants = 0 } = route.params || {};
+
+  // State để lưu dữ liệu chuyến bay từ backend
+  const [departureFlight, setDepartureFlight] = useState(null);
+  const [returnFlight, setReturnFlight] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Gọi API để lấy chi tiết chuyến bay
+  useEffect(() => {
+    const fetchFlightDetails = async () => {
+      setIsLoading(true);
+      try {
+        const departureFlightData = await getFlightById(departureFlightParam._id);
+        setDepartureFlight(departureFlightData);
+
+        if (returnFlightParam) {
+          const returnFlightData = await getFlightById(returnFlightParam._id);
+          setReturnFlight(returnFlightData);
+        }
+      } catch (err) {
+        console.error('Lỗi khi lấy chi tiết chuyến bay:', err.message);
+        setError('Không thể tải thông tin chuyến bay');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFlightDetails();
+  }, [departureFlightParam, returnFlightParam]);
 
   // Hàm chuyển đổi giá từ chuỗi sang số
   const priceToNumber = (price) => parseFloat(price.replace(/[^\d]/g, ''));
 
-  // Giá cho 1 người (tổng giá của chuyến đi và chuyến về cho 1 người)
-  const departurePricePerPerson = priceToNumber(departureFlight.price);
-  const returnPricePerPerson = priceToNumber(returnFlight.price);
-  const totalPricePerPerson = departurePricePerPerson + returnPricePerPerson;
-  const formattedPricePerPerson = totalPricePerPerson.toLocaleString('vi-VN') + ' đ';
+  // Hàm tính tổng tiền dựa trên số lượng khách và loại khách
+  const calculateTotalPrice = () => {
+    if (!departureFlight || !departureFlight.price) return { totalPrice: 0, breakdown: {} };
 
-  // Giá cho 2 người (nhân đôi giá 1 người)
-  const totalPriceForTwoPeople = totalPricePerPerson * 2;
-  const formattedPriceForTwoPeople = totalPriceForTwoPeople.toLocaleString('vi-VN') + ' đ';
+    const departurePrice = priceToNumber(departureFlight.price);
+    const returnPrice = returnFlight && returnFlight.price ? priceToNumber(returnFlight.price) : 0;
 
-  // Tổng tiền dựa trên số lượng người
-  const totalPrice = totalPricePerPerson * numberOfPassengers;
+    // Giá cơ bản cho người lớn (100%), trẻ em (75%), em bé (50%)
+    const adultPrice = departurePrice + returnPrice;
+    const childPrice = adultPrice * 0.75;
+    const infantPrice = adultPrice * 0.5;
+
+    // Tính tổng tiền
+    const totalAdultPrice = adultPrice * adults;
+    const totalChildPrice = childPrice * children;
+    const totalInfantPrice = infantPrice * infants;
+    const totalPrice = totalAdultPrice + totalChildPrice + totalInfantPrice;
+
+    // Chi tiết giá cho từng loại khách
+    const breakdown = {
+      adult: {
+        count: adults,
+        unitPrice: adultPrice,
+        total: totalAdultPrice,
+      },
+      child: {
+        count: children,
+        unitPrice: childPrice,
+        total: totalChildPrice,
+      },
+      infant: {
+        count: infants,
+        unitPrice: infantPrice,
+        total: totalInfantPrice,
+      },
+    };
+
+    return { totalPrice, breakdown };
+  };
+
+  const { totalPrice, breakdown } = calculateTotalPrice();
   const formattedTotalPrice = totalPrice.toLocaleString('vi-VN') + ' đ';
+
+  // Hàm render card chuyến bay
+  const renderFlightCard = (flight, isReturn = false) => {
+    if (!flight) return null;
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.routeRow}>
+          <Text style={styles.routeText}>
+            {flight.departureName} → {flight.arrivalName}
+          </Text>
+          <Image source={{ uri: flight.logo }} style={styles.airlineLogo} />
+        </View>
+        <View style={styles.flightInfoRow}>
+          <Text style={styles.dateText}>{flight.date}</Text>
+          <Text style={styles.flightInfo}>
+            {flight.flightNumber} | {flight.ticketType}
+          </Text>
+        </View>
+        <View style={styles.timeRow}>
+          <View style={styles.timeCityContainer}>
+            <Text style={styles.timeText}>{flight.departureTime}</Text>
+            <Text style={styles.cityText}>{flight.departureCity}</Text>
+          </View>
+          <View style={styles.durationContainer}>
+            <Ionicons name="airplane" size={24} color={COLORS.blue} />
+            <Text style={styles.durationText}>
+              {calculateFlightDuration(flight.departureTime, flight.arrivalTime)}
+            </Text>
+          </View>
+          <View style={styles.timeCityContainer}>
+            <Text style={styles.timeText}>{flight.arrivalTime}</Text>
+            <Text style={styles.cityText}>{flight.arrivalCity}</Text>
+          </View>
+        </View>
+        <View style={styles.policyRow}>
+          <TouchableOpacity style={styles.policyButton}>
+            <Text style={styles.policyButtonText}>Áp dụng đổi lịch bay</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.refundButton}>
+            <Text style={styles.refundButtonText}>Không hoàn tiền</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeContainer}>
+        <Text style={styles.loadingText}>Đang tải...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safeContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Kiểm tra nếu không có khách nào được chọn
+  if (adults === 0 && children === 0 && infants === 0) {
+    return (
+      <SafeAreaView style={styles.safeContainer}>
+        <Text style={styles.errorText}>Vui lòng chọn số lượng khách!</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -69,99 +204,56 @@ const AirDetail = ({ navigation, route }) => {
         <HeightSpacer height={64} />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Card chuyến đi */}
-          <View style={styles.card}>
-            <View style={styles.routeRow}>
-              <Text style={styles.routeText}>
-                {departureFlight.departureName} → {departureFlight.arrivalName}
-              </Text>
-              <Image
-                source={{ uri: departureFlight.logo }}
-                style={styles.airlineLogo}
-              />
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10 }}>
-              <Text style={styles.dateText}>{departureFlight.date}</Text>
-              <Text style={styles.flightInfo}>
-                {departureFlight.flightNumber} | {departureFlight.ticketType}
-              </Text>
-            </View>
-            <View style={styles.timeRow}>
-              <Text style={styles.timeText}>{departureFlight.departureTime}</Text>
-              <Text style={styles.arrow}>✈️</Text>
-              <Text style={styles.timeText}>{departureFlight.arrivalTime}</Text>
-            </View>
-            <View style={styles.cityRow}>
-              <Text style={styles.cityText}>{departureFlight.departureCity}</Text>
-              <Text style={styles.cityText}>{departureFlight.arrivalCity}</Text>
-            </View>
-            <View style={styles.policyRow}>
-              <TouchableOpacity style={styles.policyButton}>
-                <Text style={styles.policyButtonText}>Áp dụng đổi lịch bay</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.refundButton}>
-                <Text style={styles.refundButtonText}>Không hoàn tiền</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          {renderFlightCard(departureFlight, false)}
 
           {/* Card chuyến về */}
-          <View style={styles.card}>
-            <View style={styles.routeRow}>
-              <Text style={styles.routeText}>
-                {returnFlight.departureName} → {returnFlight.arrivalName}
-              </Text>
-              <Image
-                source={{ uri: returnFlight.logo }}
-                style={styles.airlineLogo}
-              />
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10 }}>
-              <Text style={styles.dateText}>{returnFlight.date}</Text>
-              <Text style={styles.flightInfo}>
-                {returnFlight.flightNumber} | {returnFlight.ticketType}
-              </Text>
-            </View>
-            <View style={styles.timeRow}>
-              <Text style={styles.timeText}>{returnFlight.departureTime}</Text>
-              <Text style={styles.arrow}>✈️</Text>
-              <Text style={styles.timeText}>{returnFlight.arrivalTime}</Text>
-            </View>
-            <View style={styles.cityRow}>
-              <Text style={styles.cityText}>{returnFlight.departureCity}</Text>
-              <Text style={styles.cityText}>{returnFlight.arrivalCity}</Text>
-            </View>
-            <View style={styles.policyRow}>
-              <TouchableOpacity style={styles.policyButton}>
-                <Text style={styles.policyButtonText}>Áp dụng đổi lịch bay</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.refundButton}>
-                <Text style={styles.refundButtonText}>Không hoàn tiền</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          {renderFlightCard(returnFlight, true)}
 
-          {/* Số lượng người lớn và tổng tiền */}
+          {/* Phần tóm tắt giá */}
           <View style={styles.summarySection}>
-            <Text style={styles.summaryText}>{numberOfPassengers} người lớn</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.summaryText}>Giá 1 người:</Text>
-              <Text style={styles.priceText}>{formattedPricePerPerson}</Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.summaryText}>Giá 2 người:</Text>
-              <Text style={styles.priceText}>{formattedPriceForTwoPeople}</Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.summaryText}>Tổng tiền ({numberOfPassengers} người):</Text>
-              <Text style={styles.priceText}>{formattedTotalPrice}</Text>
+            <Text style={styles.summaryHeader}>Tóm tắt giá vé</Text>
+            {breakdown.adult.count > 0 && (
+              <View style={styles.passengerRow}>
+                <Text style={styles.summaryText}>
+                  Người lớn ({breakdown.adult.count})
+                </Text>
+                <Text style={styles.priceText}>
+                  {breakdown.adult.total.toLocaleString('vi-VN')} đ
+                </Text>
+              </View>
+            )}
+            {breakdown.child.count > 0 && (
+              <View style={styles.passengerRow}>
+                <Text style={styles.summaryText}>
+                  Trẻ em ({breakdown.child.count})
+                </Text>
+                <Text style={styles.priceText}>
+                  {breakdown.child.total.toLocaleString('vi-VN')} đ
+                </Text>
+              </View>
+            )}
+            {breakdown.infant.count > 0 && (
+              <View style={styles.passengerRow}>
+                <Text style={styles.summaryText}>
+                  Em bé ({breakdown.infant.count})
+                </Text>
+                <Text style={styles.priceText}>
+                  {breakdown.infant.total.toLocaleString('vi-VN')} đ
+                </Text>
+              </View>
+            )}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalText}>Tổng tiền:</Text>
+              <Text style={styles.totalPriceText}>{formattedTotalPrice}</Text>
             </View>
           </View>
         </ScrollView>
 
-        {/* Nút Tiếp tục cố định ở dưới cùng */}
+        {/* Nút Tiếp tục */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.continueButton}
-          onPress={()=>navigation.navigate("CustomerInfo")}
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={() => navigation.navigate('CustomerInfo')}
           >
             <Text style={styles.continueButtonText}>Tiếp tục</Text>
           </TouchableOpacity>

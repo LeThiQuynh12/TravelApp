@@ -40,10 +40,11 @@ const calculateDuration = (departureTime, arrivalTime) => {
 };
 
 const BusDetail = ({ navigation, route }) => {
-  const { departureBus, returnBus, numberOfPassengers = 2 } = route.params || {};
+  const { departureBus, returnBus, numberOfSeats = 1 } = route.params || {};
 
-  console.log('BusDetail params:', { departureBus, returnBus, numberOfPassengers });
+  console.log('BusDetail params:', { departureBus, returnBus, numberOfSeats });
 
+  // Hàm chuyển đổi giá từ string sang số
   const priceToNumber = (price) => {
     if (!price || typeof price !== 'string') {
       console.warn('Invalid price:', price);
@@ -52,37 +53,30 @@ const BusDetail = ({ navigation, route }) => {
     return parseFloat(price.replace(/[^\d]/g, '')) || 0;
   };
 
-  const departurePricePerPerson = departureBus && departureBus.price ? priceToNumber(departureBus.price) : 0;
-  const returnPricePerPerson = returnBus && returnBus.price ? priceToNumber(returnBus.price) : 0;
-  const totalPricePerPerson = departurePricePerPerson + returnPricePerPerson;
-  const formattedPricePerPerson = totalPricePerPerson.toLocaleString('vi-VN') + ' đ';
+  // Tính giá vé cho chuyến đi và chuyến về dựa trên số ghế
+  const departurePrice = departureBus && departureBus.price ? priceToNumber(departureBus.price) * numberOfSeats : 0;
+  const returnPrice = returnBus && returnBus.price ? priceToNumber(returnBus.price) * numberOfSeats : 0;
 
-  const totalPriceForTwoPeople = totalPricePerPerson * 2;
-  const formattedPriceForTwoPeople = totalPriceForTwoPeople.toLocaleString('vi-VN') + ' đ';
-
-  const totalPrice = totalPricePerPerson * numberOfPassengers;
+  // Tổng giá
+  const totalPrice = departurePrice + returnPrice;
   const formattedTotalPrice = totalPrice.toLocaleString('vi-VN') + ' đ';
 
   const amenityIcons = {
     'Wi-Fi': <Ionicons name="wifi" size={20} color={COLORS.gray} />,
-    'Chăn': <MaterialCommunityIcons name="bed-outline" size={20} color={COLORS.gray} />,
+    Chăn: <MaterialCommunityIcons name="bed-outline" size={20} color={COLORS.gray} />,
     'Điều hòa': <Ionicons name="snow" size={20} color={COLORS.gray} />,
-    'Sạc': <FontAwesome5 name="charging-station" size={20} color={COLORS.gray} />,
+    Sạc: <FontAwesome5 name="charging-station" size={20} color={COLORS.gray} />,
   };
 
   const renderBusCard = (bus, isDeparture) => (
     <View style={styles.card}>
       <View style={styles.routeRow}>
-       <View style={{flexDirection: "column"}}>
-       <Text style={styles.routeText}>
-          {bus.departureCity || 'N/A'} → {bus.arrivalCity || 'N/A'}
-        </Text>
-        
-        <Text style={styles.busCompany}>
-          {bus.busCompany || 'N/A'} 
-        </Text>
-       </View>
-
+        <View style={{ flexDirection: 'column' }}>
+          <Text style={styles.routeText}>
+            {bus.departureCity || 'N/A'} → {bus.arrivalCity || 'N/A'}
+          </Text>
+          <Text style={styles.busCompany}>{bus.busCompany || 'N/A'}</Text>
+        </View>
         <Image
           source={{ uri: bus.logo || 'https://example.com/placeholder.png' }}
           style={styles.busLogo}
@@ -91,23 +85,17 @@ const BusDetail = ({ navigation, route }) => {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10 }}>
         <Text style={styles.dateText}>{bus.date || 'N/A'}</Text>
         <Text style={styles.busInfo}>
-            {bus.ticketType || 'N/A'} | {bus.seats || 0} chỗ
+          {bus.ticketType || 'N/A'} | {bus.seats || 0} chỗ
         </Text>
       </View>
       <View style={styles.timeRow}>
         <Text style={styles.timeText}>{bus.departureTime || 'N/A'}</Text>
         <Ionicons name="return-up-forward" size={30} color={COLORS.blue} />
-
-
         <Text style={styles.timeText}>{bus.arrivalTime || 'N/A'}</Text>
       </View>
       <View style={styles.cityRow}>
-        <Text style={styles.cityText}>
-          Đón: {bus.pickup || 'N/A'}
-        </Text>
-        <Text style={styles.cityText}>
-          Trả: {bus.dropoff || 'N/A'}
-        </Text>
+        <Text style={styles.cityText}>Đón: {bus.pickup || 'N/A'}</Text>
+        <Text style={styles.cityText}>Trả: {bus.dropoff || 'N/A'}</Text>
       </View>
       <View style={styles.policyContainer}>
         <View style={styles.amenities}>
@@ -118,7 +106,6 @@ const BusDetail = ({ navigation, route }) => {
             </View>
           ))}
         </View>
-
         {bus.note?.length > 0 && (
           <View style={styles.noteContainer}>
             {bus.note.map((note, index) => (
@@ -126,7 +113,6 @@ const BusDetail = ({ navigation, route }) => {
             ))}
           </View>
         )}
-        
       </View>
     </View>
   );
@@ -151,17 +137,25 @@ const BusDetail = ({ navigation, route }) => {
           )}
           {returnBus && renderBusCard(returnBus, false)}
           <View style={styles.summarySection}>
-            <Text style={styles.summaryText}>{numberOfPassengers} người lớn</Text>
+            <Text style={styles.summaryText}>{numberOfSeats} ghế ngồi</Text>
+            {departureBus && (
+              <View style={styles.priceRow}>
+                <Text style={styles.summaryText}>Giá chuyến đi:</Text>
+                <Text style={styles.priceText}>
+                  {(priceToNumber(departureBus.price) * numberOfSeats).toLocaleString('vi-VN')} đ
+                </Text>
+              </View>
+            )}
+            {returnBus && (
+              <View style={styles.priceRow}>
+                <Text style={styles.summaryText}>Giá chuyến về:</Text>
+                <Text style={styles.priceText}>
+                  {(priceToNumber(returnBus.price) * numberOfSeats).toLocaleString('vi-VN')} đ
+                </Text>
+              </View>
+            )}
             <View style={styles.priceRow}>
-              <Text style={styles.summaryText}>Giá 1 người:</Text>
-              <Text style={styles.priceText}>{formattedPricePerPerson}</Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.summaryText}>Giá 2 người:</Text>
-              <Text style={styles.priceText}>{formattedPriceForTwoPeople}</Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.summaryText}>Tổng tiền ({numberOfPassengers} người):</Text>
+              <Text style={styles.summaryText}>Tổng tiền ({numberOfSeats} ghế):</Text>
               <Text style={styles.priceText}>{formattedTotalPrice}</Text>
             </View>
           </View>
@@ -213,14 +207,11 @@ const styles = StyleSheet.create({
     fontSize: TEXT.large - 2,
     fontWeight: '500',
     color: COLORS.blue,
-   
   },
   busLogo: {
     width: 120,
     height: 68,
-    // resizeMode: 'contain',
     borderRadius: 20,
-
   },
   dateText: {
     fontSize: TEXT.small,
@@ -240,12 +231,8 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
   timeText: {
-    fontSize: TEXT.large -2,
+    fontSize: TEXT.large - 2,
     fontWeight: 'bold',
-    color: COLORS.dark,
-  },
-  arrow: {
-    fontSize: TEXT.medium,
     color: COLORS.dark,
   },
   cityRow: {
@@ -277,17 +264,6 @@ const styles = StyleSheet.create({
     fontSize: TEXT.xSmall - 1,
     color: COLORS.gray,
     marginTop: 2,
-  },
-  tripType: {
-    fontSize: TEXT.xSmall - 1,
-    color: COLORS.dark,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 5,
-    borderColor: '#34C759',
-    borderWidth: 2,
-    marginTop: 10,
-    alignSelf: 'flex-start',
   },
   noteContainer: {
     marginTop: 10,
@@ -346,11 +322,10 @@ const styles = StyleSheet.create({
   },
   busCompany: {
     fontSize: TEXT.medium,
-    // fontWeight: 'bold',
-    color: "green",
+    color: 'green',
     marginTop: 8,
     borderWidth: 1,
-    borderColor: "green",
+    borderColor: 'green',
     borderRadius: 8,
     textAlign: 'center',
     paddingVertical: 5,

@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tạo instance Axios với cấu hình mặc định
 const api = axios.create({
-  baseURL: 'http://172.20.10.3:5003/api', // Địa chỉ backend của bạn
+
   // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
   baseURL: 'http://192.168.1.14:5003/api',
   
@@ -218,6 +218,39 @@ export const getFlightById = async (id) => {
   } catch (error) {
     console.log('Lỗi khi lấy chi tiết chuyến bay:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Lấy chi tiết chuyến bay thất bại!');
+  }
+};
+
+
+// Hàm lấy danh sachs thành phố xe khách
+export const fetchBusCities = async () => {
+  try {
+    const response = await api.get('/bus/cities');
+    return response.data.data.map((item) => item.departureCity).sort();
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách thành phố:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tải danh sách thành phố!');
+  }
+};
+
+
+// Hàm tìm kiếm xe khách
+export const searchBuses = async (params) => {
+  try {
+    const queryParams = new URLSearchParams({
+      departureCity: params.departureCity || '',
+      arrivalCity: params.arrivalCity || '',
+      outboundDate: params.outboundDate || '',
+      isRoundTrip: params.isRoundTrip.toString(),
+    });
+    if (params.isRoundTrip && params.returnDate) {
+      queryParams.append('returnDate', params.returnDate);
+    }
+    const response = await api.get(`/bus/search?${queryParams.toString()}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Lỗi khi tìm kiếm xe khách:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tìm kiếm xe khách!');
   }
 };
 

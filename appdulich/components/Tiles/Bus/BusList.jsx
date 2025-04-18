@@ -23,6 +23,7 @@ import {
   COLORS,
   TEXT,
 } from '../../../constants/theme';
+import { searchBuses } from '../../../services/api';
 import AppBar from '../../Reusable/AppBar';
 import ReusableText from '../../Reusable/ReusableText';
 
@@ -53,159 +54,60 @@ const BusList = ({ navigation, route }) => {
   const [selectedBus, setSelectedBus] = useState(null);
   const [selectedReturnBus, setSelectedReturnBus] = useState(null);
   const [isReturnTrip, setIsReturnTrip] = useState(false);
-  const [searchParams, setSearchParams] = useState({
-    from: 'Hà Nội',
-    to: 'Thanh Hóa',
-    departureDate: '18/3/2025',
-    returnDate: '20/3/2025',
-  });
+  const [error, setError] = useState(null);
 
-  const { isRoundTrip = true } = route.params || {};
+  const { searchParams = {} } = route.params || {};
+  const { isRoundTrip = false, numberOfSeats = 1 } = searchParams;
 
   useEffect(() => {
     const fetchBuses = async () => {
       setIsLoading(true);
+      setError(null);
       try {
-        // Mock dữ liệu chuyến đi
-        const mockData = [
-          {
-            id: '1',
-            departureTime: '13:20',
-            arrivalTime: '18:00',
-            departureCity: 'Hà Nội',
-            arrivalCity: 'Thanh Hóa',
-            date: '18/3/2025',
-            busCompany: 'Xe Đông Lý',
-            ticketType: 'Giường nằm',
-            price: '200.000 đ',
-            logo: 'https://bookvexe.vn/wp-content/uploads/2022/04/nha-xe-dong-ly-2.jpg',
-            amenities: ['Wi-Fi','Chăn','Điều hòa','Sạc'],
-            seats: 40,
-            pickup: 'Bộ Công An',
-            dropoff: 'Nông Cống',
-            note: ['Không hoàn tiền','Không áp dụng đổi lịch trình']
-          },
-          {
-            id: '2',
-            departureTime: '14:00',
-            arrivalTime: '18:40',
-            departureCity: 'Hà Nội',
-            arrivalCity: 'Thanh Hóa',
-            date: '18/3/2025',
-            busCompany: 'Xe Tiến Phương',
-            ticketType: 'Giường nằm',
-            price: '220.000 đ',
-            logo: 'https://limotrip.vn/wp-content/uploads/2023/06/xe-tien-phuong-1.jpg',
-            amenities: ['Wi-Fi','Chăn','Điều hòa','Sạc'],
-            seats: 34,
-            pickup: 'Bộ Công An',
-            dropoff: 'Nông Cống',
-            note: ['Không hoàn tiền','Không áp dụng đổi lịch trình']
-          },
-          {
-            id: '3',
-            departureTime: '15:00',
-            arrivalTime: '19:40',
-            departureCity: 'Hà Nội',
-            arrivalCity: 'Thanh Hóa',
-            date: '19/3/2025',
-            busCompany: 'Xe Thương Mai',
-            ticketType: 'Giường nằm',
-            price: '190.000 đ',
-            logo: 'https://carshop.vn/wp-content/uploads/2022/07/images1151040_xekhach.jpg',
-            amenities: ['Wi-Fi','Chăn','Điều hòa','Sạc'],
-            seats: 44,
-            pickup: 'Bộ Công An',
-            dropoff: 'Nông Cống',
-            note: ['Không hoàn tiền','Không áp dụng đổi lịch trình']
-          },
-        ];
+        const response = await searchBuses({
+          departureCity: searchParams.departureCity,
+          arrivalCity: searchParams.arrivalCity,
+          outboundDate: searchParams.outboundDate,
+          isRoundTrip,
+          returnDate: searchParams.returnDate,
+        });
 
-        // Mock dữ liệu chuyến về
-        const mockReturnData = isRoundTrip
-          ? [
-              {
-                id: '4',
-                departureTime: '09:00',
-                arrivalTime: '13:40',
-                departureCity: 'Thanh Hóa',
-                arrivalCity: 'Hà Nội',
-                date: '20/3/2025',
-                busCompany: 'Xe Đông Lý',
-                ticketType: 'Giường nằm',
-                price: '210.000 đ',
-                logo: 'https://bookvexe.vn/wp-content/uploads/2022/04/nha-xe-dong-ly-2.jpg',
-                amenities: ['Wi-Fi','Chăn','Điều hòa','Sạc'],
-                seats: 40,
-                pickup: 'Nông Cống',
-                dropoff: 'Bộ Công An',
-                note: ['Không hoàn tiền','Không áp dụng đổi lịch trình']
-              },
-              {
-                id: '5',
-                departureTime: '10:00',
-                arrivalTime: '14:40',
-                departureCity: 'Thanh Hóa',
-                arrivalCity: 'Hà Nội',
-                date: '20/3/2025',
-                busCompany: 'Xe Tiên Phượng',
-                ticketType: 'Giường nằm',
-                price: '230.000 đ',
-                logo: 'https://limotrip.vn/wp-content/uploads/2023/06/xe-tien-phuong-1.jpg',
-                amenities: ['Wi-Fi','Chăn','Điều hòa','Sạc'],
-                seats: 34,
-                pickup: 'Nông Cống',
-                dropoff: 'Bộ Công An',
-                note: ['Không hoàn tiền','Không áp dụng đổi lịch trình']
-
-              },
-            ]
+        // Tách chuyến đi và chuyến về
+        const outboundBuses = response
+          .filter((item) => item.outbound)
+          .map((item) => ({
+            ...item.outbound,
+            id: item.outbound._id,
+          }));
+        const returnBusesData = isRoundTrip
+          ? response
+              .filter((item) => item.return)
+              .map((item) => ({
+                ...item.return,
+                id: item.return._id,
+              }))
           : [];
 
-        // Lọc dữ liệu dựa trên searchParams
-        const filteredBuses = mockData.filter(
-          (bus) =>
-            bus.departureCity === searchParams.from &&
-            bus.arrivalCity === searchParams.to &&
-            bus.date === searchParams.departureDate &&
-            bus.price // Đảm bảo có price
-        );
-
-        const filteredReturnBuses = mockReturnData.filter(
-          (bus) =>
-            bus.departureCity === searchParams.to &&
-            bus.arrivalCity === searchParams.from &&
-            bus.date === searchParams.returnDate &&
-            bus.price // Đảm bảo có price
-        );
-
-        setBuses(filteredBuses);
-        setReturnBuses(filteredReturnBuses);
-      } catch (error) {
-        console.error('Error fetching buses:', error);
+        setBuses(outboundBuses);
+        setReturnBuses(returnBusesData);
+      } catch (err) {
+        setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchBuses();
+    if (searchParams.departureCity && searchParams.arrivalCity && searchParams.outboundDate) {
+      fetchBuses();
+    }
   }, [searchParams, isRoundTrip]);
-
 
   // Hàm hiển thị dịch vụ tương ứng với icons
   const amenityIcons = {
     'Wi-Fi': <Ionicons name="wifi" size={20} color={COLORS.gray} />,
-    'Chăn': <MaterialCommunityIcons name="bed-outline" size={20} color={COLORS.gray} />,
+    Chăn: <MaterialCommunityIcons name="bed-outline" size={20} color={COLORS.gray} />,
     'Điều hòa': <Ionicons name="snow" size={20} color={COLORS.gray} />,
-    'Sạc': <FontAwesome5 name="charging-station" size={20} color={COLORS.gray} />,
-  };
-  const handleSearch = (params) => {
-    setSearchParams({
-      from: params.from || searchParams.from,
-      to: params.to || searchParams.to,
-      departureDate: params.departureDate || searchParams.departureDate,
-      returnDate: params.returnDate || searchParams.returnDate,
-    });
+    Sạc: <FontAwesome5 name="charging-station" size={20} color={COLORS.gray} />,
   };
 
   const timeToMinutes = (time) => {
@@ -261,28 +163,19 @@ const BusList = ({ navigation, route }) => {
         return;
       }
       setSelectedReturnBus(bus);
-      console.log('Navigating to BusDetail with:', {
-        departureBus: selectedBus,
-        returnBus: bus,
-        numberOfPassengers: 2,
-      });
       navigation.navigate('BusDetail', {
         departureBus: selectedBus,
         returnBus: bus,
-        numberOfPassengers: 2,
+        numberOfSeats, // Truyền số ghế
       });
     } else {
       setSelectedBus(bus);
       if (isRoundTrip) {
-        setIsReturnTrip(true); // Chuyển sang hiển thị chuyến về
+        setIsReturnTrip(true);
       } else {
-        console.log('Navigating to BusDetail with:', {
-          departureBus: bus,
-          numberOfPassengers: 2,
-        });
         navigation.navigate('BusDetail', {
           departureBus: bus,
-          numberOfPassengers: 2,
+          numberOfSeats, // Truyền số ghế
         });
       }
     }
@@ -306,10 +199,8 @@ const BusList = ({ navigation, route }) => {
       : selectedBus && selectedBus.id === item.id;
     return (
       <View style={styles.busItem}>
-              <Text style={styles.busCompany}>{item.busCompany || 'N/A'}</Text>
+        <Text style={styles.busCompany}>{item.busCompany || 'N/A'}</Text>
         <View style={styles.mainRow}>
-
-          
           <View style={styles.timeRow}>
             <View>
               <Text style={styles.timeText}>{item.departureTime || 'N/A'}</Text>
@@ -326,36 +217,25 @@ const BusList = ({ navigation, route }) => {
               <Text style={styles.locationText}>Trả: {item.dropoff || 'N/A'}</Text>
             </View>
           </View>
-
         </View>
         <View style={styles.detailsRow}>
-          <Image source={{ uri: item.logo}} style={styles.busLogo} />
-
-          <View style={{flexDirection: 'column', flex: 1}}> 
-          
-          <View style={styles.busInfo}>
-      
-            <Text style={styles.ticketType}>
-              - {item.ticketType || 'N/A'}
-            </Text>
-
-            <Text style={styles.ticketType}>
-              -  {item.seats || 0} chỗ
-            </Text>
-
+          <Image source={{ uri: item.logo }} style={styles.busLogo} />
+          <View style={{ flexDirection: 'column', flex: 1 }}>
+            <View style={styles.busInfo}>
+              <Text style={styles.ticketType}>- {item.ticketType || 'N/A'}</Text>
+              <Text style={styles.ticketType}>- {item.seats || 0} chỗ</Text>
+            </View>
+            <View style={styles.amenities}>
+              {item.amenities?.map((amenity, index) => (
+                <View key={index} style={{ marginRight: 1, alignItems: 'center' }}>
+                  {amenityIcons[amenity]}
+                  <Text style={{ marginRight: 3, fontSize: 8, color: COLORS.gray }}>
+                    {amenity}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
-
-          <View style={styles.amenities}>
-            {item.amenities?.map((amenity, index) => (
-              <View key={index} style={{ marginRight: 1, alignItems: 'center' }}>
-                {amenityIcons[amenity]}
-                <Text style={{ marginRight: 3, fontSize: 8, color: COLORS.gray }}>{amenity}</Text>
-              </View>
-            ))}
-          </View>
-
-          </View>
-
           <View style={styles.priceButtonContainer}>
             <Text style={styles.priceText}>{item.price || 'N/A'}</Text>
             <TouchableOpacity
@@ -363,12 +243,9 @@ const BusList = ({ navigation, route }) => {
               onPress={() => handleSelectBus(item, isReturnTrip)}
               disabled={isSelected}
             >
-              <Text style={styles.selectButtonText}>
-                {isSelected ? 'Đã chọn' : 'Chọn'}
-              </Text>
+              <Text style={styles.selectButtonText}>{isSelected ? 'Đã chọn' : 'Chọn'}</Text>
             </TouchableOpacity>
           </View>
-          
         </View>
       </View>
     );
@@ -453,7 +330,8 @@ const BusList = ({ navigation, route }) => {
       />
       <View style={styles.header}>
         <Text style={styles.tripInfo}>
-          {searchParams.departureDate}, 2 khách, {isRoundTrip ? 'Khứ hồi' : 'Một chiều'}
+          {searchParams.outboundDate}, {numberOfSeats} ghế,{' '}
+          {isRoundTrip ? 'Khứ hồi' : 'Một chiều'}
         </Text>
       </View>
       <View style={styles.textChooise}>
@@ -468,6 +346,7 @@ const BusList = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <Modal
         animationType="slide"
         transparent={true}
@@ -522,7 +401,7 @@ const BusList = ({ navigation, route }) => {
       ) : (
         <FlatList
           data={isReturnTrip ? returnBuses : buses}
-          renderItem={({ item }) => renderBusItem({ item })}
+          renderItem={renderBusItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           ListHeaderComponent={renderSelectedCard}
@@ -534,7 +413,6 @@ const BusList = ({ navigation, route }) => {
 
 export default BusList;
 
-// Styles giữ nguyên như bạn đã cung cấp
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -560,9 +438,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: COLORS.lightGrey,
-    paddingBottom : 25,
+    paddingBottom: 25,
   },
-
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -605,7 +482,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: TEXT.medium - 4,
-    color: "green",
+    color: 'green',
     marginTop: 5,
   },
   priceButtonContainer: {
@@ -653,17 +530,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   busCompany: {
-    fontSize: TEXT.medium+1,
+    fontSize: TEXT.medium + 1,
     color: COLORS.blue,
     marginBottom: 5,
-    textAlign: "center",
+    textAlign: 'center',
     fontWeight: '500',
   },
   ticketType: {
-    fontSize: TEXT.xxSmall-1,
+    fontSize: TEXT.xxSmall - 1,
     color: COLORS.lightRed,
-    // borderBottomColor: COLORS.lightRed,
-    // borderBottomWidth: 1,
     marginBottom: 5,
   },
   amenities: {
@@ -675,6 +550,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: TEXT.medium,
     color: COLORS.gray,
+  },
+  errorText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: TEXT.medium,
+    color: COLORS.red,
   },
   textChooise: {
     flexDirection: 'row',

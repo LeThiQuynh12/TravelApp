@@ -23,7 +23,7 @@ import {
   SIZES,
   TEXT,
 } from '../../constants/theme';
-import { getCities } from '../../services/api'; // Import hàm getCities
+import { getCities } from '../../services/api';
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -36,8 +36,8 @@ const formatDateToBackend = (dateString) => {
 
 const AirlineTicket = ({ navigation }) => {
   const [isRoundTrip, setIsRoundTrip] = useState(false);
-  const [departure, setDeparture] = useState(null); // Lưu object { departureCity, departureName }
-  const [destination, setDestination] = useState(null); // Lưu object { departureCity, departureName }
+  const [departure, setDeparture] = useState(null);
+  const [destination, setDestination] = useState(null);
   const [departureDate, setDepartureDate] = useState(null);
   const [returnDate, setReturnDate] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -48,10 +48,9 @@ const AirlineTicket = ({ navigation }) => {
   const [infants, setInfants] = useState(0);
   const [showDepartureModal, setShowDepartureModal] = useState(false);
   const [showDestinationModal, setShowDestinationModal] = useState(false);
-  const [cities, setCities] = useState([]); // State để lưu danh sách thành phố từ backend
-  const [loadingCities, setLoadingCities] = useState(false); // Trạng thái loading khi lấy danh sách thành phố
+  const [cities, setCities] = useState([]);
+  const [loadingCities, setLoadingCities] = useState(false);
 
-  // Gọi API để lấy danh sách thành phố khi component được mount
   useEffect(() => {
     const fetchCities = async () => {
       setLoadingCities(true);
@@ -81,7 +80,6 @@ const AirlineTicket = ({ navigation }) => {
     setShowCalendar(false);
   };
 
-  // Hàm xử lý khi nhấn nút tìm kiếm
   const handleSearch = () => {
     if (!departure || !destination || !departureDate) {
       alert('Vui lòng chọn điểm đi, điểm đến và ngày đi!');
@@ -91,33 +89,28 @@ const AirlineTicket = ({ navigation }) => {
       alert('Vui lòng chọn ngày về khi chọn khứ hồi!');
       return;
     }
-
-    // Lấy mã sân bay từ departure và destination
-    const from = departure.departureCity; // Chỉ lấy departureCity (HAN, SGN, v.v.)
+  
+    const from = departure.departureCity;
     const to = destination.departureCity;
-
-    // Chuyển đổi định dạng ngày
     const formattedDepartureDate = formatDateToBackend(departureDate);
     const formattedReturnDate = isRoundTrip ? formatDateToBackend(returnDate) : null;
-
-    // Tính tổng số hành khách
-    const totalPassengers = adults + children + infants;
-
-    // Điều hướng đến màn hình AirList và truyền tham số tìm kiếm
-    navigation.navigate('AirList', {
-      searchParams: {
-        from,
-        to,
-        departureDate: formattedDepartureDate,
-        returnDate: formattedReturnDate,
-        isRoundTrip,
-        numberOfPassengers: totalPassengers,
-        departureDisplay: `${departure.departureName} (${departure.departureCity})`, // Truyền chuỗi hiển thị
-        destinationDisplay: `${destination.departureName} (${destination.departureCity})`, // Truyền chuỗi hiển thị
-      },
-    });
+  
+    const searchParams = {
+      from,
+      to,
+      departureDate: formattedDepartureDate,
+      returnDate: formattedReturnDate,
+      isRoundTrip,
+      adults,
+      children,
+      infants,
+      departureDisplay: departure.departureName,
+      destinationDisplay: destination.departureName,
+    };
+  
+    console.log('searchParams truyền sang AirList:', searchParams);
+    navigation.navigate('AirList', { searchParams });
   };
-
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
       <View style={styles.container}>
@@ -175,12 +168,12 @@ const AirlineTicket = ({ navigation }) => {
 
         {/* Số lượng khách */}
         <TouchableOpacity
-          style={styles.inputGroup}
-          onPress={() => setShowGuestModal(true)}
-        >
-          <FontAwesome5 name="user-friends" size={16} color={COLORS.gray} />
-          <Text style={styles.input}>{`${adults} Người lớn, ${children} Trẻ em, ${infants} Em bé`}</Text>
-        </TouchableOpacity>
+            style={styles.inputGroup}
+            onPress={() => setShowGuestModal(true)}
+          >
+            <FontAwesome5 name="user-friends" size={16} color={COLORS.gray} />
+            <Text style={styles.input}>{`${adults} Người lớn, ${children} Trẻ em, ${infants} Em bé`}</Text>
+          </TouchableOpacity>
 
         {/* Modal chọn số lượng khách */}
         <Modal visible={showGuestModal} transparent animationType="slide">
@@ -192,22 +185,22 @@ const AirlineTicket = ({ navigation }) => {
                 { label: 'Em bé', count: infants, setCount: setInfants },
               ].map((item, index) => (
                 <View key={index} style={styles.guestRow}>
-                  <Text style={styles.listText}>{item.label}</Text>
-                  <View style={styles.counterContainer}>
-                    <TouchableOpacity
-                      style={styles.counterButton}
-                      onPress={() => item.setCount(Math.max(0, item.count - 1))}
-                    >
-                      <Text style={styles.counterText}>-</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.counterValue}>{item.count}</Text>
-                    <TouchableOpacity
-                      style={styles.counterButton}
-                      onPress={() => item.setCount(item.count + 1)}
-                    >
-                      <Text style={styles.counterText}>+</Text>
-                    </TouchableOpacity>
-                  </View>
+                    <Text style={styles.listText}>{item.label}</Text>
+                    <View style={styles.counterContainer}>
+                      <TouchableOpacity
+                        style={styles.counterButton}
+                        onPress={() => item.setCount(Math.max(0, item.count - 1))}
+                      >
+                        <Text style={styles.counterText}>-</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.counterValue}>{item.count}</Text>
+                      <TouchableOpacity
+                        style={styles.counterButton}
+                        onPress={() => item.setCount(item.count + 1)}
+                      >
+                        <Text style={styles.counterText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
                 </View>
               ))}
               <TouchableOpacity
@@ -234,7 +227,7 @@ const AirlineTicket = ({ navigation }) => {
                     <TouchableOpacity
                       style={styles.listItem}
                       onPress={() => {
-                        setDeparture(item); // Lưu object { departureCity, departureName }
+                        setDeparture(item);
                         setShowDepartureModal(false);
                       }}
                     >
@@ -267,7 +260,7 @@ const AirlineTicket = ({ navigation }) => {
                     <TouchableOpacity
                       style={styles.listItem}
                       onPress={() => {
-                        setDestination(item); // Lưu object { departureCity, departureName }
+                        setDestination(item);
                         setShowDestinationModal(false);
                       }}
                     >
@@ -314,18 +307,16 @@ const AirlineTicket = ({ navigation }) => {
           </View>
         </Modal>
 
-         {/* Nút tìm kiếm */}
-              
-         <ReusableBtn
-              onPress={()=>{handleSearch}}
-              btnText={"Tìm kiếm"}
-              textColor={COLORS.white}
-            //   width={SIZES.xLarge}
-               width={(SIZES.width - 30)}
-              backgroundColor={COLORS.green}
-              borderWidth={0}
-              borderColor={COLORS.green}
-          />
+        {/* Nút tìm kiếm */}
+        <ReusableBtn
+          onPress={handleSearch} // Sửa lỗi cú pháp
+          btnText="Tìm kiếm"
+          textColor={COLORS.white}
+          width={SIZES.width - 30}
+          backgroundColor={COLORS.green}
+          borderWidth={0}
+          borderColor={COLORS.green}
+        />
       </View>
     </ScrollView>
   );
