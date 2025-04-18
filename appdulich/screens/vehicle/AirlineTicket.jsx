@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   FlatList,
@@ -20,115 +23,174 @@ import {
   SIZES,
   TEXT,
 } from '../../constants/theme';
+import { getCities } from '../../services/api'; // Import hàm getCities
 
-const cities = ["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Nha Trang", "Huế"];
-const today = new Date().toISOString().split("T")[0]; // Lấy ngày hôm nay
+const today = new Date().toISOString().split('T')[0];
 
+// Hàm chuyển đổi định dạng ngày từ YYYY-MM-DD sang DD/MM/YYYY
+const formatDateToBackend = (dateString) => {
+  if (!dateString) return null;
+  const [year, month, day] = dateString.split('-');
+  return `${day}/${month}/${year}`;
+};
 
-const AirlineTicket = ({navigation}) => {
-  // Có khứ hồi hay không mặc định là không
-    const [isRoundTrip, setIsRoundTrip] = useState(false);
-  // Điểm đến và điểm đi
-    const [departure, setDeparture] = useState(null);
-    const [destination, setDestination] = useState(null);
-  // Ngày đi và ngày về 
-    const [departureDate, setDepartureDate] = useState(null);
-    const [returnDate, setReturnDate] = useState(null);
-  // Lịch chọn  ngày
-    const [showCalendar, setShowCalendar] = useState(false);
-    const [selectingDeparture, setSelectingDeparture] = useState(true);
-  // Số lg hành khách
-    const [showGuestModal, setShowGuestModal] = useState(false);
-    const [adults, setAdults] = useState(1);
-    const [children, setChildren] = useState(0);
-    const [infants, setInfants] = useState(0);
-  
-    const handleDayPress = (day) => {
-      if (selectingDeparture) {
-        setDepartureDate(day.dateString);
-        setReturnDate(null);
-      } else {
-        if (departureDate && day.dateString >= departureDate) {
-          setReturnDate(day.dateString);
-        }
+const AirlineTicket = ({ navigation }) => {
+  const [isRoundTrip, setIsRoundTrip] = useState(false);
+  const [departure, setDeparture] = useState(null); // Lưu object { departureCity, departureName }
+  const [destination, setDestination] = useState(null); // Lưu object { departureCity, departureName }
+  const [departureDate, setDepartureDate] = useState(null);
+  const [returnDate, setReturnDate] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectingDeparture, setSelectingDeparture] = useState(true);
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
+  const [showDepartureModal, setShowDepartureModal] = useState(false);
+  const [showDestinationModal, setShowDestinationModal] = useState(false);
+  const [cities, setCities] = useState([]); // State để lưu danh sách thành phố từ backend
+  const [loadingCities, setLoadingCities] = useState(false); // Trạng thái loading khi lấy danh sách thành phố
+
+  // Gọi API để lấy danh sách thành phố khi component được mount
+  useEffect(() => {
+    const fetchCities = async () => {
+      setLoadingCities(true);
+      try {
+        const citiesData = await getCities();
+        setCities(citiesData);
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách thành phố:', error.message);
+        alert(error.message);
+      } finally {
+        setLoadingCities(false);
       }
-      setShowCalendar(false);
     };
-    const [showDepartureModal, setShowDepartureModal] = useState(false);
-    const [showDestinationModal, setShowDestinationModal] = useState(false);
-    
+
+    fetchCities();
+  }, []);
+
+  const handleDayPress = (day) => {
+    if (selectingDeparture) {
+      setDepartureDate(day.dateString);
+      setReturnDate(null);
+    } else {
+      if (departureDate && day.dateString >= departureDate) {
+        setReturnDate(day.dateString);
+      }
+    }
+    setShowCalendar(false);
+  };
+
+  // Hàm xử lý khi nhấn nút tìm kiếm
+  const handleSearch = () => {
+    if (!departure || !destination || !departureDate) {
+      alert('Vui lòng chọn điểm đi, điểm đến và ngày đi!');
+      return;
+    }
+    if (isRoundTrip && !returnDate) {
+      alert('Vui lòng chọn ngày về khi chọn khứ hồi!');
+      return;
+    }
+
+    // Lấy mã sân bay từ departure và destination
+    const from = departure.departureCity; // Chỉ lấy departureCity (HAN, SGN, v.v.)
+    const to = destination.departureCity;
+
+    // Chuyển đổi định dạng ngày
+    const formattedDepartureDate = formatDateToBackend(departureDate);
+    const formattedReturnDate = isRoundTrip ? formatDateToBackend(returnDate) : null;
+
+    // Tính tổng số hành khách
+    const totalPassengers = adults + children + infants;
+
+    // Điều hướng đến màn hình AirList và truyền tham số tìm kiếm
+    navigation.navigate('AirList', {
+      searchParams: {
+        from,
+        to,
+        departureDate: formattedDepartureDate,
+        returnDate: formattedReturnDate,
+        isRoundTrip,
+        numberOfPassengers: totalPassengers,
+        departureDisplay: `${departure.departureName} (${departure.departureCity})`, // Truyền chuỗi hiển thị
+        destinationDisplay: `${destination.departureName} (${destination.departureCity})`, // Truyền chuỗi hiển thị
+      },
+    });
+  };
+
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-    <View style={styles.container}>
-      <Text style={styles.title}>Đặt vé xe khách giá rẻ</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>Đặt vé máy bay giá rẻ</Text>
 
-      {/* Chọn nơi khởi hành */}
-      <TouchableOpacity
-        style={styles.inputGroup}
-        onPress={() => setShowDepartureModal(true)}
-      >
-        <FontAwesome5 name="plane-departure" size={16} color={COLORS.gray} />
-        <Text style={styles.input}>{departure || "Chọn nơi khởi hành"}</Text>
-      </TouchableOpacity>
+        {/* Chọn nơi khởi hành */}
+        <TouchableOpacity
+          style={styles.inputGroup}
+          onPress={() => setShowDepartureModal(true)}
+        >
+          <FontAwesome5 name="plane-departure" size={16} color={COLORS.gray} />
+          <Text style={styles.input}>
+            {departure ? `${departure.departureName} (${departure.departureCity})` : 'Chọn nơi khởi hành'}
+          </Text>
+        </TouchableOpacity>
 
-      {/* Chọn nơi đến */}
-      <TouchableOpacity
-        style={styles.inputGroup}
-        onPress={() => setShowDestinationModal(true)}
-      >
-        <FontAwesome5 name="plane-arrival" size={16} color={COLORS.gray} />
-        <Text style={styles.input}>{destination || "Chọn nơi đến"}</Text>
-      </TouchableOpacity>
+        {/* Chọn nơi đến */}
+        <TouchableOpacity
+          style={styles.inputGroup}
+          onPress={() => setShowDestinationModal(true)}
+        >
+          <FontAwesome5 name="plane-arrival" size={16} color={COLORS.gray} />
+          <Text style={styles.input}>
+            {destination ? `${destination.departureName} (${destination.departureCity})` : 'Chọn nơi đến'}
+          </Text>
+        </TouchableOpacity>
 
-      {/* Chọn ngày đi */}
-      <TouchableOpacity
-        style={styles.inputGroup}
-        onPress={() => {
-          setSelectingDeparture(true);
-          setShowCalendar(true);
-        }}
-      >
-        <FontAwesome5 name="calendar-alt" size={16} color={COLORS.gray} />
-        <Text style={styles.input}>
-          {departureDate || "Chọn ngày đi"}
-        </Text>
-        <Text style={styles.roundTripText}>Khứ hồi</Text>
-        <Switch value={isRoundTrip} onValueChange={setIsRoundTrip} />
-      </TouchableOpacity>
-
-      {/* Chọn ngày về (chỉ hiện nếu bật khứ hồi) */}
-      {isRoundTrip && (
+        {/* Chọn ngày đi */}
         <TouchableOpacity
           style={styles.inputGroup}
           onPress={() => {
-            setSelectingDeparture(false);
+            setSelectingDeparture(true);
             setShowCalendar(true);
           }}
         >
           <FontAwesome5 name="calendar-alt" size={16} color={COLORS.gray} />
-          <Text style={styles.input}>
-            {returnDate || "Chọn ngày về"}
-          </Text>
+          <Text style={styles.input}>{departureDate || 'Chọn ngày đi'}</Text>
+          <Text style={styles.roundTripText}>Khứ hồi</Text>
+          <Switch value={isRoundTrip} onValueChange={setIsRoundTrip} />
         </TouchableOpacity>
-      )}
 
-      {/* Số lượng khách */}
-       {/* Số lượng khách */}
-       <TouchableOpacity
-        style={styles.inputGroup}
-        onPress={() => setShowGuestModal(true)}
-      >
-        <FontAwesome5 name="user-friends" size={16} color={COLORS.gray} />
-        <Text style={styles.input}>{`${adults} Người lớn, ${children} Trẻ em, ${infants} Em bé`}</Text>
-      </TouchableOpacity>
+        {/* Chọn ngày về (chỉ hiện nếu bật khứ hồi) */}
+        {isRoundTrip && (
+          <TouchableOpacity
+            style={styles.inputGroup}
+            onPress={() => {
+              setSelectingDeparture(false);
+              setShowCalendar(true);
+            }}
+          >
+            <FontAwesome5 name="calendar-alt" size={16} color={COLORS.gray} />
+            <Text style={styles.input}>{returnDate || 'Chọn ngày về'}</Text>
+          </TouchableOpacity>
+        )}
 
-      {/* Modal chọn số lượng khách */}
-      <Modal visible={showGuestModal} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {[{ label: "Người lớn", count: adults, setCount: setAdults },
-              { label: "Trẻ em", count: children, setCount: setChildren },
-              { label: "Em bé", count: infants, setCount: setInfants }].map((item, index) => (
+        {/* Số lượng khách */}
+        <TouchableOpacity
+          style={styles.inputGroup}
+          onPress={() => setShowGuestModal(true)}
+        >
+          <FontAwesome5 name="user-friends" size={16} color={COLORS.gray} />
+          <Text style={styles.input}>{`${adults} Người lớn, ${children} Trẻ em, ${infants} Em bé`}</Text>
+        </TouchableOpacity>
+
+        {/* Modal chọn số lượng khách */}
+        <Modal visible={showGuestModal} transparent animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              {[
+                { label: 'Người lớn', count: adults, setCount: setAdults },
+                { label: 'Trẻ em', count: children, setCount: setChildren },
+                { label: 'Em bé', count: infants, setCount: setInfants },
+              ].map((item, index) => (
                 <View key={index} style={styles.guestRow}>
                   <Text style={styles.listText}>{item.label}</Text>
                   <View style={styles.counterContainer}>
@@ -148,20 +210,114 @@ const AirlineTicket = ({navigation}) => {
                   </View>
                 </View>
               ))}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowGuestModal(false)}
-            >
-              <Text style={styles.closeText}>Xong</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowGuestModal(false)}
+              >
+                <Text style={styles.closeText}>Xong</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {/* Nút tìm kiếm */}
+        {/* Modal chọn nơi khởi hành */}
+        <Modal visible={showDepartureModal} transparent animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              {loadingCities ? (
+                <Text style={styles.loadingText}>Đang tải danh sách thành phố...</Text>
+              ) : (
+                <FlatList
+                  data={cities}
+                  keyExtractor={(item) => item.departureCity}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.listItem}
+                      onPress={() => {
+                        setDeparture(item); // Lưu object { departureCity, departureName }
+                        setShowDepartureModal(false);
+                      }}
+                    >
+                      <Text style={styles.listText}>{`${item.departureName} (${item.departureCity})`}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowDepartureModal(false)}
+              >
+                <Text style={styles.closeText}>Đóng</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Modal chọn nơi đến */}
+        <Modal visible={showDestinationModal} transparent animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              {loadingCities ? (
+                <Text style={styles.loadingText}>Đang tải danh sách thành phố...</Text>
+              ) : (
+                <FlatList
+                  data={cities}
+                  keyExtractor={(item) => item.departureCity}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.listItem}
+                      onPress={() => {
+                        setDestination(item); // Lưu object { departureCity, departureName }
+                        setShowDestinationModal(false);
+                      }}
+                    >
+                      <Text style={styles.listText}>{`${item.departureName} (${item.departureCity})`}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowDestinationModal(false)}
+              >
+                <Text style={styles.closeText}>Đóng</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Modal chọn ngày */}
+        <Modal visible={showCalendar} transparent animationType="fade">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Calendar
+                minDate={today}
+                onDayPress={handleDayPress}
+                markedDates={{
+                  [departureDate]: {
+                    selected: true,
+                    selectedColor: 'blue',
+                  },
+                  [returnDate]: {
+                    selected: true,
+                    selectedColor: 'green',
+                  },
+                }}
+              />
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowCalendar(false)}
+              >
+                <Text style={styles.closeText}>Đóng</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+         {/* Nút tìm kiếm */}
               
-              <ReusableBtn
-              onPress={()=>{navigation.navigate("AirList")}}
+         <ReusableBtn
+              onPress={()=>{handleSearch}}
               btnText={"Tìm kiếm"}
               textColor={COLORS.white}
             //   width={SIZES.xLarge}
@@ -169,94 +325,8 @@ const AirlineTicket = ({navigation}) => {
               backgroundColor={COLORS.green}
               borderWidth={0}
               borderColor={COLORS.green}
-              />
-
-      {/* Modal chọn nơi khởi hành */}
-      <Modal visible={showDepartureModal} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <FlatList
-              data={cities}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.listItem}
-                  onPress={() => {
-                    setDeparture(item);
-                    setShowDepartureModal(false);
-                  }}
-                >
-                  <Text style={styles.listText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowDepartureModal(false)}
-            >
-              <Text style={styles.closeText}>Đóng</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal chọn nơi đến */}
-      <Modal visible={showDestinationModal} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <FlatList
-              data={cities}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.listItem}
-                  onPress={() => {
-                    setDestination(item);
-                    setShowDestinationModal(false);
-                  }}
-                >
-                  <Text style={styles.listText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowDestinationModal(false)}
-            >
-              <Text style={styles.closeText}>Đóng</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal chọn ngày */}
-      <Modal visible={showCalendar} transparent animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Calendar
-              minDate={today}
-              onDayPress={handleDayPress}
-              markedDates={{
-                [departureDate]: {
-                  selected: true,
-                  selectedColor: "blue",
-                },
-                [returnDate]: {
-                  selected: true,
-                  selectedColor: "green",
-                },
-              }}
-            />
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowCalendar(false)}
-            >
-              <Text style={styles.closeText}>Đóng</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </View>
+          />
+      </View>
     </ScrollView>
   );
 };
@@ -270,19 +340,19 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     elevation: 5,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 3 },
   },
   title: {
     fontSize: TEXT.large,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.dark,
     marginBottom: 10,
   },
   inputGroup: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.white,
     padding: 10,
     borderRadius: 8,
@@ -296,29 +366,23 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
     color: COLORS.black,
   },
-  searchButton: {
-    backgroundColor: COLORS.green,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  searchText: {
-    color: COLORS.white,
-    fontSize: SIZES.large,
-    fontWeight: "bold",
+  roundTripText: {
+    marginRight: 10,
+    fontSize: SIZES.medium,
+    color: COLORS.gray,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
-    width: "80%", // Tăng lên từ 80% để rộng hơn
+    width: '80%',
     backgroundColor: COLORS.white,
     borderRadius: 10,
-    padding: 20, // Tăng padding cho thoáng
-    maxHeight: "70%", // Giới hạn chiều cao tránh tràn màn hình
+    padding: 20,
+    maxHeight: '70%',
   },
   listItem: {
     padding: 15,
@@ -326,20 +390,25 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.lightGrey,
   },
   listText: {
-    fontSize: SIZES.medium, // Tăng font chữ
+    fontSize: SIZES.medium,
     color: COLORS.black,
   },
+  loadingText: {
+    fontSize: SIZES.medium,
+    color: COLORS.gray,
+    textAlign: 'center',
+  },
   guestRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGrey,
   },
   counterContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   counterButton: {
     backgroundColor: COLORS.lightGrey,
@@ -353,24 +422,19 @@ const styles = StyleSheet.create({
   },
   counterValue: {
     fontSize: SIZES.large,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.dark,
   },
   closeButton: {
     backgroundColor: COLORS.green,
     padding: 12,
     borderRadius: 8,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 10,
   },
   closeText: {
     color: COLORS.white,
     fontSize: SIZES.large,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
-  listText: {
-    fontSize: SIZES.medium,
-    color: COLORS.black,
-  },
-  
 });

@@ -14,6 +14,8 @@ const api = axios.create({
   timeout: 10000,
 });
 
+
+
 // Interceptor để tự động thêm token vào header
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('token');
@@ -24,6 +26,7 @@ api.interceptors.request.use(async (config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
 
 // Hàm đăng ký người dùng
 export const fetchDangKy = async (user, email, password) => {
@@ -41,6 +44,8 @@ export const fetchDangKy = async (user, email, password) => {
     throw new Error(error.response?.data?.message || 'Đăng ký không thành công!');
   }
 };
+
+
 
 // Hàm đăng nhập người dùng
 export const fetchDangNhap = async (email, password) => {
@@ -60,6 +65,7 @@ export const fetchDangNhap = async (email, password) => {
   
 };
 
+
 // Hàm lấy thông tin người dùng
 export const getUser = async () => {
   try {
@@ -69,6 +75,7 @@ export const getUser = async () => {
     throw new Error(error.response?.data?.message || 'Lấy thông tin người dùng thất bại!');
   }
 };
+
 
 // Hàm lấy danh sách khách sạn
 export const getHotels = async () => {
@@ -82,6 +89,8 @@ export const getHotels = async () => {
   }
 };
 
+
+
 // Hàm lấy chi tiết khách sạn theo ID
 export const getHotelById = async (id) => {
   try {
@@ -93,6 +102,8 @@ export const getHotelById = async (id) => {
     throw new Error(error.response?.data?.message || 'Lấy chi tiết khách sạn thất bại!');
   }
 };
+
+
 
 // Hàm lấy danh sách phòng thep hotelId
 export const getRooms = async (hotelid) => {
@@ -106,3 +117,106 @@ export const getRooms = async (hotelid) => {
     throw new Error(error.response?.data?.message || 'Lấy danh sách phòng thất bại!');
   }
 };
+
+
+
+// Hàm lấy danh sách thành phố từ flights
+export const getCities = async () => {
+  try {
+    const response = await api.get('/cities');
+    console.log('Danh sách thành phố từ backend:', response.data);
+    return response.data.data; // Trả về mảng thành phố
+  } catch (error) {
+    console.log('Lỗi khi lấy danh sách thành phố:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy danh sách thành phố thất bại!');
+  }
+};
+
+
+// Hàm tìm kiếm chuyến bay
+export const searchFlights = async (params) => {
+  try {
+    const response = await api.get('/flights/search', {
+      params: {
+        departureCity: params.from,
+        arrivalCity: params.to,
+        outboundDate: params.departureDate,
+        isRoundTrip: params.isRoundTrip,
+        returnDate: params.returnDate,
+      },
+    });
+    console.log('Danh sách chuyến bay từ backend:', response.data);
+    return response.data.data; // Trả về mảng chuyến bay từ response
+  } catch (error) {
+    console.log('Lỗi khi tìm kiếm chuyến bay:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Tìm kiếm chuyến bay thất bại!');
+  }
+};
+
+
+// Hàm lấy tất cả chuyến bay (nhóm theo tripId)
+export const getAllFlights = async () => {
+  try {
+    const response = await api.get('/flights');
+    console.log('Tất cả chuyến bay từ backend:', response.data);
+    return response.data.data; // Trả về mảng chuyến bay đã nhóm theo tripId
+  } catch (error) {
+    console.log('Lỗi khi lấy tất cả chuyến bay:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy tất cả chuyến bay thất bại!');
+  }
+};
+
+// Hàm lấy tất cả chuyến bay chiều đi
+export const getOutboundFlights = async () => {
+  try {
+    const response = await api.get('/flights/outbound');
+    console.log('Chuyến bay chiều đi từ backend:', response.data);
+    return response.data.data; // Trả về mảng chuyến bay chiều đi
+  } catch (error) {
+    console.log('Lỗi khi lấy chuyến bay chiều đi:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy chuyến bay chiều đi thất bại!');
+  }
+};
+
+
+
+// Hàm lấy tất cả chuyến bay chiều về
+export const getReturnFlights = async () => {
+  try {
+    const response = await api.get('/flights/return');
+    console.log('Chuyến bay chiều về từ backend:', response.data);
+    return response.data.data; // Trả về mảng chuyến bay chiều về
+  } catch (error) {
+    console.log('Lỗi khi lấy chuyến bay chiều về:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy chuyến bay chiều về thất bại!');
+  }
+};
+
+
+
+// Hàm lấy chuyến bay theo tripId
+export const getFlightsByTripId = async (tripId) => {
+  try {
+    const response = await api.get(`/flights/trip/${tripId}`);
+    console.log(`Chuyến bay theo tripId ${tripId} từ backend:`, response.data);
+    return response.data.data; // Trả về object chuyến bay (outbound và return)
+  } catch (error) {
+    console.log('Lỗi khi lấy chuyến bay theo tripId:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy chuyến bay theo tripId thất bại!');
+  }
+};
+
+
+
+// Hàm lấy chuyến bay theo ID
+export const getFlightById = async (id) => {
+  try {
+    const response = await api.get(`/flights/${id}`);
+    console.log(`Chi tiết chuyến bay ${id} từ backend:`, response.data);
+    return response.data.data; // Trả về object chuyến bay
+  } catch (error) {
+    console.log('Lỗi khi lấy chi tiết chuyến bay:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy chi tiết chuyến bay thất bại!');
+  }
+};
+
