@@ -16,7 +16,6 @@ const api = axios.create({
 });
 
 
-
 // Interceptor để tự động thêm token vào header
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('token');
@@ -251,6 +250,81 @@ export const searchBuses = async (params) => {
   } catch (error) {
     console.error('Lỗi khi tìm kiếm xe khách:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Không thể tìm kiếm xe khách!');
+  }
+};
+
+
+
+// Hàm lấy danh sách địa điểm
+export const fetchPlaces = async () => {
+  try {
+    const response = await api.get('/places');
+    return response.data.data; // Giả định backend trả về { data: [...] }
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách địa điểm:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tải danh sách địa điểm!');
+  }
+};
+
+
+
+// Hàm lấy chi tiết địa điểm theo ID
+export const fetchPlaceById = async (id) => {
+  try {
+    const response = await api.get(`/places/${id}`);
+    return response.data.data; // Giả định backend trả về { data: {...} }
+  } catch (error) {
+    console.error('Lỗi khi lấy chi tiết địa điểm:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tải chi tiết địa điểm!');
+  }
+};
+
+
+
+
+// Hàm lấy highlights của một địa điểm
+export const fetchPlaceHighlights = async (placeId) => {
+  try {
+    const response = await api.get(`/places/${placeId}/highlights`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Lỗi khi lấy highlights:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tải highlights!');
+  }
+};
+
+// Hàm lấy suggestions của một địa điểm
+export const fetchPlaceSuggestions = async (placeId) => {
+  try {
+    const response = await api.get(`/places/${placeId}/suggestions`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Lỗi khi lấy suggestions:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tải suggestions!');
+  }
+};
+
+// Hàm lấy nearbyProvinces của một địa điểm
+export const fetchPlaceNearbyProvinces = async (placeId) => {
+  try {
+    const response = await api.get(`/places/${placeId}/nearby`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Lỗi khi lấy nearbyProvinces:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tải nearbyProvinces!');
+  }
+};
+
+
+
+// Hàm lấy tất cả suggestions
+export const fetchSuggestions = async () => {
+  try {
+    const response = await api.get('/suggestions');
+    return response.data.data;
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách suggestions:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tải danh sách suggestions!');
   }
 };
 

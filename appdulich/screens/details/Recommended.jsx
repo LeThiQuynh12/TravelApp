@@ -1,79 +1,105 @@
-
 import React, {
   useEffect,
   useState,
 } from 'react';
 
-import axios from 'axios';
 import {
   FlatList,
   SafeAreaView,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 
-import { COLORS } from '../../constants/theme';
 import AppBar from '../../components/Reusable/AppBar';
 import ReusableTile from '../../components/Reusable/ReusableTile';
+import { COLORS } from '../../constants/theme';
+import { fetchSuggestions } from '../../services/api';
 
-// React Navigation truyền navigation vào thông qua object props.
-const Recommended = ({navigation}) => { 
-  const [place, setplace] = useState([]); 
-  const [loading, setLoading] = useState(true); 
-  const API_URL = "https://67eff56a2a80b06b88966c78.mockapi.io/ct_dia_diem";
-  
-   // Gọi API khi component được render
-   useEffect(() => {
-    const fetchplace = async () => {
+const Recommended = ({ navigation }) => {
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await axios.get(API_URL);
-        setplace(response.data); // Cập nhật state với dữ liệu từ API
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu :", error);
+        const suggestionList = await fetchSuggestions();
+        setSuggestions(suggestionList);
+      } catch (err) {
+        setError(err.message);
+        console.error('Lỗi khi lấy danh sách suggestions:', err);
       } finally {
-        setLoading(false); // Dừng loading
+        setLoading(false);
       }
     };
 
-    fetchplace();
+    loadSuggestions();
   }, []);
-   
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.statusText}>Đang tải dữ liệu...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={[styles.statusText, { color: COLORS.red }]}>{error}</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
-   <SafeAreaView style={{marginHorizontal: 10 }}>
-    <View style={{height: 50}}>
-      <AppBar title={"Danh sách điểm đến "} 
-      color={COLORS.white} color1={COLORS.white} 
-      icon="search1" 
-      top = {0} 
-      left = {0}
-      right = {0} 
-      onPress={()=>navigation.goBack()}
-      onPress1={()=>navigation.navigate("Search")}
-      />
-    </View>
-
-    <View style={{paddingTop: 10}}>
-     
-     <FlatList
-     data={place}
-     renderItem={({item}) =>(
-      <View style={{marginBottom: 10}}>
-      <ReusableTile 
-      item={item}
-      onPress={()=> navigation.navigate('PlaceDetails',{item})}
-      
-      />
+    <SafeAreaView style={styles.container}>
+      <View style={{ height: 50 }}>
+        <AppBar
+          title={'Danh sách điểm đến'}
+          color={COLORS.white}
+          color1={COLORS.white}
+          icon="search1"
+          top={0}
+          left={0}
+          right={0}
+          onPress={() => navigation.goBack()}
+          onPress1={() => navigation.navigate('Search')}
+        />
       </View>
-    )
-    }
 
-/>
-    </View>
-   </SafeAreaView>
-  )
-}
+      <View style={{ paddingTop: 10 }}>
+        <FlatList
+          data={suggestions}
+          renderItem={({ item }) => (
+            <View style={{ marginBottom: 10 }}>
+              <ReusableTile
+                item={item}
+                onPress={() => navigation.navigate('PlaceDetails', { item })}
+              />
+            </View>
+          )}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      </View>
+    </SafeAreaView>
+  );
+};
 
-export default Recommended
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  statusText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+  },
+});
 
-const styles = StyleSheet.create({})
+export default Recommended;

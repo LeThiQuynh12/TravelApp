@@ -1,11 +1,6 @@
-import React, {
-  useEffect,
-  useState,
-} from 'react';
+import React from 'react';
 
-import axios from 'axios';
 import {
-  FlatList,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,55 +12,37 @@ import { useRoute } from '@react-navigation/native';
 
 import NetworkImage from '../../components/Reusable/NetworkImage';
 
-const PlaceDetails = (navigation) => {
+const PlaceDetails = () => {
   const route = useRoute();
-  const id = route.params;
-  console.log(id);
   const { item } = route.params;
-  const [loading, setLoading] = useState(false);
-  const [all, setAll] = useState([]);
 
-  const API_URL_DETAILS = "https://67eff56a2a80b06b88966c78.mockapi.io/ct_dia_diem";
-
-  useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        const response = await axios.get(API_URL_DETAILS);
-        setAll(response.data);
-      } catch (error) {
-        console.error("Lỗi khi lấy chi tiết địa điểm:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDetails();
-  }, []);
+  // Đảm bảo dữ liệu map hợp lệ
+  const mapCoordinates = item.map || { latitude: 0, longitude: 0 };
 
   return (
-    <ScrollView style={styles.container}nestedScrollEnabled={true}>
-      <NetworkImage source={{ uri: item.image }} height={250} width={"100%"} />
+    <ScrollView style={styles.container} nestedScrollEnabled={true}>
+      <NetworkImage source={{ uri: item.image }} height={250} width={'100%'} />
 
       <View style={styles.content}>
-        <Text style={styles.title}>{item.introduction}</Text>
+        <Text style={styles.title}>{item.introduction || item.name}</Text>
 
         {/* Address Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Địa chỉ</Text>
-          <Text style={styles.sectionText}>{item.address}</Text>
+          <Text style={styles.sectionText}>{item.address || 'Không có thông tin'}</Text>
           <MapView
             style={styles.map}
             initialRegion={{
-              latitude: item.map.latitude,
-              longitude: item.map.longitude,
+              latitude: mapCoordinates.latitude,
+              longitude: mapCoordinates.longitude,
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
             }}
           >
             <Marker
               coordinate={{
-                latitude: item.map.latitude,
-                longitude: item.map.longitude,
+                latitude: mapCoordinates.latitude,
+                longitude: mapCoordinates.longitude,
               }}
               title={item.name}
               description={item.address}
@@ -76,37 +53,36 @@ const PlaceDetails = (navigation) => {
         {/* Description Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Giới thiệu</Text>
-          <Text style={styles.sectionText}>{item.description}</Text>
+          <Text style={styles.sectionText}>{item.description || 'Không có thông tin'}</Text>
         </View>
 
         {/* Pricing Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Giá vé</Text>
-          <Text style={styles.sectionText}>{item.ticket_prices}</Text>
+          <Text style={styles.sectionText}>{item.ticket_prices || 'Miễn phí'}</Text>
         </View>
 
         {/* Notes Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Lưu ý khi tham quan</Text>
-          <Text style={styles.sectionText}>{item.notes}</Text>
+          <Text style={styles.sectionText}>{item.notes || 'Không có lưu ý'}</Text>
         </View>
 
         {/* Reviews Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Đánh giá</Text>
-          <FlatList
-            data={Array.isArray(item.reviewer) ? item.reviewer : [item.reviewer]}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.reviewItem}>
+          {item.reviews && item.reviews.length > 0 ? (
+            item.reviews.map((review, index) => (
+              <View key={index} style={styles.reviewItem}>
                 <View style={styles.reviewHeader}>
-                  <Text style={styles.reviewUser}>{item.user_name}</Text>
+                  <Text style={styles.reviewUser}>
+                    {review.user?.name || 'Người dùng ẩn danh'}
+                  </Text>
                   <View style={styles.ratingContainer}>
-                    <Text style={styles.reviewRating}>{item.user_rating}/5 </Text>
+                    <Text style={styles.reviewRating}>{review.rating}/5 </Text>
                     <Text style={styles.star}>★</Text>
                     <Text style={styles.reviewDate}>
-                      {' '}
-                      {new Date(item.date).toLocaleDateString('vi-VN', {
+                      {new Date(review.createdAt).toLocaleDateString('vi-VN', {
                         day: '2-digit',
                         month: '2-digit',
                         year: 'numeric',
@@ -114,13 +90,12 @@ const PlaceDetails = (navigation) => {
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.reviewComment}>{item.comment}</Text>
+                <Text style={styles.reviewComment}>{review.review}</Text>
               </View>
-            )}
-            scrollEnabled={false} // Chặn scroll riêng cho FlatList
-            nestedScrollEnabled={true} // Cho phép cuộn lồng
-            contentContainerStyle={styles.flatListContent}
-          />
+            ))
+          ) : (
+            <Text style={styles.sectionText}>Chưa có đánh giá</Text>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -132,7 +107,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     padding: 10,
-    paddingTop: 40
+    paddingTop: 40,
   },
   content: {
     paddingVertical: 10,
@@ -206,9 +181,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     lineHeight: 20,
-  },
-  flatListContent: {
-    paddingBottom: 10,
   },
 });
 

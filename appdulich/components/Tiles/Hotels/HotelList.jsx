@@ -3,7 +3,6 @@ import React, {
   useState,
 } from 'react';
 
-import axios from 'axios';
 import {
   FlatList,
   SafeAreaView,
@@ -12,6 +11,7 @@ import {
 } from 'react-native';
 
 import { COLORS } from '../../../constants/theme';
+import { getHotels } from '../../../services/api.js';
 import AppBar from '../../Reusable/AppBar';
 import ReusableTile from '../../Reusable/ReusableTile';
 
@@ -19,13 +19,13 @@ import ReusableTile from '../../Reusable/ReusableTile';
 const HotelList = ({navigation}) => { 
   const [hotels, setHotels] = useState([]); // State chua list hotels
   const [loading, setLoading] = useState(true); 
-  const API_URL = "https://67e017447635238f9aac7da4.mockapi.io/api/v1/hotels/";
+  
   
    // Gọi API khi component được render
    useEffect(() => {
     const fetchHotels = async () => {
       try {
-        const response = await axios.get(API_URL);
+        const response = await getHotels();
         setHotels(response.data); // Cập nhật state với dữ liệu từ API
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu khách sạn:", error);
