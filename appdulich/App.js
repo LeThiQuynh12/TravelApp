@@ -29,7 +29,17 @@ import Recommended from './screens/details/Recommended.jsx';
 import Onboarding from './screens/onboarding/Onboarding.jsx';
 import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
-
+import Profile from './screens/profile/Profile.jsx';
+import PersonalInfoScreen from './screens/profile/PersonalInfoScreen.jsx';
+import PhoneNumber from './screens/profile/PhoneNumber.jsx';
+import Bank from './screens/profile/Bank.jsx'
+import ChangePass from './screens/profile/ChangePass.jsx'
+import Email from './screens/profile/Email.jsx'
+import ForgotPass from './screens/authentication/ForgotPass.jsx';
+import LinkSuccessScreen from './screens/profile/LinkSuccessScreen.jsx';
+import AddPaymentMethodScreen from './screens/profile/AddPaymentMethodScreen.jsx';
+import VerificationScreen from './components/VerificationScreen.jsx';
+import AccountDetail from './screens/profile/AccountDetail.jsx';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -137,6 +147,17 @@ export default function App() {
         <Stack.Screen name="AirDetail" component={AirDetail} options={{ headerShown: false }} />
         <Stack.Screen name="BusList" component={BusList} options={{ headerShown: false }} />
         <Stack.Screen name="BusDetail" component={BusDetail} options={{ headerShown: false }} />
+        <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+        <Stack.Screen name="PersonalInfoScreen" component={PersonalInfoScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PhoneNumber" component={PhoneNumber} options={{ headerShown: false }} />
+        <Stack.Screen name="Email" component={Email} options={{ headerShown: false }} />
+        <Stack.Screen name="Bank" component={Bank} options={{ headerShown: false }} />
+        <Stack.Screen name="ChangePass" component={ChangePass} options={{ headerShown: false }} />
+        <Stack.Screen name="ForgotPass" component={ForgotPass} options={{ headerShown: false }} />
+        <Stack.Screen name="LinkSuccessScreen" component={LinkSuccessScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="VerificationScreen" component={VerificationScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AddPaymentMethodScreen" component={AddPaymentMethodScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AccountDetail" component={AccountDetail} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

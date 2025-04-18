@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-
 import {
   Image,
   ScrollView,
@@ -9,93 +8,126 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-import {
-  COLORS,
-  SIZES,
-  TEXT,
-} from '../../constants/theme';
+import { MaterialIcons } from '@expo/vector-icons';
+import { COLORS, SIZES, TEXT } from '../../constants/theme';
 import AppBar from './AppBar';
 import HeightSpacer from './HeightSpacer';
 
 const CustomerInfo = ({ navigation }) => {
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  const paymentMethods = [
-    { id: 'momo', name: 'MoMo', image: {uri: "https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Square-1024x1024.png"} },
-    { id: 'zalopay', name: 'ZaloPay', image: {uri: "https://cdn.prod.website-files.com/5fb85f262823b4390bcfe076/66965d8419182b6ff385a01f_zalopay_logo_preview.webp"} },
-    { id: 'vnpay', name: 'VNPay', image: {uri: "https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418196384.png"} },
+  // Sample data for linked accounts
+  const linkedAccounts = [
+    { 
+      id: 'mb', 
+      type: 'bank',
+      name: 'MB Bank', 
+      logo: 'https://logo.clearbit.com/mbbank.com.vn', 
+      number: '*2271',
+      holderName: 'Nguyễn Văn A',
+      linkedDate: '15/10/2023'
+    },
+    { 
+      id: 'momo', 
+      type: 'ewallet',
+      name: 'MoMo', 
+      logo: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Square-1024x1024.png', 
+      number: '*8781',
+      holderName: 'Nguyễn Văn A',
+      linkedDate: '20/10/2023'
+    }
   ];
 
   return (
     <ScrollView>
-          <View style={styles.container}>
-      <AppBar
-        top={50}
-        left={20}
-        right={20}
-        title={'Điền thông tin'}
-        color={COLORS.white}
-        // icon={'search1'}
-        // color1={COLORS.white}
-        onPress={() => navigation.goBack()}
-        // onPress1={() => navigation.navigate('HotelSearch')}
-        style={{ marginBottom: 20 }}
-      />
-      
-      <HeightSpacer height={100} />
-      <Text style={styles.title}>Thông tin khách hàng</Text>
-      <HeightSpacer height={20} />
-      
-      {/* Thông tin khách hàng */}
-      <View style={styles.infoContainer}>
-        <Text style={styles.text}>Họ và tên <Text style={styles.must}>(*)</Text></Text>
-        <TextInput style={styles.input} />
+      <View style={styles.container}>
+        <AppBar
+          top={50}
+          left={20}
+          right={20}
+          title={'Điền thông tin'}
+          color={COLORS.white}
+          onPress={() => navigation.goBack()}
+          style={{ marginBottom: 20 }}
+        />
         
-        <Text style={styles.text}>Số điện thoại <Text style={styles.must}>(*)</Text></Text>
-        <TextInput style={styles.input} />
+        <HeightSpacer height={100} />
+        <Text style={styles.title}>Thông tin khách hàng</Text>
+        <HeightSpacer height={20} />
         
-        <Text style={styles.text}>Email <Text style={styles.must}>(*)</Text></Text>
-        <TextInput style={styles.input} />
-      </View>
-      
-      <HeightSpacer height={10} />
-      <Text style={styles.title}>Phương thức thanh toán</Text>
-
-      {/* Box hiển thị phương thức thanh toán đã chọn */}
-      {selectedPayment && (
-        <View style={styles.selectedPaymentBox}>
-          <Image source={paymentMethods.find(m => m.id === selectedPayment)?.image} style={styles.paymentIconLarge} />
-          <Text style={styles.selectedPaymentText}>{paymentMethods.find(m => m.id === selectedPayment)?.name}</Text>
+        {/* Customer information section */}
+        <View style={styles.infoContainer}>
+          <Text style={styles.text}>Họ và tên <Text style={styles.must}>(*)</Text></Text>
+          <TextInput style={styles.input} placeholder="Nhập họ và tên" />
+          
+          <Text style={styles.text}>Số điện thoại <Text style={styles.must}>(*)</Text></Text>
+          <TextInput 
+            style={styles.input} 
+            placeholder="Nhập số điện thoại"
+            keyboardType="phone-pad"
+          />
+          
+          <Text style={styles.text}>Email <Text style={styles.must}>(*)</Text></Text>
+          <TextInput 
+            style={styles.input} 
+            placeholder="Nhập email"
+            keyboardType="email-address"
+          />
         </View>
-      )}
-      
-      <HeightSpacer height={20}/>
-      <View style={styles.paymentContainer}>
-        {paymentMethods.map((method) => (
-          <TouchableOpacity
-            key={method.id}
-            style={[styles.paymentOption, selectedPayment === method.id && styles.selectedPayment]}
-            onPress={() => setSelectedPayment(method.id)}
+        
+        <HeightSpacer height={10} />
+        <Text style={styles.title}>Tài khoản thanh toán</Text>
+
+        {/* Linked accounts section */}
+        <View style={styles.accountsContainer}>
+          {linkedAccounts.map((account) => (
+            <TouchableOpacity 
+              key={account.id}
+              style={[
+                styles.bankCard,
+                selectedPayment === account.id && styles.selectedAccount
+              ]}
+              onPress={() => setSelectedPayment(account.id)}
+              onLongPress={() => navigation.navigate('AccountDetail', { account })}
+            >
+              <View style={styles.bankInfo}>
+                <Image 
+                  style={styles.bankLogo} 
+                  source={{uri: account.logo}} 
+                />
+                <View>
+                  <Text style={styles.bankName}>{account.name}</Text>
+                  <Text style={styles.accountHolder}>{account.holderName}</Text>
+                </View>
+              </View>
+              <Text style={styles.cardNumber}>{account.number}</Text>
+            </TouchableOpacity>
+          ))}
+          
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => navigation.navigate('Bank')}
           >
-            <Image source={method.image} style={styles.paymentIcon} />
-            <Text>{method.name}</Text>
+            <MaterialIcons name="add" size={24} color={COLORS.primary} />
+            <Text style={styles.addButtonText}>Thêm tài khoản thanh toán</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        </View>
+        
         <HeightSpacer height={20}/>
-        <TouchableOpacity style={styles.button}
-            onPress={() => navigation.navigate("CustomerInfo")}
+        <TouchableOpacity 
+          style={[
+            styles.button,
+            !selectedPayment && { backgroundColor: COLORS.gray }
+          ]}
+          disabled={!selectedPayment}
+          onPress={() => navigation.navigate("Confirmation")}
         >
-        <Text style={styles.buttonText}>Đặt ngay</Text>
-      </TouchableOpacity>
-      
-    </View>
+          <Text style={styles.buttonText}>Đặt ngay</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
-
-export default CustomerInfo;
 
 const styles = StyleSheet.create({
   container: {
@@ -126,62 +158,75 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 20,
     marginVertical: 10,
+    backgroundColor: COLORS.white,
   },
   title: {
     color: COLORS.blue,
     fontSize: SIZES.medium,
     fontWeight: 'bold',
     marginLeft: 13,
+    marginBottom: 10,
   },
-  paymentContainer: {
-    marginTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  paymentOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    // backgroundColor: "#87CEEB",
-    padding: 12,
-    borderRadius: 10,
-    width: '30%',
-    justifyContent: 'center',
-  },
-  paymentIcon: {
-    width: 30,
-    height: 30,
-    marginRight: 10,
-    borderRadius: 5,
-  },
-  paymentIconLarge: {
-    width: 50,
-    height: 50,
-    marginBottom: 5,
-    borderRadius: 8,
-  },
-  selectedPayment: {
-    // backgroundColor: "#ADD8E6",
-    borderWidth: 2,
-    borderColor: "green",
-  },
-  selectedPaymentBox: {
-    marginTop: 20,
-    alignItems: 'center',
+  accountsContainer: {
+    marginHorizontal: 10,
+    backgroundColor: COLORS.lightWhite,
     borderRadius: 20,
-    width: '100%',
+    padding: 15,
+  },
+  bankCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 15,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: COLORS.lightGrey,
+  },
+  selectedAccount: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.lightPrimary,
+  },
+  bankInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bankLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 15,
+  },
+  bankName: {
+    fontSize: SIZES.medium,
+    color: COLORS.dark,
+    fontWeight: '500',
+  },
+  accountHolder: {
+    fontSize: SIZES.small,
+    color: COLORS.gray,
+  },
+  cardNumber: {
+    fontSize: SIZES.medium,
+    color: COLORS.gray,
+    fontWeight: '500',
+  },
+  addButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-    paddingVertical: 3,
-    borderWidth: 2,
-    borderColor: "#DAA520",
-
+    padding: 15,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: 15,
+    borderStyle: 'dashed',
   },
-  selectedPaymentText: {
+  addButtonText: {
     fontSize: SIZES.medium,
-    color: "purple",
-    fontWeight: 'bold',
-    marginLeft: 20,
+    color: COLORS.primary,
+    marginLeft: 10,
+    fontWeight: '500',
   },
   button: {
     backgroundColor: COLORS.green,
@@ -189,6 +234,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.small,
     alignItems: "center",
     marginTop: SIZES.medium,
+    marginHorizontal: 10,
   },
   buttonText: {
     color: COLORS.white,
@@ -196,3 +242,5 @@ const styles = StyleSheet.create({
     fontSize: TEXT.medium,
   },
 });
+
+export default CustomerInfo;
