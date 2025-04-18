@@ -1,7 +1,11 @@
 import {
+  useCallback,
   useEffect,
   useState,
 } from 'react';
+
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 
 import AsyncStorage
   from '@react-native-async-storage/async-storage'; // Thêm dòng này
@@ -41,7 +45,13 @@ import Search from './screens/search/Search.jsx';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-
+  const [fontsLoaded] = useFonts({
+    regular: require('./assets/fonts/regular.ttf'),
+    bold: require('./assets/fonts/bold.ttf'),
+    light: require('./assets/fonts/light.ttf'),
+    medium: require('./assets/fonts/medium.ttf'),
+    xtrbold: require('./assets/fonts/xtrabold.ttf'),
+  });
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [initialRoute, setInitialRoute] = useState('Onboard');
@@ -65,7 +75,15 @@ export default function App() {
     checkLoginStatus();
   }, []);
 
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
 
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <NavigationContainer>

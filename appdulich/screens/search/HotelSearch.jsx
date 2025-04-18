@@ -3,7 +3,6 @@ import React, {
   useState,
 } from 'react';
 
-import axios from 'axios';
 import {
   FlatList,
   Image,
@@ -27,6 +26,7 @@ import {
   COLORS,
   SIZES,
 } from '../../constants/theme';
+import { getHotels } from '../../services/api.js'; // Import từ api.js
 
 const HotelSearch = ({ navigation }) => {
   const [searchKey, setSearchKey] = useState('');
@@ -38,15 +38,15 @@ const HotelSearch = ({ navigation }) => {
   const [filterPriceMin, setFilterPriceMin] = useState('');
   const [filterPriceMax, setFilterPriceMax] = useState('');
   const [filterRating, setFilterRating] = useState(0);
-  const API_URL = 'https://67e017447635238f9aac7da4.mockapi.io/api/v1/hotels/';
 
   // Gọi API khi component được render
   useEffect(() => {
     const fetchHotels = async () => {
       try {
-        const response = await axios.get(API_URL);
-        setHotels(response.data);
-        setSearchResults(response.data);
+        const response = await getHotels(); // Gọi API từ services/api.js
+        console.log('Dữ liệu khách sạn:', response); // Kiểm tra dữ liệu
+        setHotels(response);
+        setSearchResults(response);
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu khách sạn:', error);
         setError('Không thể tải dữ liệu khách sạn');
@@ -58,6 +58,19 @@ const HotelSearch = ({ navigation }) => {
     fetchHotels();
   }, []);
 
+  // Hàm xử lý giá dạng "min-max" hoặc số đơn
+  const parsePrice = (priceString) => {
+    if (!priceString || typeof priceString !== 'string') {
+      return { min: 0, max: Infinity };
+    }
+    if (priceString.includes('-')) {
+      const [min, max] = priceString.split('-').map((val) => parseFloat(val) || 0);
+      return { min, max: max || Infinity };
+    }
+    const price = parseFloat(priceString) || 0;
+    return { min: price, max: price };
+  };
+
   // Hàm xử lý tìm kiếm ở frontend
   const handleSearch = () => {
     if (!searchKey.trim()) {
@@ -65,9 +78,10 @@ const HotelSearch = ({ navigation }) => {
       return;
     }
 
-    const filteredHotels = hotels.filter(hotel =>
-      hotel.location.toLowerCase().includes(searchKey.toLowerCase()) ||
-      hotel.title.toLowerCase().includes(searchKey.toLowerCase())
+    const filteredHotels = hotels.filter(
+      (hotel) =>
+        hotel.location?.toLowerCase().includes(searchKey.toLowerCase()) ||
+        hotel.title?.toLowerCase().includes(searchKey.toLowerCase())
     );
 
     setSearchResults(filteredHotels);
@@ -75,16 +89,7 @@ const HotelSearch = ({ navigation }) => {
     Keyboard.dismiss();
   };
 
-  // Hàm xử lý giá dạng "min-max"
-  const parsePriceRange = (priceString) => {
-    if (!priceString || typeof priceString !== 'string') {
-      return { min: 0, max: Infinity };
-    }
-    const [min, max] = priceString.split('-').map(val => parseFloat(val) || 0);
-    return { min, max: max || Infinity };
-  };
-
-  // Hàm xử lý lọc
+  // Hàm xử lý lọc ở frontend
   const handleFilter = () => {
     let filteredHotels = [...hotels];
 
@@ -92,22 +97,21 @@ const HotelSearch = ({ navigation }) => {
     const userPriceMax = parseFloat(filterPriceMax) || Infinity;
 
     if (userPriceMin || userPriceMax < Infinity) {
-      filteredHotels = filteredHotels.filter(hotel => {
-        const { min: hotelMin, max: hotelMax } = parsePriceRange(hotel.price);
+      filteredHotels = filteredHotels.filter((hotel) => {
+        const { min: hotelMin, max: hotelMax } = parsePrice(hotel.price);
         return hotelMax >= userPriceMin && hotelMin <= userPriceMax;
       });
     }
 
     if (filterRating > 0) {
-      filteredHotels = filteredHotels.filter(
-        hotel => hotel.rating >= filterRating
-      );
+      filteredHotels = filteredHotels.filter((hotel) => hotel.rating >= filterRating);
     }
 
     if (searchKey.trim()) {
-      filteredHotels = filteredHotels.filter(hotel =>
-        hotel.location.toLowerCase().includes(searchKey.toLowerCase()) ||
-        hotel.title.toLowerCase().includes(searchKey.toLowerCase())
+      filteredHotels = filteredHotels.filter(
+        (hotel) =>
+          hotel.location?.toLowerCase().includes(searchKey.toLowerCase()) ||
+          hotel.title?.toLowerCase().includes(searchKey.toLowerCase())
       );
     }
 
@@ -190,7 +194,7 @@ const HotelSearch = ({ navigation }) => {
 
                 <Text style={styles.filterLabel}>Đánh giá tối thiểu</Text>
                 <View style={styles.ratingButtons}>
-                  {[3, 3.5, 4, 4.5, 5].map(rating => (
+                  {[3, 3.5, 4, 4.5, 5].map((rating) => (
                     <TouchableOpacity
                       key={rating}
                       style={[
@@ -226,7 +230,7 @@ const HotelSearch = ({ navigation }) => {
 
         {loading ? (
           <View style={styles.centerContainer}>
-            <Text>Loading...</Text>
+            <Text>Đang tải...</Text>
           </View>
         ) : error ? (
           <View style={styles.centerContainer}>
@@ -247,12 +251,14 @@ const HotelSearch = ({ navigation }) => {
             data={searchResults}
             numColumns={2}
             ItemSeparatorComponent={() => <View style={{ height: 13 }} />}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item._id} // Sử dụng _id từ backend
             renderItem={({ item }) => (
               <HotelCard
                 item={item}
                 margin={6}
-                onPress={() => navigation.navigate('HotelDetails', { id: item.id })}
+                onPress={() =>
+                  navigation.navigate('HotelDetails', { id: item._id }) // Sử dụng hotelId
+                }
               />
             )}
             contentContainerStyle={styles.flatListContent}
@@ -265,7 +271,7 @@ const HotelSearch = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Đảm bảo SafeAreaView chiếm toàn bộ màn hình
+    flex: 1,
   },
   appBarContainer: {
     height: 38,
@@ -317,7 +323,7 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     paddingHorizontal: 4,
-    paddingBottom: SIZES.large * 2, // Thêm padding dưới để kéo hết danh sách
+    paddingBottom: SIZES.large * 2,
   },
   modalOverlay: {
     flex: 1,
