@@ -173,7 +173,7 @@ const RoomCard = ({ room, navigation }) => {
       {/* Nút chọn phòng */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('CustomerInfo', { roomId: room._id })} // Truyền roomId sang màn hình tiếp theo
+        onPress={() => navigation.navigate('CustomerInfo', { room })} // Truyền roomId sang màn hình tiếp theo
       >
         <Text style={styles.buttonText}>Chọn phòng</Text>
       </TouchableOpacity>

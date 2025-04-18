@@ -41,6 +41,7 @@ import PhoneNumber from './screens/profile/PhoneNumber.jsx';
 import Profile from './screens/profile/Profile.jsx';
 import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
+import BookingDetails from './components/Tiles/Hotels/BookingDetails.jsx';
 
 const Stack = createNativeStackNavigator();
 
@@ -160,6 +161,7 @@ export default function App() {
         <Stack.Screen name="VerificationScreen" component={VerificationScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AddPaymentMethodScreen" component={AddPaymentMethodScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AccountDetail" component={AccountDetail} options={{ headerShown: false }} />
+        <Stack.Screen name="BookingDetails" component={BookingDetails} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
