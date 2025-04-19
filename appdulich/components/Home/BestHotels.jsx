@@ -48,7 +48,7 @@ const BestHotels = () => {
     <View style={styles.container}>
       <View style={[rowWithSpace('space-between'), { paddingBottom: 10 }]}>
         <ReusableText
-          text={'Khách sạn gần'}
+          text={'Lựa chọn khách sạn'}
           family={'medium'}
           size={TEXT.large}
           color={COLORS.black}

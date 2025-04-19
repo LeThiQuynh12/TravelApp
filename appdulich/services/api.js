@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const api = axios.create({
 
   // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
-  baseURL: 'http://192.168.0.111:5003/api',
+  baseURL: 'http://192.168.1.14:5003/api',
   
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
@@ -66,15 +66,50 @@ export const fetchDangNhap = async (email, password) => {
 };
 
 
+
 // Hàm lấy thông tin người dùng
 export const getUser = async () => {
   try {
-    const response = await api.get('/users'); // Token sẽ tự động được thêm vào header
+    const response = await api.get('/users');
+    console.log('Phản hồi từ backend:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Lỗi lấy thông tin người dùng:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Lấy thông tin người dùng thất bại!');
   }
 };
+
+
+
+// Hàm cập nhật thông tin người dùng
+
+export const updateUser = async (userData) => {
+  try {
+    console.log('Đang gửi yêu cầu cập nhật người dùng:', userData);
+    const response = await api.put('/user', userData);
+    console.log('Phản hồi từ backend:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi cập nhật người dùng:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Cập nhật thông tin người dùng thất bại!');
+  }
+};
+
+
+// Hàm xóa người dùng
+export const deleteUser = async () => {
+  try {
+    const response = await api.delete('/users');
+    console.log('Phản hồi từ backend:', response.data);
+    // Xóa token khỏi AsyncStorage sau khi xóa tài khoản
+    await AsyncStorage.removeItem('token');
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi xóa người dùng:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Xóa người dùng thất bại!');
+  }
+};
+
 
 
 // Hàm lấy danh sách khách sạn
