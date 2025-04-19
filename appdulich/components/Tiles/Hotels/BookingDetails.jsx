@@ -21,8 +21,21 @@ const BookingDetails = ({ navigation, route }) => {
         {
           text: 'Có',
           onPress: () => {
-            // Handle cancellation logic here
-            navigation.navigate('Bottom');
+            // Xử lý logic hủy phòng ở đây
+            // Sau đó hiển thị thông báo thành công
+            Alert.alert(
+              'Thành công',
+              'Hủy đặt phòng thành công!',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    // Chuyển về màn hình Bottom sau khi xác nhận
+                    navigation.navigate('Bottom');
+                  }
+                }
+              ]
+            );
           },
         },
       ],
@@ -45,7 +58,7 @@ const BookingDetails = ({ navigation, route }) => {
         {/* Booking Summary Card */}
         <View style={styles.summaryCard}>
           <View style={styles.header}>
-            <MaterialIcons name="confirmation-number" size={24} color={COLORS.primary} />
+            <MaterialIcons name="confirmation-number" size={24} color={COLORS.red} />
             <Text style={styles.headerText}>Đặt phòng thành công</Text>
           </View>
           
@@ -102,9 +115,9 @@ const BookingDetails = ({ navigation, route }) => {
           <View style={styles.priceContainer}>
             <Text style={styles.priceLabel}>Giá phòng:</Text>
             {room.oldPrice && (
-              <Text style={styles.oldPrice}>{room.oldPrice} VND</Text>
+              <Text style={styles.oldPrice}>{room.oldPrice} </Text>
             )}
-            <Text style={styles.newPrice}>{room.newPrice} VND</Text>
+            <Text style={styles.newPrice}>{room.newPrice} </Text>
           </View>
         </View>
 
@@ -169,6 +182,8 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: SIZES.medium,
+    marginTop:70,
+    marginBottom:40
   },
   summaryCard: {
     backgroundColor: COLORS.white,
@@ -189,13 +204,13 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: SIZES.medium,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.red,
     marginLeft: SIZES.small,
   },
   divider: {
     height: 1,
     backgroundColor: COLORS.lightGrey,
-    marginVertical: SIZES.small,
+    //marginVertical: ,
   },
   bookingInfo: {
     marginTop: SIZES.small,

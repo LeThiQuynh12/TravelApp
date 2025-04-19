@@ -106,6 +106,7 @@ const CustomerInfo = ({ navigation,route }) => {
         fullName,
         phoneNumber,
         email,
+        room,
         paymentMethod: linkedAccounts.find((account) => account.id === selectedPayment),
         bookingDate: new Date().toLocaleString(),
       };

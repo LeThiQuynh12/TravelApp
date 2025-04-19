@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-
+import { COLORS,SIZES } from '../../constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { TEXT } from '../../constants/theme';
@@ -24,7 +24,10 @@ const Signin = ({ navigation, route }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { setIsLoggedIn } = route.params || {}; // Nhận setIsLoggedIn từ route
-
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+  });
   const togglePasswordVisibility = () => {
     setShowPassword(true);
     setTimeout(() => {
@@ -32,26 +35,47 @@ const Signin = ({ navigation, route }) => {
     }, 800);
   };
 
-  const handleLogin = async () => {
-    if (!email.includes("@")) {
-      alert("Vui lòng nhập email hợp lệ!");
-      return;
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+  
+  const validateInputs = () => {
+    const newErrors = {
+      email: '',
+      password: '',
+    };
+    let isValid = true;
+
+    // Kiểm tra email
+    if (!isValidEmail(email)) {
+      newErrors.email = 'Vui lòng nhập email hợp lệ!';
+      isValid = false;
     }
+
+    // Kiểm tra password
     if (password.length < 6) {
-      alert("Mật khẩu phải có ít nhất 6 ký tự!");
-      return;
+      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự!';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+  const handleLogin = async () => {
+    const isValid = validateInputs();
+
+    if (!isValid) {
+      return; // Dừng lại nếu có lỗi
     }
 
     try {
       const data = await fetchDangNhap(email, password);
-      // Lưu token vào AsyncStorage
       await AsyncStorage.setItem('token', data.token);
-      // Cập nhật trạng thái đăng nhập
       if (setIsLoggedIn) {
         setIsLoggedIn(true);
       }
       alert("Đăng nhập thành công!");
-      // Điều hướng đến BottomTabNavigation
       navigation.replace('Bottom');
     } catch (error) {
       alert(error.message || "Đăng nhập thất bại!");
@@ -70,25 +94,32 @@ const Signin = ({ navigation, route }) => {
         >
           <View>
             <Text style={styles.labelText}>Email</Text>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, errors.email && styles.inputError]}>
               <Icon name="envelope" size={20} color="#777" style={styles.icon} />
               <TextInput
                 style={styles.input}
                 placeholder="Nhập email"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setErrors({ ...errors, email: '' }); // Xóa lỗi khi nhập
+                }}
               />
             </View>
+            {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
             <Text style={styles.labelText}>Password</Text>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, errors.password && styles.inputError]}>
               <Icon name="lock" size={20} color="#777" style={styles.icon} />
               <TextInput
                 style={styles.input}
                 placeholder="Nhập password"
                 secureTextEntry={!showPassword}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setErrors({ ...errors, password: '' }); // Xóa lỗi khi nhập
+                }}
               />
               <TouchableOpacity onPress={togglePasswordVisibility}>
                 <Icon
@@ -99,6 +130,14 @@ const Signin = ({ navigation, route }) => {
                 />
               </TouchableOpacity>
             </View>
+            {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+
+            <TouchableOpacity
+              style={styles.forgotPass}
+              onPress={() => navigation.navigate("ForgotPass")}
+            >
+              <Text style={styles.forgotbtn}>Quên mật khẩu?</Text>
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
@@ -137,6 +176,16 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: TEXT.medium,
   },
+  inputError: {
+    borderColor: COLORS.red,
+  },
+  errorText: {
+    color: COLORS.red,
+    fontSize: SIZES.small,
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+   
+  },
   button: {
     backgroundColor: "#3CA684",
     paddingVertical: 12,
@@ -153,6 +202,15 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     color: "#777",
     marginVertical: 10,
+  },
+  forgotPass: {
+    alignItems: "flex-end",
+    marginBottom: 15,
+  },
+  forgotbtn: {
+    color: COLORS.skyBlue,
+    fontSize: SIZES.small,
+    textDecorationLine: "underline",
   },
   buttonText: {
     color: "#fff",

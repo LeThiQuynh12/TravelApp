@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const api = axios.create({
 
   // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
-  baseURL: 'http://192.168.0.111:5003/api',
+  baseURL: 'http://172.20.10.3:5003/api',
   
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
@@ -76,7 +76,17 @@ export const getUser = async () => {
   }
 };
 
+// API kiểm tra người dùng tồn tại
+export const checkUserExists = async (emailOrPhone, type) => {
+  const response = await api.post('/check-user', { emailOrPhone, type });
+  return response.data;
+};
 
+// API reset mật khẩu
+export const resetPassword = async (emailOrPhone, type) => {
+  const response = await api.post('/reset-password', { emailOrPhone, type });
+  return response.data;
+};
 // Hàm lấy danh sách khách sạn
 export const getHotels = async () => {
   try {
