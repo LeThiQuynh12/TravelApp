@@ -19,7 +19,7 @@ import { useRoute } from '@react-navigation/native';
 import AppBar from '../../components/Reusable/AppBar';
 import NetworkImage from '../../components/Reusable/NetworkImage';
 import { fetchPlaceById } from '../../services/api';
-
+import NearbyLocations from './NearbyLocations';
 const CountryDetails = ({ navigation }) => {
   const route = useRoute();
   const { item } = route.params;
@@ -66,7 +66,6 @@ const CountryDetails = ({ navigation }) => {
           icon={'search1'}
           color1="white"
           onPress={() => navigation.goBack()}
-          onPress1={() => navigation.navigate('PlaceDetails')}
         />
       </View>
 
@@ -130,24 +129,9 @@ const CountryDetails = ({ navigation }) => {
         />
 
         {/* Các tỉnh lân cận */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Các tỉnh lân cận</Text>
-        </View>
-        <FlatList
-          horizontal
-          data={placeDetails.nearbyProvinces}
-          keyExtractor={(province) => province._id}
-          renderItem={({ item: province }) => (
-            <TouchableOpacity
-              style={styles.nearbyContainer}
-              onPress={() => navigation.navigate('CountryDetails', { item: province })}
-            >
-              <Image source={{ uri: province.image }} style={styles.nearbyImage} />
-              <Text style={styles.nearbyTitle}>{province.name}</Text>
-            </TouchableOpacity>
-          )}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.flatListContent}
+        <NearbyLocations 
+          locations={placeDetails.nearbyProvinces || []} 
+          onPress={(province) => navigation.navigate('CountryDetails', { item: province })}
         />
       </ScrollView>
     </View>

@@ -25,8 +25,12 @@ import PlaceList from './components/Tiles/Place/PlaceList.jsx';
 import VerificationScreen from './components/VerificationScreen.jsx';
 import BottomTabNavigation from './navigation/BottomTabNavigation';
 import ForgotPass from './screens/authentication/ForgotPass.jsx';
+import AskQuestion from './screens/chat/AskQuestion.jsx';
+import Chat from './screens/chat/Chat.jsx';
+import Chatbot from './screens/chat/Chatbot.jsx';
 import CountryDetails from './screens/details/CountryDetails.jsx';
 import HotelDetails from './screens/details/HotelDetails.jsx';
+import NearbyLocations from './screens/details/NearbyLocations.jsx';
 import PlaceDetails from './screens/details/PlaceDetails.jsx';
 import Recommended from './screens/details/Recommended.jsx';
 import Onboarding from './screens/onboarding/Onboarding.jsx';
@@ -162,6 +166,10 @@ export default function App() {
         <Stack.Screen name="AddPaymentMethodScreen" component={AddPaymentMethodScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AccountDetail" component={AccountDetail} options={{ headerShown: false }} />
         <Stack.Screen name="BookingDetails" component={BookingDetails} options={{ headerShown: false }} />
+        <Stack.Screen name="NearbyLocations" component={NearbyLocations} options={{ headerShown: false }} />
+        <Stack.Screen name="Chat" component={Chat} options={{ headerShown: false }} />
+        <Stack.Screen name="AskQuestion" component={AskQuestion} options={{ headerShown: false }} />
+        <Stack.Screen name="Chatbot" component={Chatbot} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

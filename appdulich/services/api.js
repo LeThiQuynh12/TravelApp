@@ -5,10 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tạo instance Axios với cấu hình mặc định
 const api = axios.create({
-
-  // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
-  // baseURL: 'http://172.20.10.4:5003/api',
+  
   baseURL: 'http://192.168.1.14:5003/api',
+
+
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
   },
@@ -79,7 +79,17 @@ export const getUser = async () => {
   }
 };
 
+// API kiểm tra người dùng tồn tại
+export const checkUserExists = async (emailOrPhone, type) => {
+  const response = await api.post('/check-user', { emailOrPhone, type });
+  return response.data;
+};
 
+// API reset mật khẩu
+export const resetPassword = async (emailOrPhone, type) => {
+  const response = await api.post('/reset-password', { emailOrPhone, type });
+  return response.data;
+};
 
 // Hàm cập nhật thông tin người dùng
 
@@ -107,6 +117,26 @@ export const deleteUser = async () => {
   } catch (error) {
     console.error('Lỗi xóa người dùng:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Xóa người dùng thất bại!');
+  }
+};
+// Hàm đổi mật khẩu
+export const changePassword = async ({ emailOrPhone, type, oldPass, newPass }) => {
+  try {
+    console.log('Sending changePassword request:', { emailOrPhone, type, oldPass, newPass });
+    const response = await api.post('/change-password', {
+      emailOrPhone,
+      type,
+      oldPass,
+      newPass,
+    });
+    console.log('Change password response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Change password error:', error.response?.data);
+    return {
+      status: false,
+      message: error.response?.data?.message || 'Lỗi kết nối server',
+    };
   }
 };
 

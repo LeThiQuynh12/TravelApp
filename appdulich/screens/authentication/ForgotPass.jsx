@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text, ScrollView, TextInput, Modal, TouchableOpacity,Platform } from "react-native";
+import { View, StyleSheet, Text, ScrollView, TextInput, Modal, TouchableOpacity, Platform } from "react-native";
 import { COLORS, SIZES } from "../../constants/theme";
 import AppBar from "../../components/Reusable/AppBar";
 import ReusableBtn from "../../components/Buttons/ReusableBtn";
+import { checkUserExists, resetPassword } from "../../services/api";
 
 const ForgotPass = ({ navigation }) => {
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [otp, setOtp] = useState("");
-  const [activeTab, setActiveTab] = useState("email"); // 'email' hoặc 'phone'
+  const [activeTab, setActiveTab] = useState("email");
+  const [user, setUser] = useState(null);
 
   const handleInputChange = (text) => {
     setEmailOrPhone(text);
@@ -24,27 +26,56 @@ const ForgotPass = ({ navigation }) => {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (!isValidInput()) {
       alert(
-        activeTab === "email" 
-          ? "Vui lòng nhập đúng định dạng email!" 
+        activeTab === "email"
+          ? "Vui lòng nhập đúng định dạng email!"
           : "Vui lòng nhập đúng số điện thoại (10 số)!"
       );
       return;
     }
-    
-    setIsModalVisible(true);
+
+    try {
+      const response = await checkUserExists(emailOrPhone, activeTab);
+      console.log('Response from checkUserExists:', response);
+      if (response.user) {
+        setUser(response.user);
+        setIsModalVisible(true);
+      } else {
+        alert('Không tìm thấy người dùng!');
+      }
+    } catch (error) {
+      console.error('Error in checkUserExists:', error);
+      alert(error.response?.data?.message || "Có lỗi xảy ra!");
+    }
   };
 
-  const handleConfirmOtp = () => {
-    if (otp === "123456") { // Giả lập OTP đúng
-      alert(`Đã gửi mật khẩu mới đến ${activeTab === "email" ? "email" : "số điện thoại"} của bạn!`);
-      setIsModalVisible(false);
-      navigation.navigate('ChangePass');
+  const handleConfirmOtp = async () => {
+    if (otp === "123456") { // OTP tĩnh
+      try {
+        const response = await resetPassword(emailOrPhone, activeTab);
+        console.log('Response from resetPassword:', response);
+        alert(response.message);
+        setIsModalVisible(false);
+        if (!user || (!user.email && !user.phoneNumber)) {
+          console.log('Cannot navigate to ChangePass: user is invalid', user);
+          alert('Không thể chuyển đến màn hình đổi mật khẩu: Thiếu thông tin người dùng.');
+          return;
+        }
+       
+        navigation.navigate("ChangePass", { user,source: 'forgotPass' });
+      } catch (error) {
+        console.error('Error in resetPassword:', error);
+        alert(error.response?.data?.message || "Có lỗi xảy ra!");
+      }
     } else {
       alert("Mã OTP không chính xác!");
     }
+  };
+
+  const handleResendOtp = () => {
+    alert("OTP đã được gửi lại cho bạn!"); // Hiển thị OTP tĩnh
   };
 
   return (
@@ -64,7 +95,6 @@ const ForgotPass = ({ navigation }) => {
           Vui lòng nhập email hoặc số điện thoại đã đăng ký để nhận mã xác thực
         </Text>
 
-        {/* Tab lựa chọn email/sđt */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[styles.tabButton, activeTab === "email" && styles.activeTab]}
@@ -80,7 +110,6 @@ const ForgotPass = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Input field */}
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.inputText}
@@ -103,7 +132,6 @@ const ForgotPass = ({ navigation }) => {
         />
       </ScrollView>
 
-      {/* Modal xác thực OTP */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -145,7 +173,7 @@ const ForgotPass = ({ navigation }) => {
               />
             </View>
             
-            <TouchableOpacity onPress={() => alert("Đã gửi lại mã OTP")}>
+            <TouchableOpacity onPress={handleResendOtp}>
               <Text style={styles.resendText}>Gửi lại mã OTP</Text>
             </TouchableOpacity>
           </View>
@@ -234,7 +262,6 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
-
   },
   modalOverlay: {
     flex: 1,

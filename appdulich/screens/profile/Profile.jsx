@@ -215,7 +215,7 @@ const Profile = ({ navigation, route }) => {
         <TouchableOpacity
           style={styles.menuItem}
           activeOpacity={0.7}
-          onPress={() => navigation.navigate('ChangePass')}
+          onPress={() => navigation.navigate('ChangePass', {user,source: 'profile'})}
         >
           <View style={[styles.menuIcon, { backgroundColor: COLORS.lightLavender }]}>
             <Icon name="lock" size={20} color={COLORS.lavender} />
