@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import {
   COLORS,
+  SIZES,
   TEXT,
 } from '../../../constants/theme';
 import { getFlightById } from '../../../services/api';
@@ -25,150 +26,178 @@ import HeightSpacer from '../../Reusable/HeightSpacer';
 
 // Hàm tính thời gian bay
 const calculateFlightDuration = (departureTime, arrivalTime) => {
-  const [depHours, depMinutes] = departureTime.split(':').map(Number);
-  const [arrHours, arrMinutes] = arrivalTime.split(':').map(Number);
+  if (!departureTime || !arrivalTime) return 'N/A';
+  try {
+    const [depHours, depMinutes] = departureTime.split(':').map(Number);
+    const [arrHours, arrMinutes] = arrivalTime.split(':').map(Number);
 
-  const depTotalMinutes = depHours * 60 + depMinutes;
-  const arrTotalMinutes = arrHours * 60 + arrMinutes;
+    const depTotalMinutes = depHours * 60 + depMinutes;
+    const arrTotalMinutes = arrHours * 60 + arrMinutes;
 
-  let diffMinutes = arrTotalMinutes - depTotalMinutes;
-  if (diffMinutes < 0) diffMinutes += 24 * 60;
+    let diffMinutes = arrTotalMinutes - depTotalMinutes;
+    if (diffMinutes < 0) diffMinutes += 24 * 60;
 
-  const hours = Math.floor(diffMinutes / 60);
-  const minutes = diffMinutes % 60;
-
-  return `${hours}h${minutes}`;
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    return `${hours}h${minutes > 0 ? `${minutes}m` : ''}`;
+  } catch {
+    return 'N/A';
+  }
 };
 
 const AirDetail = ({ navigation, route }) => {
-  const { departureFlight: departureFlightParam, returnFlight: returnFlightParam } = route.params;
-  const { adults = 0, children = 0, infants = 0 } = route.params || {};
+  const { 
+    departureFlight: departureFlightParam, 
+    returnFlight: returnFlightParam,
+    adults = 0,
+    children = 0,
+    infants = 0
+  } = route.params || {};
 
-  // State để lưu dữ liệu chuyến bay từ backend
-  const [departureFlight, setDepartureFlight] = useState(null);
-  const [returnFlight, setReturnFlight] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [departureFlight, setDepartureFlight] = useState(departureFlightParam);
+  const [returnFlight, setReturnFlight] = useState(returnFlightParam);
+  const [isLoadingDeparture, setIsLoadingDeparture] = useState(true);
+  const [isLoadingReturn, setIsLoadingReturn] = useState(!!returnFlightParam);
   const [error, setError] = useState(null);
 
-  // Gọi API để lấy chi tiết chuyến bay
   useEffect(() => {
     const fetchFlightDetails = async () => {
-      setIsLoading(true);
       try {
-        const departureFlightData = await getFlightById(departureFlightParam._id);
-        setDepartureFlight(departureFlightData);
+        if (!departureFlight || !departureFlight._id) {
+          setIsLoadingDeparture(true);
+          const departureData = await getFlightById(departureFlightParam._id);
+          setDepartureFlight(departureData);
+        }
 
-        if (returnFlightParam) {
-          const returnFlightData = await getFlightById(returnFlightParam._id);
-          setReturnFlight(returnFlightData);
+        if (returnFlightParam && (!returnFlight || !returnFlight._id)) {
+          setIsLoadingReturn(true);
+          const returnData = await getFlightById(returnFlightParam._id);
+          setReturnFlight(returnData);
         }
       } catch (err) {
-        console.error('Lỗi khi lấy chi tiết chuyến bay:', err.message);
-        setError('Không thể tải thông tin chuyến bay');
+        console.error('Error fetching flight details:', err);
+        setError('Không thể tải thông tin chuyến bay. Vui lòng thử lại.');
       } finally {
-        setIsLoading(false);
+        setIsLoadingDeparture(false);
+        setIsLoadingReturn(false);
       }
     };
 
     fetchFlightDetails();
   }, [departureFlightParam, returnFlightParam]);
 
-  // Hàm chuyển đổi giá từ chuỗi sang số
-  const priceToNumber = (price) => parseFloat(price.replace(/[^\d]/g, ''));
+  const priceToNumber = (price) => {
+    if (!price) return 0;
+    try {
+      return parseFloat(price.replace(/[^\d,.]/g, '').replace(',', '.'));
+    } catch {
+      return 0;
+    }
+  };
 
-  // Hàm tính tổng tiền dựa trên số lượng khách và loại khách
   const calculateTotalPrice = () => {
     if (!departureFlight || !departureFlight.price) return { totalPrice: 0, breakdown: {} };
 
     const departurePrice = priceToNumber(departureFlight.price);
     const returnPrice = returnFlight && returnFlight.price ? priceToNumber(returnFlight.price) : 0;
 
-    // Giá cơ bản cho người lớn (100%), trẻ em (75%), em bé (50%)
     const adultPrice = departurePrice + returnPrice;
     const childPrice = adultPrice * 0.75;
     const infantPrice = adultPrice * 0.5;
 
-    // Tính tổng tiền
     const totalAdultPrice = adultPrice * adults;
     const totalChildPrice = childPrice * children;
     const totalInfantPrice = infantPrice * infants;
     const totalPrice = totalAdultPrice + totalChildPrice + totalInfantPrice;
 
-    // Chi tiết giá cho từng loại khách
-    const breakdown = {
-      adult: {
-        count: adults,
-        unitPrice: adultPrice,
-        total: totalAdultPrice,
-      },
-      child: {
-        count: children,
-        unitPrice: childPrice,
-        total: totalChildPrice,
-      },
-      infant: {
-        count: infants,
-        unitPrice: infantPrice,
-        total: totalInfantPrice,
-      },
+    return {
+      totalPrice,
+      breakdown: {
+        adult: { count: adults, unitPrice: adultPrice, total: totalAdultPrice },
+        child: { count: children, unitPrice: childPrice, total: totalChildPrice },
+        infant: { count: infants, unitPrice: infantPrice, total: totalInfantPrice },
+      }
     };
-
-    return { totalPrice, breakdown };
   };
 
   const { totalPrice, breakdown } = calculateTotalPrice();
-  const formattedTotalPrice = totalPrice.toLocaleString('vi-VN') + ' đ';
+  const formattedTotalPrice = totalPrice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 
-  // Hàm render card chuyến bay
-  const renderFlightCard = (flight, isReturn = false) => {
+  const renderFlightCard = (flight, isReturn = false, isLoading = false) => {
+    if (isLoading) {
+      return (
+        <View style={[styles.card, styles.loadingCard]}>
+          <Text style={styles.loadingText}>Đang tải thông tin chuyến bay...</Text>
+        </View>
+      );
+    }
+
     if (!flight) return null;
 
     return (
       <View style={styles.card}>
         <View style={styles.routeRow}>
           <Text style={styles.routeText}>
-            {flight.departureName} → {flight.arrivalName}
+            {flight.departureName || flight.departureCity} → {flight.arrivalName || flight.arrivalCity}
           </Text>
           <Image source={{ uri: flight.logo }} style={styles.airlineLogo} />
         </View>
-        <View style={{flexDirection: "row", justifyContent:"space-between"}}>
-          <Text style={styles.dateText}>{flight.date}</Text>
+        <View style={styles.flightInfoRow}>
+          <Text style={styles.dateText}>{flight.date || 'N/A'}</Text>
           <Text style={styles.flightInfo}>
-            {flight.flightNumber} | {flight.ticketType}
+            {flight.flightNumber || 'N/A'} | {flight.ticketType || 'N/A'}
           </Text>
         </View>
         <View style={styles.timeRow}>
           <View style={styles.timeCityContainer}>
-            <Text style={styles.timeText}>{flight.departureTime}</Text>
-            <Text style={styles.cityText}>{flight.departureCity}</Text>
+            <Text style={styles.timeText}>{flight.departureTime || 'N/A'}</Text>
+            <Text style={styles.cityText}>{flight.departureCity || 'N/A'}</Text>
           </View>
           <View style={styles.durationContainer}>
-             <Ionicons name="return-up-forward" size={40} color={COLORS.lightSkyBlue} />
+            <Ionicons 
+              name={isReturn ? "return-down-back" : "return-up-forward"} 
+              size={40} 
+              color={COLORS.lightSkyBlue} 
+            />
             <Text style={styles.durationText}>
               {calculateFlightDuration(flight.departureTime, flight.arrivalTime)}
             </Text>
           </View>
           <View style={styles.timeCityContainer}>
-            <Text style={styles.timeText}>{flight.arrivalTime}</Text>
-            <Text style={styles.cityText}>{flight.arrivalCity}</Text>
+            <Text style={styles.timeText}>{flight.arrivalTime || 'N/A'}</Text>
+            <Text style={styles.cityText}>{flight.arrivalCity || 'N/A'}</Text>
           </View>
         </View>
         <View style={styles.policyRow}>
           <TouchableOpacity style={styles.policyButton}>
-            <Text style={styles.policyButtonText}>Áp dụng đổi lịch bay</Text>
+            <Text style={styles.policyButtonText}>
+              {flight.changePolicy ? 'Áp dụng đổi lịch bay' : 'Không đổi lịch'}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.refundButton}>
-            <Text style={styles.refundButtonText}>Không hoàn tiền</Text>
+            <Text style={styles.refundButtonText}>
+              {flight.refundPolicy ? 'Hoàn tiền theo điều kiện' : 'Không hoàn tiền'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   };
 
-  if (isLoading) {
+  if (isLoadingDeparture || isLoadingReturn) {
     return (
       <SafeAreaView style={styles.safeContainer}>
-        <Text style={styles.loadingText}>Đang tải...</Text>
+        <AppBar
+          title="Thông tin chuyến bay"
+          color={COLORS.white}
+          top={20}
+          left={10}
+          right={10}
+          onPress={() => navigation.goBack()}
+        />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Đang tải thông tin chuyến bay...</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -176,16 +205,45 @@ const AirDetail = ({ navigation, route }) => {
   if (error) {
     return (
       <SafeAreaView style={styles.safeContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+        <AppBar
+          title="Thông tin chuyến bay"
+          color={COLORS.white}
+          top={20}
+          left={10}
+          right={10}
+          onPress={() => navigation.goBack()}
+        />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => {
+              setError(null);
+              setIsLoadingDeparture(true);
+              setIsLoadingReturn(!!returnFlightParam);
+            }}
+          >
+            <Text style={styles.retryButtonText}>Thử lại</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
 
-  // Kiểm tra nếu không có khách nào được chọn
   if (adults === 0 && children === 0 && infants === 0) {
     return (
       <SafeAreaView style={styles.safeContainer}>
-        <Text style={styles.errorText}>Vui lòng chọn số lượng khách!</Text>
+        <AppBar
+          title="Thông tin chuyến bay"
+          color={COLORS.white}
+          top={20}
+          left={10}
+          right={10}
+          onPress={() => navigation.goBack()}
+        />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Vui lòng chọn số lượng khách!</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -203,19 +261,20 @@ const AirDetail = ({ navigation, route }) => {
         />
         <HeightSpacer height={64} />
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Card chuyến đi */}
-          {renderFlightCard(departureFlight, false)}
+          <Text style={styles.sectionTitle}>
+          {returnFlight ? 'Chuyến khứ hồi' : 'Chuyến một chiều'}
+          </Text>
 
-          {/* Card chuyến về */}
-          {renderFlightCard(returnFlight, true)}
+          {renderFlightCard(departureFlight, false, isLoadingDeparture)}
+          {returnFlightParam && renderFlightCard(returnFlight, true, isLoadingReturn)}
 
-          {/* Phần tóm tắt giá */}
           <View style={styles.summarySection}>
-            <Text style={{fontSize: TEXT.large-3, fontWeight: "bold", color: COLORS.blue, marginBottom: 20}}>----------- TÓM TẮT GIÁ VÉ  ------------</Text>
+            <Text style={styles.summaryTitle}>Tóm tắt giá vé</Text>
+            <View style={styles.summaryDivider} />
             {breakdown.adult.count > 0 && (
               <View style={styles.passengerRow}>
                 <Text style={styles.summaryText}>
-                  Người lớn ({breakdown.adult.count})
+                  Người lớn ({breakdown.adult.count} x {breakdown.adult.unitPrice.toLocaleString('vi-VN')} đ)
                 </Text>
                 <Text style={styles.priceText}>
                   {breakdown.adult.total.toLocaleString('vi-VN')} đ
@@ -225,7 +284,7 @@ const AirDetail = ({ navigation, route }) => {
             {breakdown.child.count > 0 && (
               <View style={styles.passengerRow}>
                 <Text style={styles.summaryText}>
-                  Trẻ em ({breakdown.child.count})
+                  Trẻ em ({breakdown.child.count} x {breakdown.child.unitPrice.toLocaleString('vi-VN')} đ)
                 </Text>
                 <Text style={styles.priceText}>
                   {breakdown.child.total.toLocaleString('vi-VN')} đ
@@ -235,25 +294,31 @@ const AirDetail = ({ navigation, route }) => {
             {breakdown.infant.count > 0 && (
               <View style={styles.passengerRow}>
                 <Text style={styles.summaryText}>
-                  Em bé ({breakdown.infant.count})
+                  Em bé ({breakdown.infant.count} x {breakdown.infant.unitPrice.toLocaleString('vi-VN')} đ)
                 </Text>
                 <Text style={styles.priceText}>
                   {breakdown.infant.total.toLocaleString('vi-VN')} đ
                 </Text>
               </View>
             )}
-            <View style={{flexDirection: "row", marginTop: 10, justifyContent: "space-between"}}>
-              <Text style={{fontSize: TEXT.medium, fontWeight: "bold", color: COLORS.blue} }>TỔNG TIỀN:</Text>
-              <Text style={{fontSize: TEXT.medium+2, fontWeight: "bold", color: COLORS.red}}>{formattedTotalPrice}</Text>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>TỔNG TIỀN:</Text>
+              <Text style={styles.totalPrice}>{formattedTotalPrice}</Text>
             </View>
           </View>
         </ScrollView>
 
-        {/* Nút Tiếp tục */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.continueButton}
-            onPress={() => navigation.navigate('CustomerInfo')}
+            onPress={() => navigation.navigate('CustomerInfo', {
+              departureFlight,
+              returnFlight,
+              adults,
+              children,
+              infants,
+              totalPrice
+            })}
           >
             <Text style={styles.continueButtonText}>Tiếp tục</Text>
           </TouchableOpacity>
@@ -263,157 +328,200 @@ const AirDetail = ({ navigation, route }) => {
   );
 };
 
-export default AirDetail;
-
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.lightWhite,
   },
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    paddingHorizontal: SIZES.medium,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 100,
+  },
+  sectionTitle: {
+    fontSize: TEXT.large-3,
+    fontWeight: 'bold',
+    color: COLORS.blue,
+    marginBottom: SIZES.medium,
+    paddingHorizontal: SIZES.medium,
+    textAlign: "center"
   },
   card: {
-    backgroundColor: COLORS.lightWhite,
-    borderRadius: 15,
-    paddingHorizontal: 17,
-    paddingVertical: 10,
-    marginHorizontal: 15,
-    marginBottom: 15,
-    borderColor: COLORS.lightSkyBlue,
-    borderWidth: 2,
-    paddingBottom: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.medium,
+    padding: SIZES.medium,
+    marginBottom: SIZES.medium,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 6,
+    borderWidth: 1,
+  },
+  loadingCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 100,
   },
   routeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 3,
+    marginBottom: SIZES.small,
   },
   routeText: {
-    fontSize: TEXT.large - 2,
+    fontSize: TEXT.medium+1,
     fontWeight: 'bold',
     color: COLORS.dark,
   },
   airlineLogo: {
-    width: 100,
-    height: 60,
+    width: 90,
+    height: 50,
     resizeMode: 'contain',
+  },
+  flightInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SIZES.small,
   },
   dateText: {
     fontSize: TEXT.small,
-    color: COLORS.dark,
-    marginBottom: 3,
+    color: COLORS.gray,
   },
   flightInfo: {
-    fontSize: TEXT.small - 1,
+    fontSize: TEXT.small,
     color: COLORS.gray,
-    marginBottom: 5,
   },
   timeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 3,
-    paddingBottom: 5,
+    marginVertical: SIZES.small,
+  },
+  timeCityContainer: {
+    alignItems: 'center',
   },
   timeText: {
-    fontSize: TEXT.large - 3,
+    fontSize: TEXT.medium+1,
     fontWeight: 'bold',
     color: COLORS.dark,
   },
-  arrow: {
-    fontSize: TEXT.medium,
-    color: COLORS.dark,
-  },
-  cityRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingBottom: 5,
-  },
   cityText: {
-    fontSize: TEXT.xxSmall,
+    fontSize: TEXT.small,
     color: COLORS.gray,
-    backgroundColor: "#f1f1f1",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    backgroundColor: COLORS.lightGray,
+    paddingVertical: SIZES.xSmall,
+    paddingHorizontal: SIZES.small,
+    borderRadius: SIZES.small,
+    marginTop: SIZES.xSmall,
+  },
+  durationContainer: {
+    alignItems: 'center',
+  },
+  durationText: {
+    fontSize: TEXT.small,
+    color: COLORS.gray,
+    marginTop: SIZES.xSmall,
   },
   policyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 5,
+    marginTop: SIZES.small,
   },
   policyButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    borderRadius: 5,
+    padding: SIZES.small,
+    borderRadius: SIZES.small,
     borderColor: COLORS.pink,
     borderWidth: 2,
   },
   policyButtonText: {
-    fontSize: TEXT.xSmall - 1,
+    fontSize: TEXT.xSmall,
     color: COLORS.pink,
-    fontWeight: "600"
+    fontWeight: '600',
   },
   refundButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 5,
+    padding: SIZES.xSmall,
+    borderRadius: SIZES.small,
     borderColor: COLORS.mint,
     borderWidth: 2,
   },
   refundButtonText: {
-    fontSize: TEXT.xSmall - 1,
+    fontSize: TEXT.xSmall,
     color: COLORS.mint,
-    fontWeight: "600"
+    fontWeight: '600',
   },
   summarySection: {
-    paddingHorizontal: 15,
-    paddingVertical: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.medium,
+    padding: SIZES.medium,
+    marginTop: SIZES.medium,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  summaryTitle: {
+    fontSize: TEXT.large-2,
+    fontWeight: 'bold',
+    color: COLORS.blue,
+    marginBottom: SIZES.small,
+    textAlign: 'center',
+  },
+  summaryDivider: {
+    height: 1,
+    backgroundColor: COLORS.lightGray,
+    marginVertical: SIZES.small,
   },
   passengerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 15,
-  },
-  summaryText: {
-
-    fontSize: TEXT.medium,
-    color: COLORS.dark,
-    fontWeight: 'bold',
-    marginBottom: 3,
-  },
-  priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGrey,
-    marginVertical: 18,
-    paddingVertical: 2,
+    marginVertical: SIZES.xSmall,
+  },
+  summaryText: {
+    fontSize: TEXT.medium,
+    color: COLORS.dark,
+    fontWeight: '500',
   },
   priceText: {
     fontSize: TEXT.medium,
     fontWeight: 'bold',
     color: COLORS.red,
   },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: SIZES.medium,
+    paddingTop: SIZES.small,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+  },
+  totalLabel: {
+    fontSize: TEXT.large-3,
+    fontWeight: 'bold',
+    color: COLORS.blue,
+  },
+  totalPrice: {
+    fontSize: TEXT.large-3,
+    fontWeight: 'bold',
+    color: COLORS.red,
+  },
   buttonContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: SIZES.medium,
     backgroundColor: COLORS.white,
-    // borderTopWidth: 1,
-    // borderTopColor: COLORS.lightGrey,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
   },
   continueButton: {
     backgroundColor: COLORS.red,
-    paddingVertical: 10,
-    borderRadius: 8,
+    padding: SIZES.medium,
+    borderRadius: SIZES.medium,
     alignItems: 'center',
   },
   continueButtonText: {
@@ -421,4 +529,38 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: 'bold',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SIZES.large,
+  },
+  errorText: {
+    fontSize: TEXT.medium,
+    color: COLORS.red,
+    textAlign: 'center',
+    marginBottom: SIZES.medium,
+  },
+  retryButton: {
+    backgroundColor: COLORS.blue,
+    padding: SIZES.medium,
+    borderRadius: SIZES.medium,
+  },
+  retryButtonText: {
+    fontSize: TEXT.medium,
+    color: COLORS.white,
+    fontWeight: 'bold',
+  },
+  loadingText: {
+    fontSize: TEXT.medium,
+    color: COLORS.gray,
+    textAlign: 'center',
+  }
 });
+
+export default AirDetail;

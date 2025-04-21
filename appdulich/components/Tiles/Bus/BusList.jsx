@@ -21,88 +21,56 @@ import {
 
 import {
   COLORS,
+  SIZES,
   TEXT,
 } from '../../../constants/theme';
 import { searchBuses } from '../../../services/api';
 import AppBar from '../../Reusable/AppBar';
 import ReusableText from '../../Reusable/ReusableText';
 
-// Hàm tính thời gian di chuyển
 const calculateDuration = (departureTime, arrivalTime) => {
   if (!departureTime || !arrivalTime) return 'N/A';
-  const [depHours, depMinutes] = departureTime.split(':').map(Number);
-  const [arrHours, arrMinutes] = arrivalTime.split(':').map(Number);
+  try {
+    const [depHours, depMinutes] = departureTime.split(':').map(Number);
+    const [arrHours, arrMinutes] = arrivalTime.split(':').map(Number);
 
-  const depTotalMinutes = depHours * 60 + depMinutes;
-  const arrTotalMinutes = arrHours * 60 + arrMinutes;
+    const depTotalMinutes = depHours * 60 + depMinutes;
+    const arrTotalMinutes = arrHours * 60 + arrMinutes;
 
-  let diffMinutes = arrTotalMinutes - depTotalMinutes;
-  if (diffMinutes < 0) diffMinutes += 24 * 60;
+    let diffMinutes = arrTotalMinutes - depTotalMinutes;
+    if (diffMinutes < 0) diffMinutes += 24 * 60;
 
-  const hours = Math.floor(diffMinutes / 60);
-  const minutes = diffMinutes % 60;
-
-  return `${hours}h${minutes}`;
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    return `${hours}h${minutes > 0 ? `${minutes}m` : ''}`;
+  } catch {
+    return 'N/A';
+  }
 };
 
 const BusList = ({ navigation, route }) => {
-  const [buses, setBuses] = useState([]);
+  const [outboundBuses, setOutboundBuses] = useState([]);
   const [returnBuses, setReturnBuses] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sortOption, setSortOption] = useState('price');
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedBus, setSelectedBus] = useState(null);
+  const [selectedOutboundBus, setSelectedOutboundBus] = useState(null);
   const [selectedReturnBus, setSelectedReturnBus] = useState(null);
-  const [isReturnTrip, setIsReturnTrip] = useState(false);
+  const [currentView, setCurrentView] = useState('outbound');
   const [error, setError] = useState(null);
 
   const { searchParams = {} } = route.params || {};
-  const { isRoundTrip = false, numberOfSeats = 1 } = searchParams;
+  const { 
+    isRoundTrip = false, 
+    numberOfSeats = 1,
+    departureCity,
+    arrivalCity,
+    outboundDate,
+    returnDate,
+    departureDisplay,
+    destinationDisplay
+  } = searchParams;
 
-  useEffect(() => {
-    const fetchBuses = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await searchBuses({
-          departureCity: searchParams.departureCity,
-          arrivalCity: searchParams.arrivalCity,
-          outboundDate: searchParams.outboundDate,
-          isRoundTrip,
-          returnDate: searchParams.returnDate,
-        });
-
-        // Tách chuyến đi và chuyến về
-        const outboundBuses = response
-          .filter((item) => item.outbound)
-          .map((item) => ({
-            ...item.outbound,
-            id: item.outbound._id,
-          }));
-        const returnBusesData = isRoundTrip
-          ? response
-              .filter((item) => item.return)
-              .map((item) => ({
-                ...item.return,
-                id: item.return._id,
-              }))
-          : [];
-
-        setBuses(outboundBuses);
-        setReturnBuses(returnBusesData);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (searchParams.departureCity && searchParams.arrivalCity && searchParams.outboundDate) {
-      fetchBuses();
-    }
-  }, [searchParams, isRoundTrip]);
-
-  // Hàm hiển thị dịch vụ tương ứng với icons
   const amenityIcons = {
     'Wi-Fi': <Ionicons name="wifi" size={20} color={COLORS.gray} />,
     Chăn: <MaterialCommunityIcons name="bed-outline" size={20} color={COLORS.gray} />,
@@ -110,19 +78,122 @@ const BusList = ({ navigation, route }) => {
     Sạc: <FontAwesome5 name="charging-station" size={20} color={COLORS.gray} />,
   };
 
+  useEffect(() => {
+    const fetchBuses = async () => {
+      if (!departureCity || !arrivalCity || !outboundDate) {
+        setError('Thiếu thông tin tìm kiếm');
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await searchBuses({
+          departureCity,
+          arrivalCity,
+          outboundDate,
+          isRoundTrip,
+          returnDate: isRoundTrip ? returnDate : undefined,
+        });
+
+        console.log('API Response:', response); // Log response để debug
+
+        if (!response || !Array.isArray(response)) {
+          throw new Error('Dữ liệu trả về không hợp lệ');
+        }
+
+        // Xử lý dữ liệu từ backend
+        if (isRoundTrip) {
+          // Lấy các chuyến đi duy nhất
+          const uniqueOutbound = [];
+          const seenIds = new Set();
+          
+          response.forEach(group => {
+            const bus = group.buses[0];
+            if (bus && !seenIds.has(bus._id)) {
+              seenIds.add(bus._id);
+              uniqueOutbound.push({
+                ...bus,
+                id: bus._id,
+              });
+            }
+          });
+          
+          setOutboundBuses(uniqueOutbound);
+        } else {
+          // Chuyến một chiều
+          const buses = response.map(group => ({
+            ...group.buses[0],
+            id: group.buses[0]._id,
+          }));
+          setOutboundBuses(buses);
+        }
+      } catch (err) {
+        console.error('Fetch buses error:', err);
+        setError(err.message || 'Lỗi khi tải dữ liệu xe khách');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBuses();
+  }, [departureCity, arrivalCity, outboundDate, isRoundTrip, returnDate]);
+
+  const fetchReturnBuses = async () => {
+    if (!isRoundTrip || !returnDate) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await searchBuses({
+        departureCity: arrivalCity,
+        arrivalCity: departureCity,
+        outboundDate: returnDate,
+        isRoundTrip: false,
+      });
+
+      if (!response || !Array.isArray(response)) {
+        throw new Error('Dữ liệu trả về không hợp lệ');
+      }
+
+      const returns = response.map(group => ({
+        ...group.buses[0],
+        id: group.buses[0]._id,
+      }));
+      
+      setReturnBuses(returns);
+      setCurrentView('return');
+    } catch (err) {
+      console.error('Fetch return buses error:', err);
+      setError(err.message || 'Lỗi khi tải chuyến về');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Các hàm helper và render giữ nguyên như trước
   const timeToMinutes = (time) => {
     if (!time) return 0;
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
+    try {
+      const [hours, minutes] = time.split(':').map(Number);
+      return hours * 60 + minutes;
+    } catch {
+      return 0;
+    }
   };
 
   const priceToNumber = (price) => {
     if (!price) return 0;
-    return parseFloat(price.replace(/[^\d]/g, '')) || 0;
+    try {
+      return parseFloat(price.replace(/[^\d,.]/g, '').replace(',', '.'));
+    } catch {
+      return 0;
+    }
   };
 
-  const sortBuses = (option, isReturn = false) => {
-    const targetBuses = isReturn ? [...returnBuses] : [...buses];
+  const sortBuses = (option) => {
+    const targetBuses = currentView === 'outbound' ? [...outboundBuses] : [...returnBuses];
+    
     switch (option) {
       case 'price':
         targetBuses.sort((a, b) => priceToNumber(a.price) - priceToNumber(b.price));
@@ -142,61 +213,47 @@ const BusList = ({ navigation, route }) => {
       default:
         break;
     }
-    if (isReturn) {
-      setReturnBuses(targetBuses);
+
+    if (currentView === 'outbound') {
+      setOutboundBuses(targetBuses);
     } else {
-      setBuses(targetBuses);
+      setReturnBuses(targetBuses);
     }
     setSortOption(option);
     setModalVisible(false);
   };
 
-  const handleSelectBus = (bus, isReturn = false) => {
-    if (!bus) {
-      console.error('Bus is undefined in handleSelectBus');
-      return;
-    }
-
-    if (isReturn) {
-      if (!selectedBus) {
-        console.error('selectedBus is undefined when selecting return bus');
-        return;
-      }
-      setSelectedReturnBus(bus);
-      navigation.navigate('BusDetail', {
-        departureBus: selectedBus,
-        returnBus: bus,
-        numberOfSeats, // Truyền số ghế
-      });
+  const handleSelectOutbound = (bus) => {
+    if (isRoundTrip) {
+      setSelectedOutboundBus(bus);
+      fetchReturnBuses();
     } else {
-      setSelectedBus(bus);
-      if (isRoundTrip) {
-        setIsReturnTrip(true);
-      } else {
-        navigation.navigate('BusDetail', {
-          departureBus: bus,
-          numberOfSeats, // Truyền số ghế
-        });
-      }
+      navigation.navigate('BusDetail', {
+        departureBus: bus,
+        numberOfSeats,
+      });
     }
   };
 
-  const handleChangeBus = (isReturn = false) => {
-    if (isReturn) {
-      setSelectedReturnBus(null);
-    } else {
-      setSelectedBus(null);
-      setSelectedReturnBus(null);
-      setIsReturnTrip(false);
-    }
+  const handleSelectReturn = (bus) => {
+    setSelectedReturnBus(bus);
+    navigation.navigate('BusDetail', {
+      departureBus: selectedOutboundBus,
+      returnBus: bus,
+      numberOfSeats,
+    });
+  };
+
+  const handleGoBackToOutbound = () => {
+    setCurrentView('outbound');
   };
 
   const renderBusItem = ({ item }) => {
-    if (!item) return null;
     const duration = calculateDuration(item.departureTime, item.arrivalTime);
-    const isSelected = isReturnTrip
-      ? selectedReturnBus && selectedReturnBus.id === item.id
-      : selectedBus && selectedBus.id === item.id;
+    const isSelected = currentView === 'outbound'
+      ? selectedOutboundBus?.id === item.id
+      : selectedReturnBus?.id === item.id;
+
     return (
       <View style={styles.busItem}>
         <Text style={styles.busCompany}>{item.busCompany || 'N/A'}</Text>
@@ -204,7 +261,9 @@ const BusList = ({ navigation, route }) => {
           <View style={styles.timeRow}>
             <View>
               <Text style={styles.timeText}>{item.departureTime || 'N/A'}</Text>
-              <Text style={styles.cityText}>{item.departureCity || 'N/A'}</Text>
+              <Text style={styles.cityText}>
+                {currentView === 'outbound' ? item.departureCity : item.arrivalCity}
+              </Text>
               <Text style={styles.locationText}>Đón: {item.pickup || 'N/A'}</Text>
             </View>
             <View style={styles.durationContainer}>
@@ -213,13 +272,15 @@ const BusList = ({ navigation, route }) => {
             </View>
             <View>
               <Text style={styles.timeText}>{item.arrivalTime || 'N/A'}</Text>
-              <Text style={styles.cityText}>{item.arrivalCity || 'N/A'}</Text>
+              <Text style={styles.cityText}>
+                {currentView === 'outbound' ? item.arrivalCity : item.departureCity}
+              </Text>
               <Text style={styles.locationText}>Trả: {item.dropoff || 'N/A'}</Text>
             </View>
           </View>
         </View>
         <View style={styles.detailsRow}>
-          <Image source={{ uri: item.logo }} style={styles.busLogo} />
+          <Image source={{ uri: item.logo || 'https://via.placeholder.com/50' }} style={styles.busLogo} />
           <View style={{ flexDirection: 'column', flex: 1 }}>
             <View style={styles.busInfo}>
               <Text style={styles.ticketType}>- {item.ticketType || 'N/A'}</Text>
@@ -227,23 +288,27 @@ const BusList = ({ navigation, route }) => {
             </View>
             <View style={styles.amenities}>
               {item.amenities?.map((amenity, index) => (
-                <View key={index} style={{ marginRight: 1, alignItems: 'center' }}>
-                  {amenityIcons[amenity]}
-                  <Text style={{ marginRight: 3, fontSize: 8, color: COLORS.gray }}>
-                    {amenity}
-                  </Text>
+                <View key={index} style={{ marginRight: SIZES.xSmall, alignItems: 'center' }}>
+                  {amenityIcons[amenity] || <Ionicons name="information-circle" size={20} color={COLORS.gray} />}
+                  <Text style={{ fontSize: 7.3, color: COLORS.gray }}>{amenity}</Text>
                 </View>
               ))}
             </View>
           </View>
           <View style={styles.priceButtonContainer}>
-            <Text style={styles.priceText}>{item.price || 'N/A'}</Text>
+            <Text style={styles.priceText}>
+              {item.price ? `${priceToNumber(item.price).toLocaleString('vi-VN')} VNĐ` : 'N/A'}
+            </Text>
             <TouchableOpacity
               style={[styles.selectButton, isSelected && styles.selectedButton]}
-              onPress={() => handleSelectBus(item, isReturnTrip)}
+              onPress={() => currentView === 'outbound' 
+                ? handleSelectOutbound(item) 
+                : handleSelectReturn(item)}
               disabled={isSelected}
             >
-              <Text style={styles.selectButtonText}>{isSelected ? 'Đã chọn' : 'Chọn'}</Text>
+              <Text style={styles.selectButtonText}>
+                {isSelected ? 'Đã chọn' : 'Chọn'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -252,101 +317,90 @@ const BusList = ({ navigation, route }) => {
   };
 
   const renderSelectedCard = () => {
-    if (!selectedBus && !selectedReturnBus) return null;
+    if (!selectedOutboundBus) return null;
+    
     return (
       <View style={styles.selectedCard}>
-        {selectedBus && (
-          <View style={styles.selectionDetails}>
-            <Text style={styles.selectionHeader}>Chuyến đi</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.selectionText}>
-                {selectedBus.departureCity || 'N/A'} → {selectedBus.arrivalCity || 'N/A'}
-              </Text>
-              <Text style={styles.selectionText}>
-                {selectedBus.departureTime || 'N/A'} - {selectedBus.arrivalTime || 'N/A'} (
-                {calculateDuration(selectedBus.departureTime, selectedBus.arrivalTime)})
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.selectionText}>
-                {selectedBus.busCompany || 'N/A'} - {selectedBus.seats || 0} chỗ
-              </Text>
-              <Text style={styles.selectionText}>{selectedBus.price || 'N/A'}</Text>
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.selectionText}>Đón: {selectedBus.pickup || 'N/A'}</Text>
-              <Text style={styles.selectionText}>Trả: {selectedBus.dropoff || 'N/A'}</Text>
-            </View>
-            <TouchableOpacity onPress={() => handleChangeBus(false)}>
-              <Text style={styles.changeButtonText}>Thay đổi chuyến đi</Text>
-            </TouchableOpacity>
+        <View style={styles.selectionDetails}>
+          <Text style={styles.selectionHeader}>Chuyến đi</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={styles.selectionText}>
+              {selectedOutboundBus.departureCity || 'N/A'} → {selectedOutboundBus.arrivalCity || 'N/A'}
+            </Text>
+            <Text style={styles.selectionText}>
+              {selectedOutboundBus.departureTime || 'N/A'} - {selectedOutboundBus.arrivalTime || 'N/A'} 
+              ({calculateDuration(selectedOutboundBus.departureTime, selectedOutboundBus.arrivalTime)})
+            </Text>
           </View>
-        )}
-        {selectedReturnBus && (
-          <View style={styles.selectionDetails}>
-            <Text style={styles.selectionHeader}>Chuyến về</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.selectionText}>
-                {selectedReturnBus.departureCity || 'N/A'} → {selectedReturnBus.arrivalCity || 'N/A'}
-              </Text>
-              <Text style={styles.selectionText}>
-                {selectedReturnBus.departureTime || 'N/A'} - {selectedReturnBus.arrivalTime || 'N/A'} (
-                {calculateDuration(selectedReturnBus.departureTime, selectedReturnBus.arrivalTime)})
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.selectionText}>
-                {selectedReturnBus.busCompany || 'N/A'} - {selectedReturnBus.seats || 0} chỗ
-              </Text>
-              <Text style={styles.selectionText}>{selectedReturnBus.price || 'N/A'}</Text>
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.selectionText}>Đón: {selectedReturnBus.pickup || 'N/A'}</Text>
-              <Text style={styles.selectionText}>Trả: {selectedReturnBus.dropoff || 'N/A'}</Text>
-            </View>
-            <TouchableOpacity onPress={() => handleChangeBus(true)}>
-              <Text style={styles.changeButtonText}>Thay đổi chuyến về</Text>
-            </TouchableOpacity>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={styles.selectionText}>
+              {selectedOutboundBus.busCompany || 'N/A'} - {selectedOutboundBus.seats || 0} chỗ
+            </Text>
+            <Text style={styles.selectionText}>
+              {selectedOutboundBus.price ? `${priceToNumber(selectedOutboundBus.price).toLocaleString('vi-VN')} đ` : 'N/A'}
+            </Text>
           </View>
-        )}
+          <TouchableOpacity onPress={() => {
+            setSelectedOutboundBus(null);
+            setCurrentView('outbound');
+          }}>
+            <Text style={styles.changeButtonText}>Thay đổi chuyến đi</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
 
-  const firstBus = buses.length > 0 ? buses[0] : null;
-  const routeTitle = firstBus
-    ? `${firstBus.departureCity} → ${firstBus.arrivalCity}`
-    : 'Chọn chuyến xe';
+  const renderHeader = () => {
+    const routeTitle = departureDisplay && destinationDisplay
+      ? `${departureDisplay} → ${destinationDisplay}`
+      : 'Chọn chuyến xe';
+
+    return (
+      <>
+        <AppBar
+          title={routeTitle}
+          color={COLORS.white}
+          top={50}
+          left={SIZES.small}
+          right={SIZES.small}
+          onPress={() => currentView === 'return' ? handleGoBackToOutbound() : navigation.goBack()}
+        />
+        <View style={styles.header}>
+          <Text style={styles.tripInfo}>
+            {currentView === 'outbound' ? outboundDate : returnDate}, 
+            {numberOfSeats} ghế, 
+            {isRoundTrip ? 'Khứ hồi' : 'Một chiều'}
+          </Text>
+          {currentView === 'return' && selectedOutboundBus && (
+            <View style={styles.selectedOutboundInfo}>
+              <Text style={styles.selectedFlightText}>
+                Chuyến đi: {selectedOutboundBus.departureTime} - {selectedOutboundBus.arrivalTime}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.textChooise}>
+          <ReusableText
+            text={currentView === 'outbound' ? "Chọn chuyến đi" : "Chọn chuyến về"}
+            family="regular"
+            size={TEXT.medium + 2}
+            color={COLORS.black}
+          />
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Ionicons name="filter" size={24} color={COLORS.dark} />
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+  };
+
+  const currentBuses = currentView === 'outbound' ? outboundBuses : returnBuses;
 
   return (
     <View style={styles.container}>
-      <AppBar
-        title={routeTitle}
-        color={COLORS.white}
-        top={50}
-        left={10}
-        right={10}
-        onPress={() => navigation.goBack()}
-      />
-      <View style={styles.header}>
-        <Text style={styles.tripInfo}>
-          {searchParams.outboundDate}, {numberOfSeats} ghế,{' '}
-          {isRoundTrip ? 'Khứ hồi' : 'Một chiều'}
-        </Text>
-      </View>
-      <View style={styles.textChooise}>
-        <ReusableText
-          text={isReturnTrip ? 'Chọn chuyến về' : 'Chọn chuyến đi'}
-          family="regular"
-          size={TEXT.medium + 2}
-          color={COLORS.black}
-        />
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Ionicons name="filter" size={24} color={COLORS.dark} />
-        </TouchableOpacity>
-      </View>
+      {renderHeader()}
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
       <Modal
         animationType="slide"
         transparent={true}
@@ -358,33 +412,30 @@ const BusList = ({ navigation, route }) => {
             <Text style={styles.modalTitle}>Sắp xếp theo</Text>
             <TouchableOpacity
               style={styles.modalOption}
-              onPress={() => sortBuses('price', isReturnTrip)}
+              onPress={() => {
+                setSortOption('price');
+                sortBuses('price');
+              }}
             >
               <Text style={styles.modalOptionText}>Giá thấp nhất</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalOption}
-              onPress={() => sortBuses('earliestDeparture', isReturnTrip)}
+              onPress={() => {
+                setSortOption('earliestDeparture');
+                sortBuses('earliestDeparture');
+              }}
             >
               <Text style={styles.modalOptionText}>Chuyến sớm nhất</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalOption}
-              onPress={() => sortBuses('latestDeparture', isReturnTrip)}
+              onPress={() => {
+                setSortOption('latestDeparture');
+                sortBuses('latestDeparture');
+              }}
             >
               <Text style={styles.modalOptionText}>Chuyến muộn nhất</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => sortBuses('earliestArrival', isReturnTrip)}
-            >
-              <Text style={styles.modalOptionText}>Đến sớm nhất</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => sortBuses('latestArrival', isReturnTrip)}
-            >
-              <Text style={styles.modalOptionText}>Đến muộn nhất</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalCloseButton}
@@ -396,11 +447,36 @@ const BusList = ({ navigation, route }) => {
         </View>
       </Modal>
 
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => {
+            setError(null);
+            setIsLoading(true);
+            currentView === 'outbound' 
+              ? fetchBuses() 
+              : fetchReturnBuses();
+          }}>
+            <Text style={styles.retryButtonText}>Thử lại</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {isLoading ? (
-        <Text style={styles.loadingText}>Đang tải...</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Đang tải danh sách xe khách...</Text>
+        </View>
+      ) : currentBuses.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            {currentView === 'outbound' 
+              ? 'Không tìm thấy chuyến đi phù hợp' 
+              : 'Không tìm thấy chuyến về phù hợp'}
+          </Text>
+        </View>
       ) : (
         <FlatList
-          data={isReturnTrip ? returnBuses : buses}
+          data={currentBuses}
           renderItem={renderBusItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
@@ -481,7 +557,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   locationText: {
-    fontSize: TEXT.medium - 4,
+    fontSize: TEXT.medium - 5.6,
     color: 'green',
     marginTop: 5,
   },
@@ -492,23 +568,24 @@ const styles = StyleSheet.create({
     marginBottom: -27,
   },
   priceText: {
-    fontSize: TEXT.medium,
+    fontSize: TEXT.medium-1.4,
     fontWeight: 'bold',
     color: COLORS.blue,
-    marginBottom: 5,
+    marginBottom: 7,
   },
   selectButton: {
     backgroundColor: COLORS.lightGreen,
-    paddingVertical: 8,
+    paddingVertical: 5,
     paddingHorizontal: 25,
-    borderRadius: 8,
+    borderRadius: 50,
+    marginBottom: 43,
   },
   selectedButton: {
     backgroundColor: COLORS.gray,
   },
   selectButtonText: {
     color: COLORS.white,
-    fontSize: TEXT.small,
+    fontSize: TEXT.small-1,
     fontWeight: 'bold',
   },
   detailsRow: {

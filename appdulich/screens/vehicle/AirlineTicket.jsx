@@ -56,6 +56,7 @@ const AirlineTicket = ({ navigation }) => {
       setLoadingCities(true);
       try {
         const citiesData = await getCities();
+        console.log('Danh sách thành phố:', citiesData); // Log để kiểm tra
         setCities(citiesData);
       } catch (error) {
         console.error('Lỗi khi lấy danh sách thành phố:', error.message);
@@ -90,14 +91,14 @@ const AirlineTicket = ({ navigation }) => {
       return;
     }
   
-    const from = departure.departureCity;
-    const to = destination.departureCity;
+    const departureCity = departure.departureCity; // VD: "HAN"
+    const arrivalCity = destination.departureCity; // VD: "SGN"
     const formattedDepartureDate = formatDateToBackend(departureDate);
     const formattedReturnDate = isRoundTrip ? formatDateToBackend(returnDate) : null;
   
     const searchParams = {
-      from,
-      to,
+      departureCity,
+      arrivalCity,
       departureDate: formattedDepartureDate,
       returnDate: formattedReturnDate,
       isRoundTrip,
@@ -111,6 +112,7 @@ const AirlineTicket = ({ navigation }) => {
     console.log('searchParams truyền sang AirList:', searchParams);
     navigation.navigate('AirList', { searchParams });
   };
+
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
       <View style={styles.container}>
@@ -147,7 +149,9 @@ const AirlineTicket = ({ navigation }) => {
           }}
         >
           <FontAwesome5 name="calendar-alt" size={16} color={COLORS.gray} />
-          <Text style={styles.input}>{departureDate || 'Chọn ngày đi'}</Text>
+          <Text style={styles.input}>
+            {departureDate ? formatDateToBackend(departureDate) : 'Chọn ngày đi'}
+          </Text>
           <Text style={styles.roundTripText}>Khứ hồi</Text>
           <Switch value={isRoundTrip} onValueChange={setIsRoundTrip} />
         </TouchableOpacity>
@@ -162,18 +166,20 @@ const AirlineTicket = ({ navigation }) => {
             }}
           >
             <FontAwesome5 name="calendar-alt" size={16} color={COLORS.gray} />
-            <Text style={styles.input}>{returnDate || 'Chọn ngày về'}</Text>
+            <Text style={styles.input}>
+              {returnDate ? formatDateToBackend(returnDate) : 'Chọn ngày về'}
+            </Text>
           </TouchableOpacity>
         )}
 
         {/* Số lượng khách */}
         <TouchableOpacity
-            style={styles.inputGroup}
-            onPress={() => setShowGuestModal(true)}
-          >
-            <FontAwesome5 name="user-friends" size={16} color={COLORS.gray} />
-            <Text style={styles.input}>{`${adults} Người lớn, ${children} Trẻ em, ${infants} Em bé`}</Text>
-          </TouchableOpacity>
+          style={styles.inputGroup}
+          onPress={() => setShowGuestModal(true)}
+        >
+          <FontAwesome5 name="user-friends" size={16} color={COLORS.gray} />
+          <Text style={styles.input}>{`${adults} Người lớn, ${children} Trẻ em, ${infants} Em bé`}</Text>
+        </TouchableOpacity>
 
         {/* Modal chọn số lượng khách */}
         <Modal visible={showGuestModal} transparent animationType="slide">
@@ -185,22 +191,22 @@ const AirlineTicket = ({ navigation }) => {
                 { label: 'Em bé', count: infants, setCount: setInfants },
               ].map((item, index) => (
                 <View key={index} style={styles.guestRow}>
-                    <Text style={styles.listText}>{item.label}</Text>
-                    <View style={styles.counterContainer}>
-                      <TouchableOpacity
-                        style={styles.counterButton}
-                        onPress={() => item.setCount(Math.max(0, item.count - 1))}
-                      >
-                        <Text style={styles.counterText}>-</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.counterValue}>{item.count}</Text>
-                      <TouchableOpacity
-                        style={styles.counterButton}
-                        onPress={() => item.setCount(item.count + 1)}
-                      >
-                        <Text style={styles.counterText}>+</Text>
-                      </TouchableOpacity>
-                    </View>
+                  <Text style={styles.listText}>{item.label}</Text>
+                  <View style={styles.counterContainer}>
+                    <TouchableOpacity
+                      style={styles.counterButton}
+                      onPress={() => item.setCount(Math.max(0, item.count - 1))}
+                    >
+                      <Text style={styles.counterText}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.counterValue}>{item.count}</Text>
+                    <TouchableOpacity
+                      style={styles.counterButton}
+                      onPress={() => item.setCount(item.count + 1)}
+                    >
+                      <Text style={styles.counterText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))}
               <TouchableOpacity
@@ -309,7 +315,7 @@ const AirlineTicket = ({ navigation }) => {
 
         {/* Nút tìm kiếm */}
         <ReusableBtn
-          onPress={handleSearch} // Sửa lỗi cú pháp
+          onPress={handleSearch}
           btnText="Tìm kiếm"
           textColor={COLORS.white}
           width={SIZES.width - 30}

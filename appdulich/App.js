@@ -46,7 +46,18 @@ import PhoneNumber from './screens/profile/PhoneNumber.jsx';
 import Profile from './screens/profile/Profile.jsx';
 import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
+<<<<<<< HEAD
+import BookingDetails from './components/Tiles/Hotels/BookingDetails.jsx';
+import NearbyLocations from './screens/details/NearbyLocations.jsx';
+import Chat from './screens/chat/Chat.jsx';
+import AskQuestion from './screens/chat/AskQuestion.jsx';
+import Chatbot from './screens/chat/Chatbot.jsx';
+import RenderItem from './components/Reusable/renderItem.jsx';
+import FoodDrink from './screens/details/FoodDrink.jsx';
+import ReviewComponent from './components/Reusable/ReviewComponent.jsx';
+=======
 
+>>>>>>> 9feb4088f04225497de9bb7396928a758d4ff014
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -170,6 +181,9 @@ export default function App() {
         <Stack.Screen name="Chat" component={Chat} options={{ headerShown: false }} />
         <Stack.Screen name="AskQuestion" component={AskQuestion} options={{ headerShown: false }} />
         <Stack.Screen name="Chatbot" component={Chatbot} options={{ headerShown: false }} />
+        <Stack.Screen name="RenderItem" component={RenderItem} options={{ headerShown: false }} />
+        <Stack.Screen name="FoodDrink" component={FoodDrink} options={{ headerShown: false }} />
+        <Stack.Screen name="ReviewComponent" component={ReviewComponent} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

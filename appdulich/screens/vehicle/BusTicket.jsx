@@ -35,15 +35,14 @@ const BusTicket = ({ navigation }) => {
   const [returnDate, setReturnDate] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectingDeparture, setSelectingDeparture] = useState(true);
-  const [showSeatsModal, setShowSeatsModal] = useState(false); // Modal chọn số ghế
-  const [numberOfSeats, setNumberOfSeats] = useState(1); // Số ghế mặc định là 1
+  const [showSeatsModal, setShowSeatsModal] = useState(false);
+  const [numberOfSeats, setNumberOfSeats] = useState(1);
   const [showDepartureModal, setShowDepartureModal] = useState(false);
   const [showDestinationModal, setShowDestinationModal] = useState(false);
   const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch danh sách thành phố
   useEffect(() => {
     const loadCities = async () => {
       setIsLoading(true);
@@ -52,7 +51,7 @@ const BusTicket = ({ navigation }) => {
         const cityList = await fetchBusCities();
         setCities(cityList);
       } catch (err) {
-        setError(err.message);
+        setError('Không thể tải danh sách thành phố. Vui lòng thử lại.');
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +59,6 @@ const BusTicket = ({ navigation }) => {
     loadCities();
   }, []);
 
-  // Format ngày từ YYYY-MM-DD sang DD/MM/YYYY
   const formatDate = (dateString) => {
     if (!dateString) return null;
     const [year, month, day] = dateString.split('-');
@@ -68,18 +66,23 @@ const BusTicket = ({ navigation }) => {
   };
 
   const handleDayPress = (day) => {
+    const selectedDate = day.dateString;
     if (selectingDeparture) {
-      setDepartureDate(day.dateString);
-      setReturnDate(null);
+      setDepartureDate(selectedDate);
+      if (returnDate && selectedDate > returnDate) {
+        setReturnDate(null);
+      }
     } else {
-      if (departureDate && day.dateString >= departureDate) {
-        setReturnDate(day.dateString);
+      if (departureDate && selectedDate >= departureDate) {
+        setReturnDate(selectedDate);
+      } else {
+        alert('Ngày về phải sau ngày đi');
+        return;
       }
     }
     setShowCalendar(false);
   };
 
-  // Xử lý tìm kiếm
   const handleSearch = () => {
     if (!departure || !destination || !departureDate) {
       alert('Vui lòng chọn nơi khởi hành, nơi đến và ngày đi');
@@ -89,14 +92,18 @@ const BusTicket = ({ navigation }) => {
       alert('Vui lòng chọn ngày về cho chuyến khứ hồi');
       return;
     }
+    if (numberOfSeats < 1) {
+      alert('Số ghế phải lớn hơn 0');
+      return;
+    }
     navigation.navigate('BusList', {
       searchParams: {
-        departureCity: departure,
-        arrivalCity: destination,
+        departureCity: departure?.departureCity || departure,
+        arrivalCity: destination?.departureCity || destination,
         outboundDate: formatDate(departureDate),
         isRoundTrip,
         returnDate: isRoundTrip ? formatDate(returnDate) : null,
-        numberOfSeats, // Truyền số ghế
+        numberOfSeats,
       },
     });
   };
@@ -107,25 +114,26 @@ const BusTicket = ({ navigation }) => {
         <Text style={styles.title}>Đặt vé xe khách giá rẻ</Text>
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        {/* Chọn nơi khởi hành */}
         <TouchableOpacity
           style={styles.inputGroup}
           onPress={() => setShowDepartureModal(true)}
         >
           <FontAwesome5 name="bus" size={16} color={COLORS.gray} />
-          <Text style={styles.input}>{departure || 'Chọn nơi khởi hành'}</Text>
+          <Text style={styles.input}>
+            {departure?.departureName || departure || 'Chọn nơi khởi hành'}
+          </Text>
         </TouchableOpacity>
 
-        {/* Chọn nơi đến */}
         <TouchableOpacity
           style={styles.inputGroup}
           onPress={() => setShowDestinationModal(true)}
         >
           <FontAwesome5 name="bus" size={16} color={COLORS.gray} />
-          <Text style={styles.input}>{destination || 'Chọn nơi đến'}</Text>
+          <Text style={styles.input}>
+            {destination?.departureName || destination || 'Chọn nơi đến'}
+          </Text>
         </TouchableOpacity>
 
-        {/* Chọn ngày đi */}
         <TouchableOpacity
           style={styles.inputGroup}
           onPress={() => {
@@ -134,12 +142,13 @@ const BusTicket = ({ navigation }) => {
           }}
         >
           <FontAwesome5 name="calendar-alt" size={16} color={COLORS.gray} />
-          <Text style={styles.input}>{departureDate || 'Chọn ngày đi'}</Text>
+          <Text style={styles.input}>
+            {departureDate ? formatDate(departureDate) : 'Chọn ngày đi'}
+          </Text>
           <Text style={styles.roundTripText}>Khứ hồi</Text>
           <Switch value={isRoundTrip} onValueChange={setIsRoundTrip} />
         </TouchableOpacity>
 
-        {/* Chọn ngày về */}
         {isRoundTrip && (
           <TouchableOpacity
             style={styles.inputGroup}
@@ -149,11 +158,12 @@ const BusTicket = ({ navigation }) => {
             }}
           >
             <FontAwesome5 name="calendar-alt" size={16} color={COLORS.gray} />
-            <Text style={styles.input}>{returnDate || 'Chọn ngày về'}</Text>
+            <Text style={styles.input}>
+              {returnDate ? formatDate(returnDate) : 'Chọn ngày về'}
+            </Text>
           </TouchableOpacity>
         )}
 
-        {/* Chọn số ghế */}
         <TouchableOpacity
           style={styles.inputGroup}
           onPress={() => setShowSeatsModal(true)}
@@ -162,7 +172,6 @@ const BusTicket = ({ navigation }) => {
           <Text style={styles.input}>{`${numberOfSeats} Ghế ngồi`}</Text>
         </TouchableOpacity>
 
-        {/* Modal chọn số ghế */}
         <Modal visible={showSeatsModal} transparent animationType="slide">
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -178,7 +187,7 @@ const BusTicket = ({ navigation }) => {
                   <Text style={styles.counterValue}>{numberOfSeats}</Text>
                   <TouchableOpacity
                     style={styles.counterButton}
-                    onPress={() => setNumberOfSeats(numberOfSeats + 1)}
+                    onPress={() => setNumberOfSeats(Math.min(10, numberOfSeats + 1))}
                   >
                     <Text style={styles.counterText}>+</Text>
                   </TouchableOpacity>
@@ -194,7 +203,6 @@ const BusTicket = ({ navigation }) => {
           </View>
         </Modal>
 
-        {/* Nút tìm kiếm */}
         <ReusableBtn
           onPress={handleSearch}
           btnText={'Tìm kiếm'}
@@ -205,16 +213,15 @@ const BusTicket = ({ navigation }) => {
           borderColor={COLORS.green}
         />
 
-        {/* Modal chọn nơi khởi hành */}
         <Modal visible={showDepartureModal} transparent animationType="slide">
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
               {isLoading ? (
-                <Text>Đang tải thành phố...</Text>
+                <Text style={styles.loadingText}>Đang tải thành phố...</Text>
               ) : (
                 <FlatList
                   data={cities}
-                  keyExtractor={(item) => item}
+                  keyExtractor={(item) => item.departureCity}
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       style={styles.listItem}
@@ -223,7 +230,7 @@ const BusTicket = ({ navigation }) => {
                         setShowDepartureModal(false);
                       }}
                     >
-                      <Text style={styles.listText}>{item}</Text>
+                      <Text style={styles.listText}>{item.departureName}</Text>
                     </TouchableOpacity>
                   )}
                 />
@@ -238,16 +245,15 @@ const BusTicket = ({ navigation }) => {
           </View>
         </Modal>
 
-        {/* Modal chọn nơi đến */}
         <Modal visible={showDestinationModal} transparent animationType="slide">
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
               {isLoading ? (
-                <Text>Đang tải thành phố...</Text>
+                <Text style={styles.loadingText}>Đang tải thành phố...</Text>
               ) : (
                 <FlatList
                   data={cities}
-                  keyExtractor={(item) => item}
+                  keyExtractor={(item) => item.departureCity}
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       style={styles.listItem}
@@ -256,7 +262,7 @@ const BusTicket = ({ navigation }) => {
                         setShowDestinationModal(false);
                       }}
                     >
-                      <Text style={styles.listText}>{item}</Text>
+                      <Text style={styles.listText}>{item.departureName}</Text>
                     </TouchableOpacity>
                   )}
                 />
@@ -271,7 +277,6 @@ const BusTicket = ({ navigation }) => {
           </View>
         </Modal>
 
-        {/* Modal chọn ngày */}
         <Modal visible={showCalendar} transparent animationType="fade">
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -279,14 +284,8 @@ const BusTicket = ({ navigation }) => {
                 minDate={today}
                 onDayPress={handleDayPress}
                 markedDates={{
-                  [departureDate]: {
-                    selected: true,
-                    selectedColor: 'blue',
-                  },
-                  [returnDate]: {
-                    selected: true,
-                    selectedColor: 'green',
-                  },
+                  [departureDate]: { selected: true, selectedColor: COLORS.blue },
+                  [returnDate]: { selected: true, selectedColor: COLORS.green },
                 }}
               />
               <TouchableOpacity
@@ -302,8 +301,6 @@ const BusTicket = ({ navigation }) => {
     </ScrollView>
   );
 };
-
-export default BusTicket;
 
 const styles = StyleSheet.create({
   container: {
@@ -410,4 +407,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+  loadingText: {
+    fontSize: SIZES.medium,
+    color: COLORS.gray,
+    textAlign: 'center',
+  },
 });
+
+export default BusTicket;

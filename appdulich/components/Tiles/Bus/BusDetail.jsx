@@ -123,7 +123,7 @@ const BusDetail = ({ navigation, route }) => {
         <AppBar
           title="Thông tin chuyến xe"
           color={COLORS.white}
-          top={20}
+          top={5}
           left={10}
           right={10}
           onPress={() => navigation.goBack()}
@@ -154,9 +154,9 @@ const BusDetail = ({ navigation, route }) => {
                 </Text>
               </View>
             )}
-            <View style={styles.priceRow}>
-              <Text style={styles.summaryText}>Tổng tiền ({numberOfSeats} ghế):</Text>
-              <Text style={styles.priceText}>{formattedTotalPrice}</Text>
+            <View style={{flexDirection: "row", justifyContent:"space-between", borderTopColor: "#000", borderTopWidth: 1, paddingVertical:25,}}>
+              <Text style={{color: COLORS.blue, fontWeight: "bold", fontSize: 16}}>TỔNG TIỀN ({numberOfSeats} ghế):</Text>
+              <Text style={{color: COLORS.red, fontWeight: "700", fontSize: 16}}>{formattedTotalPrice}</Text>
             </View>
           </View>
         </ScrollView>
@@ -188,14 +188,14 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   card: {
-    backgroundColor: COLORS.lightCyan,
+    // backgroundColor: COLORS.lightCyan,
     borderRadius: 15,
     paddingHorizontal: 17,
     paddingVertical: 8,
     marginHorizontal: 15,
     marginBottom: 15,
-    borderColor: '#E6F7FF',
-    borderWidth: 7,
+    // borderColor: '#E6F7FF',
+    borderWidth: 1,
   },
   routeRow: {
     flexDirection: 'row',
@@ -282,6 +282,7 @@ const styles = StyleSheet.create({
     color: COLORS.blue,
     fontWeight: '400',
     marginBottom: 3,
+    fontWeight: "600",
   },
   priceRow: {
     flexDirection: 'row',
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   continueButton: {
-    backgroundColor: COLORS.green,
+    backgroundColor: COLORS.red,
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',

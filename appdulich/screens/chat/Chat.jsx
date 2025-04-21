@@ -1,5 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
 import {
+  ActivityIndicator,
   Animated,
   SafeAreaView,
   ScrollView,
@@ -8,12 +14,15 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
-import { COLORS } from '../../constants/theme';
 
+import { useNavigation } from '@react-navigation/native';
+
+import {
+  COLORS,
+  TEXT,
+} from '../../constants/theme';
 import AskQuestion from './AskQuestion';
 
 // Dữ liệu câu hỏi và câu trả lời
@@ -281,7 +290,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: TEXT.medium+1,
     fontWeight: 'bold',
     color: COLORS.white,
     marginBottom: 15,
@@ -303,7 +312,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: TEXT.medium,
     color: COLORS.black,
     paddingVertical: 10,
   },
@@ -333,7 +342,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   questionText: {
-    fontSize: 16,
+    fontSize: TEXT.medium,
     fontWeight: '600',
     color: COLORS.black,
     flex: 1,

@@ -6,7 +6,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { COLORS } from '../constants/theme';
 import Authentication from '../screens/authentication/authentication';
 import Contact from '../screens/chat/Contact';
-import Explore from '../screens/explore/Explore';
 import Home from '../screens/home/Home';
 import Location from '../screens/location/Location';
 import Profile from '../screens/profile/Profile';
@@ -115,7 +114,7 @@ const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
                     />
 
         
-            <Tab.Screen name="Explore" component={Explore} 
+            {/* <Tab.Screen name="Explore" component={Explore} 
                     options={{
                         tabBarStyle: tabBarStyle,
                         tabBarShowLabel: false,headerShown: false,
@@ -127,7 +126,7 @@ const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
                             />
                         )
                     }} 
-                    />
+                    /> */}
 
         <Tab.Screen
             name={isLoggedIn ? "Profile" : "authentication"}
