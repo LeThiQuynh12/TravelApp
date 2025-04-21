@@ -8,23 +8,25 @@ import {
 
 import ReviewTile from '../../../screens/review/ReviewTile';
 
-const ReviewsList = ({ reviews }) => {
-  
-    return (
-      <FlatList
-        data={reviews}
-        scrollEnabled={false}
-        showsVerticalScrollIndicator={false}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={{ marginBottom: 10 }}>
-            <ReviewTile review={item} />
-          </View>
-        )}
-      />
-    )
-  }
+const ReviewsList = ({ reviews, limit }) => {
+  // Lấy danh sách đánh giá, giới hạn theo prop limit nếu có
+  const displayedReviews = limit ? reviews.slice(0, limit) : reviews;
 
-export default ReviewsList
+  return (
+    <FlatList
+      data={displayedReviews}
+      scrollEnabled={false}
+      showsVerticalScrollIndicator={false}
+      keyExtractor={(item) => item._id}
+      renderItem={({ item }) => (
+        <View style={{ marginBottom: 10 }}>
+          <ReviewTile review={item} />
+        </View>
+      )}
+    />
+  );
+};
 
-const styles = StyleSheet.create({})
+export default ReviewsList;
+
+const styles = StyleSheet.create({});

@@ -17,8 +17,9 @@ import AirDetail from './components/Tiles/Air/AirDetail.jsx';
 import AirList from './components/Tiles/Air/AirList.jsx';
 import BusDetail from './components/Tiles/Bus/BusDetail.jsx';
 import BusList from './components/Tiles/Bus/BusList.jsx';
+import BookingDetails from './components/Tiles/Hotels/BookingDetails.jsx';
 import HotelList from './components/Tiles/Hotels/HotelList.jsx';
-import ReviewsList from './components/Tiles/Hotels/ReviewsList.jsx';
+import ReviewsListScreen from './components/Tiles/Hotels/ReviewListScreen.jsx';
 import SelectRoom from './components/Tiles/Hotels/SelectRoom.jsx';
 import PlaceList from './components/Tiles/Place/PlaceList.jsx';
 import VerificationScreen from './components/VerificationScreen.jsx';
@@ -41,7 +42,6 @@ import PhoneNumber from './screens/profile/PhoneNumber.jsx';
 import Profile from './screens/profile/Profile.jsx';
 import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
-import BookingDetails from './components/Tiles/Hotels/BookingDetails.jsx';
 
 const Stack = createNativeStackNavigator();
 
@@ -132,8 +132,8 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="ReviewsList"
-          component={ReviewsList}
+          name="ReviewsListScreen"
+          component={ReviewsListScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
