@@ -37,21 +37,37 @@ ReviewSchema.post('save', async function (doc) {
   const targetId = doc.targetId;
   const targetType = doc.targetType;
 
+  // Lấy tất cả đánh giá cho targetId và targetType
   const reviews = await Review.find({ targetType, targetId });
-  const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-  const roundedAvgRating = Math.round(avgRating * 10) / 10; // Làm tròn 1 chữ số thập phân
 
+  // Xử lý trường hợp không có đánh giá
+  let roundedAvgRating = 0;
+  let reviewCount = reviews.length;
+
+  if (reviewCount > 0) {
+    // Tính trung bình đánh giá
+    const avgRating = reviews.reduce((sum, r) => {
+      // Kiểm tra rating hợp lệ (giả sử rating từ 0-5)
+      const rating = Number(r.rating);
+      return isNaN(rating) || rating < 0 || rating > 5 ? sum : sum + rating;
+    }, 0) / reviewCount;
+
+    // Làm tròn đến 1 chữ số thập phân
+    roundedAvgRating = Math.round(avgRating * 10) / 10;
+  }
+
+  // Cập nhật vào Hotel hoặc Suggestion
   if (targetType === 'Hotel') {
     const Hotel = mongoose.model('Hotel');
     await Hotel.findByIdAndUpdate(targetId, {
       rating: roundedAvgRating,
-      review: reviews.length,
+      review: reviewCount,
     });
   } else if (targetType === 'Suggestion') {
     const Suggestion = mongoose.model('Suggestion');
     await Suggestion.findByIdAndUpdate(targetId, {
       rating: roundedAvgRating,
-      review: reviews.length,
+      review: reviewCount,
     });
   }
 });

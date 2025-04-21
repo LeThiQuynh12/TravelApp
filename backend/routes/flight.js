@@ -8,16 +8,10 @@ router.post('/flights', flightController.createFlight);
 // Get all flights (grouped by tripId)
 router.get('/flights', flightController.getAllFlights);
 
-// Get all outbound flights
-router.get('/flights/outbound', flightController.getOutboundFlights);
-
-// Get all return flights
-router.get('/flights/return', flightController.getReturnFlights);
-
 // Search flights by criteria
 router.get('/flights/search', flightController.searchFlights);
 
-// Route mới để lấy danh sách thành phố
+// Get list of cities
 router.get('/cities', flightController.getCities);
 
 // Get flights by tripId

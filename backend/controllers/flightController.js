@@ -21,11 +21,10 @@ exports.createFlight = async (req, res, next) => {
         ticketType,
         price,
         logo,
-        direction,
-        tripId,
+        tripId, // tripId không còn bắt buộc
       } = flightData;
 
-      // Kiểm tra các trường bắt buộc
+      // Kiểm tra các trường bắt buộc (loại bỏ tripId)
       if (
         !departureTime ||
         !arrivalTime ||
@@ -38,13 +37,11 @@ exports.createFlight = async (req, res, next) => {
         !airline ||
         !ticketType ||
         !price ||
-        !logo ||
-        !direction ||
-        !tripId
+        !logo
       ) {
         return res.status(400).json({
           status: false,
-          message: 'Vui lòng cung cấp đầy đủ thông tin (departureTime, arrivalTime, departureCity, departureName, arrivalCity, arrivalName, date, flightNumber, airline, ticketType, price, logo, direction, tripId)',
+          message: 'Vui lòng cung cấp đầy đủ thông tin (departureTime, arrivalTime, departureCity, departureName, arrivalCity, arrivalName, date, flightNumber, airline, ticketType, price, logo)',
           missingFields: {
             departureTime: !departureTime,
             arrivalTime: !arrivalTime,
@@ -58,8 +55,6 @@ exports.createFlight = async (req, res, next) => {
             ticketType: !ticketType,
             price: !price,
             logo: !logo,
-            direction: !direction,
-            tripId: !tripId,
           },
         });
       }
@@ -78,8 +73,7 @@ exports.createFlight = async (req, res, next) => {
         ticketType,
         price,
         logo,
-        direction,
-        tripId,
+        tripId: tripId || null, // tripId là tùy chọn, mặc định là null
       });
 
       const savedFlight = await newFlight.save();
@@ -101,28 +95,10 @@ exports.getAllFlights = async (req, res, next) => {
   try {
     const flights = await Flight.find().lean();
 
-    // Nhóm các chuyến bay theo tripId
-    const groupedFlights = {};
-    flights.forEach(flight => {
-      if (!groupedFlights[flight.tripId]) {
-        groupedFlights[flight.tripId] = {
-          tripId: flight.tripId,
-          outbound: null,
-          return: null,
-        };
-      }
-      if (flight.direction === 'outbound') {
-        groupedFlights[flight.tripId].outbound = flight;
-      } else if (flight.direction === 'return') {
-        groupedFlights[flight.tripId].return = flight;
-      }
-    });
-
-    const result = Object.values(groupedFlights);
-
+    // Trả về tất cả chuyến bay mà không nhóm theo tripId
     res.status(200).json({
       status: true,
-      data: result,
+      data: flights,
     });
   } catch (error) {
     return next(error);
@@ -150,7 +126,7 @@ exports.getFlightById = async (req, res, next) => {
   }
 };
 
-// Read: Lấy chuyến bay theo tripId
+// Read: Lấy chuyến bay theo tripId (giữ lại để tương thích với dữ liệu cũ)
 exports.getFlightsByTripId = async (req, res, next) => {
   try {
     const tripId = req.params.tripId;
@@ -163,43 +139,12 @@ exports.getFlightsByTripId = async (req, res, next) => {
       });
     }
 
-    const result = {
-      tripId,
-      outbound: flights.find(f => f.direction === 'outbound') || null,
-      return: flights.find(f => f.direction === 'return') || null,
-    };
-
     res.status(200).json({
       status: true,
-      data: result,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// Read: Lấy danh sách tất cả chuyến bay chiều đi (outbound)
-exports.getOutboundFlights = async (req, res, next) => {
-  try {
-    const outboundFlights = await Flight.find({ direction: 'outbound' }).lean();
-
-    res.status(200).json({
-      status: true,
-      data: outboundFlights,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// Read: Lấy danh sách tất cả chuyến bay chiều về (return)
-exports.getReturnFlights = async (req, res, next) => {
-  try {
-    const returnFlights = await Flight.find({ direction: 'return' }).lean();
-
-    res.status(200).json({
-      status: true,
-      data: returnFlights,
+      data: {
+        tripId,
+        flights,
+      },
     });
   } catch (error) {
     return next(error);
@@ -222,7 +167,6 @@ exports.updateFlight = async (req, res, next) => {
       ticketType,
       price,
       logo,
-      direction,
       tripId,
     } = req.body;
 
@@ -239,7 +183,6 @@ exports.updateFlight = async (req, res, next) => {
     if (ticketType !== undefined) updateData.ticketType = ticketType;
     if (price !== undefined) updateData.price = price;
     if (logo !== undefined) updateData.logo = logo;
-    if (direction !== undefined) updateData.direction = direction;
     if (tripId !== undefined) updateData.tripId = tripId;
 
     if (Object.keys(updateData).length === 0) {
@@ -290,110 +233,94 @@ exports.deleteFlight = async (req, res, next) => {
   } catch (error) {
     return next(error);
   }
-
 };
 
-
-
-// -------------SEARCH ---
 // Read: Tìm kiếm chuyến bay theo tiêu chí
+// Backend flightController.js
 exports.searchFlights = async (req, res, next) => {
   try {
     const { departureCity, arrivalCity, outboundDate, isRoundTrip, returnDate } = req.query;
 
-    // Kiểm tra các trường bắt buộc
     if (!departureCity || !arrivalCity || !outboundDate) {
       return res.status(400).json({
         status: false,
-        message: 'Vui lòng cung cấp departureCity, arrivalCity và outboundDate',
+        message: 'Missing required parameters: departureCity, arrivalCity, and outboundDate are required',
       });
     }
 
-    // Nếu chọn khứ hồi nhưng không có ngày về
-    if (isRoundTrip === 'true' && !returnDate) {
+    // Validate date format (assuming DD/MM/YYYY)
+    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (!dateRegex.test(outboundDate)) {
       return res.status(400).json({
         status: false,
-        message: 'Vui lòng cung cấp returnDate khi chọn khứ hồi',
+        message: 'Invalid outboundDate format. Use DD/MM/YYYY',
+      });
+    }
+    if (isRoundTrip === 'true' && (!returnDate || !dateRegex.test(returnDate))) {
+      return res.status(400).json({
+        status: false,
+        message: 'Invalid or missing returnDate for round trip. Use DD/MM/YYYY',
       });
     }
 
-    // Tìm các chuyến bay chiều đi
     const outboundFlights = await Flight.find({
       departureCity,
       arrivalCity,
       date: outboundDate,
-      direction: 'outbound',
     }).lean();
 
-    // Nếu không tìm thấy chuyến bay chiều đi
-    if (!outboundFlights || outboundFlights.length === 0) {
-      return res.status(404).json({
-        status: false,
-        message: `Không tìm thấy chuyến bay từ ${departureCity} đến ${arrivalCity} vào ngày ${outboundDate}`,
-      });
-    }
-
-    // Nhóm các chuyến bay theo tripId
-    const groupedFlights = {};
-
-    // Thêm các chuyến bay chiều đi
-    outboundFlights.forEach(flight => {
-      groupedFlights[flight.tripId] = {
-        tripId: flight.tripId,
-        outbound: flight,
-        return: null,
-      };
-    });
-
-    // Nếu chọn khứ hồi, tìm các chuyến bay chiều về
-    if (isRoundTrip === 'true') {
-      const returnFlights = await Flight.find({
-        departureCity: arrivalCity,
-        arrivalCity: departureCity,
-        date: returnDate,
-        direction: 'return',
-      }).lean();
-
-      // Ghép các chuyến bay chiều về với chiều đi theo tripId
-      returnFlights.forEach(flight => {
-        if (groupedFlights[flight.tripId]) {
-          groupedFlights[flight.tripId].return = flight;
-        }
-      });
-
-      // Lọc bỏ các tripId không có chuyến về (nếu khứ hồi)
-      const result = Object.values(groupedFlights).filter(flight => flight.return !== null);
-
-      if (result.length === 0) {
-        return res.status(404).json({
-          status: false,
-          message: `Không tìm thấy chuyến bay khứ hồi từ ${arrivalCity} về ${departureCity} vào ngày ${returnDate}`,
-        });
-      }
-
+    if (!outboundFlights.length) {
       return res.status(200).json({
         status: true,
-        data: result,
+        data: [],
+        message: `No flights found from ${departureCity} to ${arrivalCity} on ${outboundDate}`,
       });
     }
 
-    // Nếu không chọn khứ hồi, trả về tất cả các chuyến đi
-    const result = Object.values(groupedFlights);
+    if (isRoundTrip !== 'true') {
+      return res.status(200).json({
+        status: true,
+        data: outboundFlights.map(flight => ({ flights: [flight] })),
+      });
+    }
+
+    const returnFlights = await Flight.find({
+      departureCity: arrivalCity,
+      arrivalCity: departureCity,
+      date: returnDate,
+    }).lean();
+
+    if (!returnFlights.length) {
+      return res.status(200).json({
+        status: true,
+        data: [],
+        message: `No return flights found from ${arrivalCity} to ${departureCity} on ${returnDate}`,
+      });
+    }
+
+    const groupedFlights = outboundFlights.flatMap(outbound =>
+      returnFlights.map(returnFlight => ({
+        flights: [outbound, returnFlight],
+      }))
+    );
 
     res.status(200).json({
       status: true,
-      data: result,
+      data: groupedFlights,
     });
   } catch (error) {
-    return next(error);
+    console.error('Search flights error:', error);
+    res.status(500).json({
+      status: false,
+      message: 'Internal server error while searching flights',
+      error: error.message,
+    });
   }
 };
-
 
 // Read: Lấy danh sách các thành phố duy nhất từ Flight
 exports.getCities = async (req, res, next) => {
   try {
-    // Sử dụng aggregation để lấy danh sách các departureCity và departureName duy nhất
     const cities = await Flight.aggregate([
       {
         $group: {
@@ -412,7 +339,7 @@ exports.getCities = async (req, res, next) => {
       },
       {
         $sort: {
-          departureName: 1, // Sắp xếp theo tên thành phố
+          departureName: 1,
         },
       },
     ]);

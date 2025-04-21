@@ -52,14 +52,9 @@ const FlightSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    direction: {
-      type: String,
-      required: true,
-      enum: ['outbound', 'return'], // Phân biệt chiều đi và chiều về
-    },
     tripId: {
-      type: String, // ID để nhóm chiều đi và chiều về thành một chuyến đi khứ hồi
-      required: true,
+      type: String, // ID để nhóm các chuyến bay thành một chuyến khứ hồi
+      // required: true,
     },
   },
   { timestamps: true }

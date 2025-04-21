@@ -1,4 +1,3 @@
-// routes/buses.js
 const express = require('express');
 const router = express.Router();
 const busController = require('../controllers/busController');
@@ -14,15 +13,6 @@ router.get('/search', busController.searchBuses);
 
 // Lấy danh sách thành phố
 router.get('/cities', busController.getCities);
-
-// Lấy xe khách theo tripId
-router.get('/trip/:tripId', busController.getBusesByTripId);
-
-// Lấy tất cả xe khách chiều đi
-router.get('/outbound', busController.getOutboundBuses);
-
-// Lấy tất cả xe khách chiều về
-router.get('/return', busController.getReturnBuses);
 
 // Lấy chi tiết xe khách theo ID
 router.get('/:id', busController.getBusById);

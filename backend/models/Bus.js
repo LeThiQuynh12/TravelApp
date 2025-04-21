@@ -1,15 +1,6 @@
 const mongoose = require('mongoose');
 
 const busSchema = new mongoose.Schema({
-  tripId: {
-    type: String,
-    required: true,
-  },
-  direction: {
-    type: String,
-    required: true,
-    enum: ['outbound', 'return'], // Chỉ cho phép 'outbound' hoặc 'return'
-  },
   departureTime: {
     type: String,
     required: true,
@@ -22,7 +13,15 @@ const busSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  departureName: {
+    type: String,
+    required: true,
+  },
   arrivalCity: {
+    type: String,
+    required: true,
+  },
+  arrivalName: {
     type: String,
     required: true,
   },

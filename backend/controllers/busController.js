@@ -1,6 +1,14 @@
-// controllers/busController.js
 const mongoose = require('mongoose');
 const Bus = require('../models/Bus');
+
+// Hàm kiểm tra định dạng ngày DD/MM/YYYY
+function isValidDateDDMMYYYY(dateStr) {
+  const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  if (!regex.test(dateStr)) return false;
+  const [day, month, year] = dateStr.split('/').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getDate() === day && date.getMonth() === month - 1 && date.getFullYear() === year;
+}
 
 // Create: Tạo mới xe khách (Bus)
 exports.createBus = async (req, res, next) => {
@@ -10,12 +18,12 @@ exports.createBus = async (req, res, next) => {
 
     for (const busData of busesData) {
       const {
-        tripId,
-        direction,
         departureTime,
         arrivalTime,
         departureCity,
+        departureName,
         arrivalCity,
+        arrivalName,
         date,
         busCompany,
         ticketType,
@@ -30,12 +38,12 @@ exports.createBus = async (req, res, next) => {
 
       // Kiểm tra các trường bắt buộc
       if (
-        !tripId ||
-        !direction ||
         !departureTime ||
         !arrivalTime ||
         !departureCity ||
+        !departureName ||
         !arrivalCity ||
+        !arrivalName ||
         !date ||
         !busCompany ||
         !ticketType ||
@@ -47,14 +55,14 @@ exports.createBus = async (req, res, next) => {
       ) {
         return res.status(400).json({
           status: false,
-          message: 'Vui lòng cung cấp đầy đủ thông tin (tripId, direction, departureTime, arrivalTime, departureCity, arrivalCity, date, busCompany, ticketType, price, logo, seats, pickup, dropoff)',
+          message: 'Vui lòng cung cấp đầy đủ thông tin (departureTime, arrivalTime, departureCity, departureName, arrivalCity, arrivalName, date, busCompany, ticketType, price, logo, seats, pickup, dropoff)',
           missingFields: {
-            tripId: !tripId,
-            direction: !direction,
             departureTime: !departureTime,
             arrivalTime: !arrivalTime,
             departureCity: !departureCity,
+            departureName: !departureName,
             arrivalCity: !arrivalCity,
+            arrivalName: !arrivalName,
             date: !date,
             busCompany: !busCompany,
             ticketType: !ticketType,
@@ -67,14 +75,22 @@ exports.createBus = async (req, res, next) => {
         });
       }
 
+      // Kiểm tra định dạng ngày
+      if (!isValidDateDDMMYYYY(date)) {
+        return res.status(400).json({
+          status: false,
+          message: 'date phải có định dạng DD/MM/YYYY và là ngày hợp lệ',
+        });
+      }
+
       // Tạo xe khách mới
       const newBus = new Bus({
-        tripId,
-        direction,
         departureTime,
         arrivalTime,
         departureCity,
+        departureName,
         arrivalCity,
+        arrivalName,
         date,
         busCompany,
         ticketType,
@@ -106,28 +122,9 @@ exports.getAllBuses = async (req, res, next) => {
   try {
     const buses = await Bus.find().lean();
 
-    // Nhóm các xe khách theo tripId
-    const groupedBuses = {};
-    buses.forEach((bus) => {
-      if (!groupedBuses[bus.tripId]) {
-        groupedBuses[bus.tripId] = {
-          tripId: bus.tripId,
-          outbound: null,
-          return: null,
-        };
-      }
-      if (bus.direction === 'outbound') {
-        groupedBuses[bus.tripId].outbound = bus;
-      } else if (bus.direction === 'return') {
-        groupedBuses[bus.tripId].return = bus;
-      }
-    });
-
-    const result = Object.values(groupedBuses);
-
     res.status(200).json({
       status: true,
-      data: result,
+      data: buses,
     });
   } catch (error) {
     return next(error);
@@ -155,72 +152,16 @@ exports.getBusById = async (req, res, next) => {
   }
 };
 
-// Read: Lấy xe khách theo tripId
-exports.getBusesByTripId = async (req, res, next) => {
-  try {
-    const tripId = req.params.tripId;
-    const buses = await Bus.find({ tripId }).lean();
-
-    if (!buses || buses.length === 0) {
-      return res.status(404).json({
-        status: false,
-        message: 'Không tìm thấy xe khách cho tripId này',
-      });
-    }
-
-    const result = {
-      tripId,
-      outbound: buses.find((b) => b.direction === 'outbound') || null,
-      return: buses.find((b) => b.direction === 'return') || null,
-    };
-
-    res.status(200).json({
-      status: true,
-      data: result,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// Read: Lấy danh sách tất cả xe khách chiều đi (outbound)
-exports.getOutboundBuses = async (req, res, next) => {
-  try {
-    const outboundBuses = await Bus.find({ direction: 'outbound' }).lean();
-
-    res.status(200).json({
-      status: true,
-      data: outboundBuses,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// Read: Lấy danh sách tất cả xe khách chiều về (return)
-exports.getReturnBuses = async (req, res, next) => {
-  try {
-    const returnBuses = await Bus.find({ direction: 'return' }).lean();
-
-    res.status(200).json({
-      status: true,
-      data: returnBuses,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 // Update: Cập nhật thông tin xe khách
 exports.updateBus = async (req, res, next) => {
   try {
     const {
-      tripId,
-      direction,
       departureTime,
       arrivalTime,
       departureCity,
+      departureName,
       arrivalCity,
+      arrivalName,
       date,
       busCompany,
       ticketType,
@@ -234,13 +175,21 @@ exports.updateBus = async (req, res, next) => {
     } = req.body;
 
     const updateData = {};
-    if (tripId !== undefined) updateData.tripId = tripId;
-    if (direction !== undefined) updateData.direction = direction;
     if (departureTime !== undefined) updateData.departureTime = departureTime;
     if (arrivalTime !== undefined) updateData.arrivalTime = arrivalTime;
     if (departureCity !== undefined) updateData.departureCity = departureCity;
+    if (departureName !== undefined) updateData.departureName = departureName;
     if (arrivalCity !== undefined) updateData.arrivalCity = arrivalCity;
-    if (date !== undefined) updateData.date = date;
+    if (arrivalName !== undefined) updateData.arrivalName = arrivalName;
+    if (date !== undefined) {
+      if (!isValidDateDDMMYYYY(date)) {
+        return res.status(400).json({
+          status: false,
+          message: 'date phải có định dạng DD/MM/YYYY và là ngày hợp lệ',
+        });
+      }
+      updateData.date = date;
+    }
     if (busCompany !== undefined) updateData.busCompany = busCompany;
     if (ticketType !== undefined) updateData.ticketType = ticketType;
     if (price !== undefined) updateData.price = price;
@@ -301,8 +250,9 @@ exports.deleteBus = async (req, res, next) => {
   }
 };
 
-// Read: Tìm kiếm xe khách theo tiêu chí
-exports.searchBuses = async (req, res, next) => {
+
+
+exports.searchBuses = async (req, res) => {
   try {
     const { departureCity, arrivalCity, outboundDate, isRoundTrip, returnDate } = req.query;
 
@@ -310,95 +260,110 @@ exports.searchBuses = async (req, res, next) => {
     if (!departureCity || !arrivalCity || !outboundDate) {
       return res.status(400).json({
         status: false,
-        message: 'Vui lòng cung cấp departureCity, arrivalCity và outboundDate',
+        message: 'Thiếu tham số bắt buộc: departureCity, arrivalCity và outboundDate là bắt buộc',
       });
     }
 
-    // Nếu chọn khứ hồi nhưng không có ngày về
-    if (isRoundTrip === 'true' && !returnDate) {
+    // Kiểm tra định dạng ngày (DD/MM/YYYY)
+    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (!dateRegex.test(outboundDate)) {
       return res.status(400).json({
         status: false,
-        message: 'Vui lòng cung cấp returnDate khi chọn khứ hồi',
+        message: 'Định dạng outboundDate không hợp lệ. Sử dụng DD/MM/YYYY',
       });
     }
 
-    // Tìm các xe khách chiều đi
+    if (isRoundTrip === 'true' && (!returnDate || !dateRegex.test(returnDate))) {
+      return res.status(400).json({
+        status: false,
+        message: 'returnDate không hợp lệ hoặc thiếu cho chuyến khứ hồi. Sử dụng DD/MM/YYYY',
+      });
+    }
+
+    // Tìm chuyến xe chiều đi
     const outboundBuses = await Bus.find({
       departureCity,
       arrivalCity,
       date: outboundDate,
-      direction: 'outbound',
     }).lean();
 
-    // Nếu không tìm thấy xe khách chiều đi
-    if (!outboundBuses || outboundBuses.length === 0) {
-      return res.status(404).json({
-        status: false,
+    if (!outboundBuses.length) {
+      return res.status(200).json({
+        status: true,
+        data: [],
         message: `Không tìm thấy xe khách từ ${departureCity} đến ${arrivalCity} vào ngày ${outboundDate}`,
       });
     }
 
-    // Nhóm các xe khách theo tripId
-    const groupedBuses = {};
-
-    // Thêm các xe khách chiều đi
-    outboundBuses.forEach((bus) => {
-      groupedBuses[bus.tripId] = {
-        tripId: bus.tripId,
-        outbound: bus,
-        return: null,
-      };
-    });
-
-    // Nếu chọn khứ hồi, tìm các xe khách chiều về
-    if (isRoundTrip === 'true') {
-      const returnBuses = await Bus.find({
-        departureCity: arrivalCity,
-        arrivalCity: departureCity,
-        date: returnDate,
-        direction: 'return',
-      }).lean();
-
-      // Ghép các xe khách chiều về với chiều đi theo tripId
-      returnBuses.forEach((bus) => {
-        if (groupedBuses[bus.tripId]) {
-          groupedBuses[bus.tripId].return = bus;
-        }
-      });
-
-      // Lọc bỏ các tripId không có chuyến về (nếu khứ hồi)
-      const result = Object.values(groupedBuses).filter((bus) => bus.return !== null);
-
-      if (result.length === 0) {
-        return res.status(404).json({
-          status: false,
-          message: `Không tìm thấy xe khách khứ hồi từ ${arrivalCity} về ${departureCity} vào ngày ${returnDate}`,
-        });
-      }
-
+    // Nếu là chuyến một chiều
+    if (isRoundTrip !== 'true') {
       return res.status(200).json({
         status: true,
-        data: result,
+        data: outboundBuses.map(bus => ({ buses: [bus] })),
       });
     }
 
-    // Nếu không chọn khứ hồi, trả về tất cả các chuyến đi
-    const result = Object.values(groupedBuses);
+    // Tìm chuyến xe chiều về
+    const returnBuses = await Bus.find({
+      departureCity: arrivalCity,
+      arrivalCity: departureCity,
+      date: returnDate,
+    }).lean();
 
-    res.status(200).json({
+    if (!returnBuses.length) {
+      return res.status(200).json({
+        status: true,
+        data: [],
+        message: `Không tìm thấy xe khách khứ hồi từ ${arrivalCity} đến ${departureCity} vào ngày ${returnDate}`,
+      });
+    }
+
+    // Tạo cặp khứ hồi
+    const groupedBuses = outboundBuses.flatMap(outbound =>
+      returnBuses.map(returnBus => ({
+        buses: [outbound, returnBus],
+      }))
+    );
+
+    return res.status(200).json({
       status: true,
-      data: result,
+      data: groupedBuses,
     });
   } catch (error) {
-    return next(error);
+    console.error('Lỗi tìm kiếm xe khách:', error);
+    return res.status(500).json({
+      status: false,
+      message: 'Lỗi máy chủ nội bộ khi tìm kiếm xe khách',
+      error: error.message,
+    });
   }
 };
 
 // Read: Lấy danh sách các thành phố duy nhất từ Bus
 exports.getCities = async (req, res, next) => {
   try {
-    // Sử dụng distinct để lấy danh sách departureCity duy nhất
-    const cities = await Bus.distinct('departureCity');
+    const cities = await Bus.aggregate([
+      {
+        $group: {
+          _id: {
+            departureCity: '$departureCity',
+            departureName: '$departureName',
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          departureCity: '$_id.departureCity',
+          departureName: '$_id.departureName',
+        },
+      },
+      {
+        $sort: {
+          departureName: 1,
+        },
+      },
+    ]);
 
     if (!cities || cities.length === 0) {
       return res.status(404).json({
@@ -407,15 +372,10 @@ exports.getCities = async (req, res, next) => {
       });
     }
 
-    // Chuyển thành định dạng { departureCity } và sắp xếp
-    const formattedCities = cities
-      .map((city) => ({ departureCity: city }))
-      .sort((a, b) => a.departureCity.localeCompare(b.departureCity));
-
     res.status(200).json({
       status: true,
       message: 'Lấy danh sách thành phố thành công',
-      data: formattedCities,
+      data: cities,
     });
   } catch (error) {
     return next(error);
