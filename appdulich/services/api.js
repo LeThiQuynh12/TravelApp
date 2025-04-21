@@ -8,7 +8,7 @@ const api = axios.create({
 
   // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
 
-  baseURL: 'http://172.20.10.3:5003/api',
+  baseURL: 'http://192.168.0.111:5003/api',
 
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng

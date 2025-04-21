@@ -46,6 +46,9 @@ import NearbyLocations from './screens/details/NearbyLocations.jsx';
 import Chat from './screens/chat/Chat.jsx';
 import AskQuestion from './screens/chat/AskQuestion.jsx';
 import Chatbot from './screens/chat/Chatbot.jsx';
+import RenderItem from './components/Reusable/renderItem.jsx';
+import FoodDrink from './screens/details/FoodDrink.jsx';
+import ReviewComponent from './components/Reusable/ReviewComponent.jsx';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -169,6 +172,9 @@ export default function App() {
         <Stack.Screen name="Chat" component={Chat} options={{ headerShown: false }} />
         <Stack.Screen name="AskQuestion" component={AskQuestion} options={{ headerShown: false }} />
         <Stack.Screen name="Chatbot" component={Chatbot} options={{ headerShown: false }} />
+        <Stack.Screen name="RenderItem" component={RenderItem} options={{ headerShown: false }} />
+        <Stack.Screen name="FoodDrink" component={FoodDrink} options={{ headerShown: false }} />
+        <Stack.Screen name="ReviewComponent" component={ReviewComponent} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
