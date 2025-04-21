@@ -23,7 +23,7 @@ const Authentication = ({ navigation, route }) => {
       {/* Hình ảnh */}
       <Image
         source={{
-          uri: "https://i.pinimg.com/474x/57/81/ee/5781ee3858125aaa7494c2bff48b9d19.jpg",
+          uri: "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjhpeGNya3p5eWQxbXVpZ2JueHI1dHU2cnY1bjAxbGpsdGFtd2pnYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohzdGwpFz3P6C550Q/giphy.gif",
         }}
         style={styles.image}
       />

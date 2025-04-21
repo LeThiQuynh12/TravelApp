@@ -42,7 +42,10 @@ import Profile from './screens/profile/Profile.jsx';
 import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
 import BookingDetails from './components/Tiles/Hotels/BookingDetails.jsx';
-
+import NearbyLocations from './screens/details/NearbyLocations.jsx';
+import Chat from './screens/chat/Chat.jsx';
+import AskQuestion from './screens/chat/AskQuestion.jsx';
+import Chatbot from './screens/chat/Chatbot.jsx';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -162,6 +165,10 @@ export default function App() {
         <Stack.Screen name="AddPaymentMethodScreen" component={AddPaymentMethodScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AccountDetail" component={AccountDetail} options={{ headerShown: false }} />
         <Stack.Screen name="BookingDetails" component={BookingDetails} options={{ headerShown: false }} />
+        <Stack.Screen name="NearbyLocations" component={NearbyLocations} options={{ headerShown: false }} />
+        <Stack.Screen name="Chat" component={Chat} options={{ headerShown: false }} />
+        <Stack.Screen name="AskQuestion" component={AskQuestion} options={{ headerShown: false }} />
+        <Stack.Screen name="Chatbot" component={Chatbot} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

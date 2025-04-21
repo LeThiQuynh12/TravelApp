@@ -7,8 +7,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const api = axios.create({
 
   // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
+
   baseURL: 'http://172.20.10.3:5003/api',
-  
+
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
   },
@@ -66,12 +67,15 @@ export const fetchDangNhap = async (email, password) => {
 };
 
 
+
 // Hàm lấy thông tin người dùng
 export const getUser = async () => {
   try {
-    const response = await api.get('/users'); // Token sẽ tự động được thêm vào header
+    const response = await api.get('/users');
+    console.log('Phản hồi từ backend:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Lỗi lấy thông tin người dùng:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Lấy thông tin người dùng thất bại!');
   }
 };
@@ -87,6 +91,58 @@ export const resetPassword = async (emailOrPhone, type) => {
   const response = await api.post('/reset-password', { emailOrPhone, type });
   return response.data;
 };
+
+// Hàm cập nhật thông tin người dùng
+
+export const updateUser = async (userData) => {
+  try {
+    console.log('Đang gửi yêu cầu cập nhật người dùng:', userData);
+    const response = await api.put('/user', userData);
+    console.log('Phản hồi từ backend:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi cập nhật người dùng:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Cập nhật thông tin người dùng thất bại!');
+  }
+};
+
+
+// Hàm xóa người dùng
+export const deleteUser = async () => {
+  try {
+    const response = await api.delete('/users');
+    console.log('Phản hồi từ backend:', response.data);
+    // Xóa token khỏi AsyncStorage sau khi xóa tài khoản
+    await AsyncStorage.removeItem('token');
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi xóa người dùng:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Xóa người dùng thất bại!');
+  }
+};
+// Hàm đổi mật khẩu
+export const changePassword = async ({ emailOrPhone, type, oldPass, newPass }) => {
+  try {
+    console.log('Sending changePassword request:', { emailOrPhone, type, oldPass, newPass });
+    const response = await api.post('/change-password', {
+      emailOrPhone,
+      type,
+      oldPass,
+      newPass,
+    });
+    console.log('Change password response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Change password error:', error.response?.data);
+    return {
+      status: false,
+      message: error.response?.data?.message || 'Lỗi kết nối server',
+    };
+  }
+};
+
+
+
 // Hàm lấy danh sách khách sạn
 export const getHotels = async () => {
   try {

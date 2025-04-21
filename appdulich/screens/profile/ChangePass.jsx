@@ -9,33 +9,34 @@ import {
   TouchableOpacity,
   Animated,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from "react-native";
 import { COLORS, SIZES } from "../../constants/theme";
 import AppBar from "../../components/Reusable/AppBar";
 import ReusableBtn from "../../components/Buttons/ReusableBtn";
 import { MaterialIcons } from "@expo/vector-icons";
+import { changePassword } from "../../services/api";
 
-const ChangePass = ({ navigation }) => {
-  const defaultOldPass = "Nguyenly12";
+const ChangePass = ({ navigation, route }) => {
+  const { user, source } = route.params || {};
   const PASSWORD_VISIBLE_DURATION = 800;
 
   const [formData, setFormData] = useState({
     oldPass: "",
     newPass: "",
-    confirmPass: ""
+    confirmPass: "",
   });
-  
+
   const [errors, setErrors] = useState({
     oldPass: "",
     newPass: "",
-    confirmPass: ""
+    confirmPass: "",
   });
 
   const [showPassword, setShowPassword] = useState({
     oldPass: false,
     newPass: false,
-    confirmPass: false
+    confirmPass: false,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +44,7 @@ const ChangePass = ({ navigation }) => {
   const timers = useRef({ oldPass: null, newPass: null, confirmPass: null }).current;
 
   useEffect(() => {
+    console.log('Received user in ChangePass:', user);
     Animated.timing(formOpacity, {
       toValue: 1,
       duration: 500,
@@ -56,9 +58,9 @@ const ChangePass = ({ navigation }) => {
 
   const toggleShowPassword = (field) => {
     if (timers[field]) clearTimeout(timers[field]);
-    
+
     setShowPassword(prev => ({ ...prev, [field]: true }));
-    
+
     timers[field] = setTimeout(() => {
       setShowPassword(prev => ({ ...prev, [field]: false }));
     }, PASSWORD_VISIBLE_DURATION);
@@ -85,9 +87,6 @@ const ChangePass = ({ navigation }) => {
     if (!formData.oldPass) {
       newErrors.oldPass = "Vui lòng nhập mật khẩu hiện tại";
       valid = false;
-    } else if (formData.oldPass !== defaultOldPass) {
-      newErrors.oldPass = "Mật khẩu hiện tại không đúng";
-      valid = false;
     }
 
     newErrors.newPass = validatePassword(formData.newPass);
@@ -108,16 +107,47 @@ const ChangePass = ({ navigation }) => {
     return valid;
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
-    setTimeout(() => {
+    try {
+      if (!user || (!user.email && !user.phoneNumber)) {
+        setErrors(prev => ({ ...prev, oldPass: "Không tìm thấy thông tin người dùng" }));
+        return;
+      }
+
+      const payload = {
+        emailOrPhone: user.email || user.phoneNumber,
+        type: user.email ? 'email' : 'phone',
+        oldPass: formData.oldPass,
+        newPass: formData.newPass,
+      };
+
+      console.log('Sending change password request:', payload);
+      const response = await changePassword(payload);
+
+      if (response.status) {
+        alert('Thay đổi mật khẩu thành công!');
+        if (source === 'profile') {
+          console.log('Navigating back to Profile');
+          navigation.navigate('Profile');
+        } else if (source === 'forgotPass') {
+          console.log('Navigating to authentication');
+          navigation.replace('Bottom', { screen: 'authentication' });
+        } else {
+          console.log('No source specified, using default navigation');
+          navigation.goBack();
+        }
+      } else {
+        setErrors(prev => ({ ...prev, oldPass: response.message }));
+      }
+    } catch (error) {
+      console.error('Lỗi thay đổi mật khẩu:', error);
+      setErrors(prev => ({ ...prev, oldPass: 'Có lỗi xảy ra, vui lòng thử lại' }));
+    } finally {
       setIsSubmitting(false);
-      alert("Đổi mật khẩu thành công!");
-      navigation.goBack();
-    }, 1500);
+    }
   };
 
   return (
@@ -125,7 +155,6 @@ const ChangePass = ({ navigation }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      
       <AppBar
         title="Thay đổi mật khẩu"
         color={COLORS.white}
@@ -134,19 +163,19 @@ const ChangePass = ({ navigation }) => {
         right={20}
         onPress={() => navigation.goBack()}
       />
-      
-      <Animated.ScrollView 
+
+      <Animated.ScrollView
         contentContainerStyle={styles.content}
         style={{ opacity: formOpacity }}
       >
         <View style={styles.profileHeader}>
           <Image
             source={{
-              uri: "https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180",
+              uri: user?.profile || 'https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180',
             }}
             style={styles.avatar}
           />
-          <Text style={styles.name}>LÊ THỊ QUỲNH</Text>
+          <Text style={styles.name}>{user?.username || 'Người dùng'}</Text>
         </View>
 
         <View style={styles.formContainer}>
@@ -160,14 +189,14 @@ const ChangePass = ({ navigation }) => {
               value={formData.oldPass}
               onChangeText={(text) => handleInputChange('oldPass', text)}
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => toggleShowPassword('oldPass')}
               style={styles.eyeIcon}
             >
-              <MaterialIcons 
-                name={showPassword.oldPass ? "visibility" : "visibility-off"} 
-                size={24} 
-                color={showPassword.oldPass ? COLORS.skyBlue : COLORS.gray} 
+              <MaterialIcons
+                name={showPassword.oldPass ? "visibility" : "visibility-off"}
+                size={24}
+                color={showPassword.oldPass ? COLORS.skyBlue : COLORS.gray}
               />
             </TouchableOpacity>
           </View>
@@ -190,14 +219,14 @@ const ChangePass = ({ navigation }) => {
               value={formData.newPass}
               onChangeText={(text) => handleInputChange('newPass', text)}
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => toggleShowPassword('newPass')}
               style={styles.eyeIcon}
             >
-              <MaterialIcons 
-                name={showPassword.newPass ? "visibility" : "visibility-off"} 
-                size={24} 
-                color={showPassword.newPass ? COLORS.skyBlue : COLORS.gray} 
+              <MaterialIcons
+                name={showPassword.newPass ? "visibility" : "visibility-off"}
+                size={24}
+                color={showPassword.newPass ? COLORS.skyBlue : COLORS.gray}
               />
             </TouchableOpacity>
           </View>
@@ -213,14 +242,14 @@ const ChangePass = ({ navigation }) => {
               value={formData.confirmPass}
               onChangeText={(text) => handleInputChange('confirmPass', text)}
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => toggleShowPassword('confirmPass')}
               style={styles.eyeIcon}
             >
-              <MaterialIcons 
-                name={showPassword.confirmPass ? "visibility" : "visibility-off"} 
-                size={24} 
-                color={showPassword.confirmPass ? COLORS.skyBlue : COLORS.gray} 
+              <MaterialIcons
+                name={showPassword.confirmPass ? "visibility" : "visibility-off"}
+                size={24}
+                color={showPassword.confirmPass ? COLORS.skyBlue : COLORS.gray}
               />
             </TouchableOpacity>
           </View>
@@ -230,26 +259,26 @@ const ChangePass = ({ navigation }) => {
         <View style={styles.passwordRules}>
           <Text style={styles.rulesTitle}>Mật khẩu phải có:</Text>
           <View style={styles.ruleItem}>
-            <MaterialIcons 
-              name={formData.newPass?.length >= 6 ? "check-circle" : "radio-button-unchecked"} 
-              size={16} 
-              color={formData.newPass?.length >= 6 ? COLORS.green : COLORS.gray} 
+            <MaterialIcons
+              name={formData.newPass?.length >= 6 ? "check-circle" : "radio-button-unchecked"}
+              size={16}
+              color={formData.newPass?.length >= 6 ? COLORS.green : COLORS.gray}
             />
             <Text style={styles.ruleText}>Ít nhất 6 ký tự</Text>
           </View>
           <View style={styles.ruleItem}>
-            <MaterialIcons 
-              name={/[A-Z]/.test(formData.newPass) ? "check-circle" : "radio-button-unchecked"} 
-              size={16} 
-              color={/[A-Z]/.test(formData.newPass) ? COLORS.green : COLORS.gray} 
+            <MaterialIcons
+              name={/[A-Z]/.test(formData.newPass) ? "check-circle" : "radio-button-unchecked"}
+              size={16}
+              color={/[A-Z]/.test(formData.newPass) ? COLORS.green : COLORS.gray}
             />
             <Text style={styles.ruleText}>1 chữ hoa (A-Z)</Text>
           </View>
           <View style={styles.ruleItem}>
-            <MaterialIcons 
-              name={/[0-9]/.test(formData.newPass) ? "check-circle" : "radio-button-unchecked"} 
-              size={16} 
-              color={/[0-9]/.test(formData.newPass) ? COLORS.green : COLORS.gray} 
+            <MaterialIcons
+              name={/[0-9]/.test(formData.newPass) ? "check-circle" : "radio-button-unchecked"}
+              size={16}
+              color={/[0-9]/.test(formData.newPass) ? COLORS.green : COLORS.gray}
             />
             <Text style={styles.ruleText}>1 số (0-9)</Text>
           </View>
@@ -292,6 +321,12 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 3,
     borderColor: COLORS.skyBlue,
+  },
+  name: {
+    fontSize: SIZES.large,
+    fontWeight: "700",
+    color: COLORS.dark,
+    marginTop: 10,
   },
   formContainer: {
     marginBottom: 20,

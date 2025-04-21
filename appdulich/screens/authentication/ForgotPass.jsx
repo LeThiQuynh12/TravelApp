@@ -10,6 +10,7 @@ const ForgotPass = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [otp, setOtp] = useState("");
   const [activeTab, setActiveTab] = useState("email");
+  const [user, setUser] = useState(null);
 
   const handleInputChange = (text) => {
     setEmailOrPhone(text);
@@ -37,9 +38,15 @@ const ForgotPass = ({ navigation }) => {
 
     try {
       const response = await checkUserExists(emailOrPhone, activeTab);
-      alert(response.message);
-      setIsModalVisible(true); // Mở modal nhập OTP
+      console.log('Response from checkUserExists:', response);
+      if (response.user) {
+        setUser(response.user);
+        setIsModalVisible(true);
+      } else {
+        alert('Không tìm thấy người dùng!');
+      }
     } catch (error) {
+      console.error('Error in checkUserExists:', error);
       alert(error.response?.data?.message || "Có lỗi xảy ra!");
     }
   };
@@ -48,10 +55,18 @@ const ForgotPass = ({ navigation }) => {
     if (otp === "123456") { // OTP tĩnh
       try {
         const response = await resetPassword(emailOrPhone, activeTab);
+        console.log('Response from resetPassword:', response);
         alert(response.message);
         setIsModalVisible(false);
-        navigation.navigate('ChangePass');
+        if (!user || (!user.email && !user.phoneNumber)) {
+          console.log('Cannot navigate to ChangePass: user is invalid', user);
+          alert('Không thể chuyển đến màn hình đổi mật khẩu: Thiếu thông tin người dùng.');
+          return;
+        }
+       
+        navigation.navigate("ChangePass", { user,source: 'forgotPass' });
       } catch (error) {
+        console.error('Error in resetPassword:', error);
         alert(error.response?.data?.message || "Có lỗi xảy ra!");
       }
     } else {

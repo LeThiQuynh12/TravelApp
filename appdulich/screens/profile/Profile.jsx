@@ -1,18 +1,21 @@
 // screens/profile/Profile.jsx
-import React from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import {
+  ActivityIndicator,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import Icons from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
-import AsyncStorage
-  from '@react-native-async-storage/async-storage'; // Thêm import này
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import ReusableBtn from '../../components/Buttons/ReusableBtn';
 import AppBar from '../../components/Reusable/AppBar';
@@ -22,10 +25,66 @@ import {
   SIZES,
   TEXT,
 } from '../../constants/theme';
+import { getUser } from '../../services/api';
 
 const Profile = ({ navigation, route }) => {
-  const { setIsLoggedIn } = route.params || {}; // Nhận setIsLoggedIn từ route (nếu có)
+  const { setIsLoggedIn } = route.params || {};
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const isMounted = useRef(true);
 
+  // Lấy thông tin người dùng khi màn hình được tải
+  useEffect(() => {
+    const checkAuthAndFetchUser = async () => {
+      if (!isMounted.current) return;
+
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          // Không có token, chuyển đến tab authentication
+          if (setIsLoggedIn) setIsLoggedIn(false);
+          setTimeout(() => {
+            navigation.navigate('authentication');
+          }, 100);
+          return;
+        }
+
+        setLoading(true);
+        const response = await getUser();
+        if (isMounted.current) {
+          setUser(response.data);
+        }
+      } catch (err) {
+        if (isMounted.current) {
+          console.error('Lỗi lấy thông tin người dùng:', err.message);
+          if (err.message.includes('token') || err.message.includes('Unauthorized')) {
+            // Token không hợp lệ, chuyển đến tab authentication
+            await AsyncStorage.removeItem('token');
+            if (setIsLoggedIn) setIsLoggedIn(false);
+            setTimeout(() => {
+              navigation.navigate('authentication');
+            }, 100);
+          } else {
+            setError(err.message);
+            alert(err.message);
+          }
+        }
+      } finally {
+        if (isMounted.current) {
+          setLoading(false);
+        }
+      }
+    };
+
+    checkAuthAndFetchUser();
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, [navigation, setIsLoggedIn]);
+
+  // Hàm xử lý đăng xuất
   const handleLogout = async () => {
     try {
       // Xóa token khỏi AsyncStorage
@@ -41,6 +100,34 @@ const Profile = ({ navigation, route }) => {
       alert('Đăng xuất thất bại!');
     }
   };
+ 
+
+  // Hiển thị loading khi đang lấy dữ liệu
+  if (loading && !user) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={COLORS.skyBlue} />
+      </View>
+    );
+  }
+
+  // Hiển thị lỗi nếu có
+  if (error && !user) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+        <ReusableBtn
+          onPress={() => navigation.goBack()}
+          btnText="Quay lại"
+          width={SIZES.width / 1.1}
+          backgroundColor={COLORS.red}
+          borderColor={COLORS.red}
+          borderWidth={0}
+          textColor={COLORS.white}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -58,7 +145,9 @@ const Profile = ({ navigation, route }) => {
         <View style={styles.avatarWrapper}>
           <Image
             source={{
-              uri: "https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180",
+              uri:
+                user?.profile ||
+                'https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180',
             }}
             style={styles.avatar}
           />
@@ -66,18 +155,21 @@ const Profile = ({ navigation, route }) => {
             <Icon name="camera" size={16} color={COLORS.white} />
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.userInfoContainer}>
-          <Text style={styles.userName}>LÊ THỊ QUỲNH</Text>
-          <Text style={styles.userEmail}>quynhlt@example.com</Text>
+          <Text style={styles.userName}>{user?.username || 'LÊ THỊ QUỲNH'}</Text>
+          <Text style={styles.userEmail}>{user?.email || 'quynhlt@example.com'}</Text>
         </View>
       </View>
 
       {/* Profile Menu Section */}
       <View style={styles.menuContainer}>
         {/* Personal Info */}
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
-        onPress={() => navigation.navigate("PersonalInfoScreen")}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('PersonalInfoScreen')}
+        >
           <View style={[styles.menuIcon, { backgroundColor: COLORS.lightSkyBlue }]}>
             <Icon name="user" size={20} color={COLORS.skyBlue} />
           </View>
@@ -88,34 +180,43 @@ const Profile = ({ navigation, route }) => {
         <View style={styles.divider} />
 
         {/* Phone Number */}
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
-        onPress={()=> navigation.navigate("PhoneNumber")}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('PhoneNumber')}
+        >
           <View style={[styles.menuIcon, { backgroundColor: COLORS.lightMint }]}>
             <Icon name="mobile-screen" size={20} color={COLORS.mint} />
           </View>
           <Text style={styles.menuText}>Số điện thoại</Text>
-          <Text style={styles.menuValue}>0987 654 321</Text>
+          <Text style={styles.menuValue}>{user?.phoneNumber || ''}</Text>
           <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
         </TouchableOpacity>
 
         <View style={styles.divider} />
 
         {/* Email */}
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
-        onPress={()=> navigation.navigate("Email")}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Email')}
+        >
           <View style={[styles.menuIcon, { backgroundColor: COLORS.lightPeach }]}>
             <Icon name="envelope" size={18} color={COLORS.peach} />
           </View>
           <Text style={styles.menuText}>Email</Text>
-          <Text style={styles.menuValue}>quynhlt@example.com</Text>
+          <Text style={styles.menuValue}>{user?.email || 'quynhlt@example.com'}</Text>
           <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
         </TouchableOpacity>
 
         <View style={styles.divider} />
 
         {/* Change Password */}
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
-        onPress={()=> navigation.navigate("ChangePass")}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('ChangePass', {user,source: 'profile'})}
+        >
           <View style={[styles.menuIcon, { backgroundColor: COLORS.lightLavender }]}>
             <Icon name="lock" size={20} color={COLORS.lavender} />
           </View>
@@ -126,20 +227,27 @@ const Profile = ({ navigation, route }) => {
         <View style={styles.divider} />
 
         {/* Bank Account */}
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}
-        onPress={()=> navigation.navigate("Bank")}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Bank')}
+        >
           <View style={[styles.menuIcon, { backgroundColor: COLORS.lightPink }]}>
             <Icon name="landmark" size={20} color={COLORS.pink} />
           </View>
           <Text style={styles.menuText}>Liên kết ngân hàng</Text>
           <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
         </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+      
       </View>
 
       <HeightSpacer height={30} />
       <ReusableBtn
-        onPress={handleLogout} // Gọi hàm handleLogout
-        btnText={"Đăng xuất"}
+        onPress={handleLogout}
+        btnText={'Đăng xuất'}
         width={SIZES.width / 1.1}
         backgroundColor={COLORS.red}
         borderColor={COLORS.red}
@@ -246,14 +354,13 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor:"#eee",
-    
+    backgroundColor: '#eee',
   },
-  bottomSection: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingBottom: 30,
-    marginTop: 24,
+  errorText: {
+    fontSize: TEXT.medium,
+    color: COLORS.red,
+    textAlign: 'center',
+    marginBottom: 20,
   },
 });
 

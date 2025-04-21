@@ -18,6 +18,7 @@ import {
   COLORS,
   TEXT,
 } from '../../constants/theme';
+import Chat from './Chat';
 
 const Contact = () => {
   const navigation = useNavigation();
@@ -38,7 +39,8 @@ const Contact = () => {
       <View style={{flexDirection: "row", justifyContent:"space-between"}}>
       <Text style={styles.greetingText}>Xin chào</Text>
 
-        <TouchableOpacity>
+        <TouchableOpacity
+        onPress={() => navigation.navigate('Chatbot')} >
           <Ionicons name="chatbubble-ellipses-sharp" size={30} color={COLORS.blue}/>
         </TouchableOpacity>
       </View>
@@ -51,6 +53,13 @@ const Contact = () => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.cardScroll}
       >
+
+        <View
+          style={[styles.card, styles.cardPartial]}
+          
+        >
+          <Chat/>
+        </View>
         {/* Card 1: Zalo Support */}
         <View style={styles.card}>
           <Image 
@@ -98,12 +107,7 @@ const Contact = () => {
         </View>
 
         {/* Card 2: FAQ Navigation */}
-        <TouchableOpacity
-          style={[styles.card, styles.cardPartial]}
-          onPress={() => navigation.navigate('Chat')}
-        >
-          {/* To be completed later */}
-        </TouchableOpacity>
+        
       </ScrollView>
 
       <View style={styles.footer}>

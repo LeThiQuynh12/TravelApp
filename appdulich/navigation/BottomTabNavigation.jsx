@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -35,11 +35,11 @@ const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
 
     // Lắng nghe thay đổi của isLoggedIn và điêuf hướng
 
-    useEffect(()=>{
-        if(isLoggedIn){
-            navigation.navigate("Profile") // Điều hướng đến Profile khi đăng nhập thành công
-        }
-    },[isLoggedIn, navigation])
+    // useEffect(()=>{
+    //     if(isLoggedIn){
+    //         navigation.navigate("Profile") // Điều hướng đến Profile khi đăng nhập thành công
+    //     }
+    // },[isLoggedIn, navigation])
 
     
   return (
