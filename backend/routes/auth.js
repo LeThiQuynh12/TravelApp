@@ -8,4 +8,5 @@ route.post('/check-user', authController.checkUserExists);
 
 // Reset mật khẩu
 route.post('/reset-password', authController.resetPassword);
+route.post('/change-password', authController.changePassword);
 module.exports = route; // Xuất router để sử dụng trong server.js
