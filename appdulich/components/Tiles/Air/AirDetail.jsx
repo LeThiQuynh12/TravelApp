@@ -131,7 +131,7 @@ const AirDetail = ({ navigation, route }) => {
           </Text>
           <Image source={{ uri: flight.logo }} style={styles.airlineLogo} />
         </View>
-        <View style={styles.flightInfoRow}>
+        <View style={{flexDirection: "row", justifyContent:"space-between"}}>
           <Text style={styles.dateText}>{flight.date}</Text>
           <Text style={styles.flightInfo}>
             {flight.flightNumber} | {flight.ticketType}
@@ -143,7 +143,7 @@ const AirDetail = ({ navigation, route }) => {
             <Text style={styles.cityText}>{flight.departureCity}</Text>
           </View>
           <View style={styles.durationContainer}>
-            <Ionicons name="airplane" size={24} color={COLORS.blue} />
+             <Ionicons name="return-up-forward" size={40} color={COLORS.lightSkyBlue} />
             <Text style={styles.durationText}>
               {calculateFlightDuration(flight.departureTime, flight.arrivalTime)}
             </Text>
@@ -211,7 +211,7 @@ const AirDetail = ({ navigation, route }) => {
 
           {/* Phần tóm tắt giá */}
           <View style={styles.summarySection}>
-            <Text style={styles.summaryHeader}>Tóm tắt giá vé</Text>
+            <Text style={{fontSize: TEXT.large-3, fontWeight: "bold", color: COLORS.blue, marginBottom: 20}}>----------- TÓM TẮT GIÁ VÉ  ------------</Text>
             {breakdown.adult.count > 0 && (
               <View style={styles.passengerRow}>
                 <Text style={styles.summaryText}>
@@ -242,9 +242,9 @@ const AirDetail = ({ navigation, route }) => {
                 </Text>
               </View>
             )}
-            <View style={styles.totalRow}>
-              <Text style={styles.totalText}>Tổng tiền:</Text>
-              <Text style={styles.totalPriceText}>{formattedTotalPrice}</Text>
+            <View style={{flexDirection: "row", marginTop: 10, justifyContent: "space-between"}}>
+              <Text style={{fontSize: TEXT.medium, fontWeight: "bold", color: COLORS.blue} }>TỔNG TIỀN:</Text>
+              <Text style={{fontSize: TEXT.medium+2, fontWeight: "bold", color: COLORS.red}}>{formattedTotalPrice}</Text>
             </View>
           </View>
         </ScrollView>
@@ -278,14 +278,15 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   card: {
-    backgroundColor: COLORS.lightCyan,
+    backgroundColor: COLORS.lightWhite,
     borderRadius: 15,
     paddingHorizontal: 17,
-    paddingVertical: 8,
+    paddingVertical: 10,
     marginHorizontal: 15,
     marginBottom: 15,
-    borderColor: "#E6F7FF",
-    borderWidth: 7,
+    borderColor: COLORS.lightSkyBlue,
+    borderWidth: 2,
+    paddingBottom: 20,
   },
   routeRow: {
     flexDirection: 'row',
@@ -351,31 +352,39 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 8,
     borderRadius: 5,
-    borderColor: "#0D99FF",
+    borderColor: COLORS.pink,
     borderWidth: 2,
   },
   policyButtonText: {
     fontSize: TEXT.xSmall - 1,
-    color: "#0D99FF",
+    color: COLORS.pink,
+    fontWeight: "600"
   },
   refundButton: {
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 5,
-    borderColor: "#34C759",
+    borderColor: COLORS.mint,
     borderWidth: 2,
   },
   refundButtonText: {
     fontSize: TEXT.xSmall - 1,
-    color: "#34C759",
+    color: COLORS.mint,
+    fontWeight: "600"
   },
   summarySection: {
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical: 20,
+  },
+  passengerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
   },
   summaryText: {
-    fontSize: TEXT.xsmall,
-    color: COLORS.blue,
+
+    fontSize: TEXT.medium,
+    color: COLORS.dark,
     fontWeight: 'bold',
     marginBottom: 3,
   },
@@ -402,7 +411,7 @@ const styles = StyleSheet.create({
     // borderTopColor: COLORS.lightGrey,
   },
   continueButton: {
-    backgroundColor: COLORS.green,
+    backgroundColor: COLORS.red,
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',

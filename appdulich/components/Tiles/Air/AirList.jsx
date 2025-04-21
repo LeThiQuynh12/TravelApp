@@ -103,7 +103,7 @@ const AirList = ({ navigation, route }) => {
         setFlights(outboundFlights);
         setReturnFlights(returnFlightsData);
       } catch (error) {
-        console.error('Lỗi khi lấy chuyến bay:', error.message);
+        // console.error('Lỗi khi lấy chuyến bay:', error.message);
       } finally {
         setIsLoading(false);
       }
@@ -157,6 +157,7 @@ const AirList = ({ navigation, route }) => {
   // Xử lý khi nhấn nút Chọn
   const handleSelectFlight = (flight, isReturn = false) => {
     if (isReturn) {
+      // Đang chọn chuyến về (chỉ xảy ra nếu isRoundTrip: true)
       setSelectedReturnFlight(flight);
       navigation.navigate('AirDetail', {
         departureFlight: selectedFlight,
@@ -166,8 +167,21 @@ const AirList = ({ navigation, route }) => {
         infants,
       });
     } else {
+      // Đang chọn chuyến đi
       setSelectedFlight(flight);
-      setIsReturnTrip(true);
+      if (isRoundTrip) {
+        // Nếu là chuyến khứ hồi, chuyển sang bước chọn chuyến về
+        setIsReturnTrip(true);
+      } else {
+        // Nếu là chuyến một chiều, điều hướng ngay sang AirDetail
+        navigation.navigate('AirDetail', {
+          departureFlight: flight,
+          returnFlight: null, // Không có chuyến về
+          adults,
+          children,
+          infants,
+        });
+      }
     }
   };
 
@@ -365,13 +379,21 @@ const AirList = ({ navigation, route }) => {
 
       {isLoading ? (
         <Text style={styles.loadingText}>Đang tải...</Text>
-      ) : (isReturnTrip ? returnFlights : flights).length === 0 ? (
+      ) : flights.length === 0 ? (
         <View style={styles.noResultsContainer}>
           <Image
-            source={{ uri: 'https://via.placeholder.com/150?text=Không+Tìm+Thấy' }}
+            source={{ uri: 'https://cdni.iconscout.com/illustration/premium/thumb/sorry-item-not-found-3328225-2809510.png' }}
             style={styles.noResultsImage}
           />
-          <Text style={styles.noResultsText}>Không tìm thấy</Text>
+          <Text style={styles.noResultsText}>Không tìm thấy chuyến đi</Text>
+        </View>
+      ) : isReturnTrip && returnFlights.length === 0 ? (
+        <View style={styles.noResultsContainer}>
+          <Image
+            source={{ uri: 'https://cdni.iconscout.com/illustration/premium/thumb/sorry-item-not-found-3328225-2809510.png' }}
+            style={styles.noResultsImage}
+          />
+          <Text style={styles.noResultsText}>Không tìm thấy chuyến về</Text>
         </View>
       ) : (
         <FlatList
@@ -387,6 +409,8 @@ const AirList = ({ navigation, route }) => {
 };
 
 export default AirList;
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -518,9 +542,9 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   noResultsImage: {
-    width: 150,
-    height: 150,
-    marginBottom: 10,
+    width: 450,
+    height: 250,
+    marginBottom: 200,
   },
   noResultsText: {
     textAlign: 'center',

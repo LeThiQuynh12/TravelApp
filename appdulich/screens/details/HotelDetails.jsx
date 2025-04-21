@@ -129,16 +129,16 @@ const HotelDetails = ({ navigation }) => {
 
         <View style={rowWithSpace('space-between')}>
           <ReusableText text={'Đánh giá'} family={'medium'} size={SIZES.large - 2} color={COLORS.black} />
-          <TouchableOpacity onPress={() => navigation.navigate('ReviewsList')}>
-            <Feather name="list" size={20} />
-          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('ReviewsListScreen', { reviews: hotel.reviews || [] })}>
+          <Feather name="list" size={20} />
+        </TouchableOpacity>
         </View>
 
         <HeightSpacer height={10} />
 
         {/* Danh sách đánh giá */}
-        {/* Lưu ý: Backend hiện tại không trả về reviews, cần tích hợp Review nếu có */}
-        <ReviewsList reviews={hotel.reviews || []} />
+    
+        <ReviewsList reviews={hotel.reviews || []} limit={3}  />
       </View>
 
       <View style={[rowWithSpace('space-between'), styles.bottom]}>

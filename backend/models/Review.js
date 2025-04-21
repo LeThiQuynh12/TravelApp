@@ -33,23 +33,29 @@ const ReviewSchema = new mongoose.Schema(
 
 // Hook để cập nhật rating và review trong Hotel hoặc Suggestion
 ReviewSchema.post('save', async function (doc) {
-  if (doc.targetType === 'Hotel') {
+  const Review = mongoose.model('Review');
+  const targetId = doc.targetId;
+  const targetType = doc.targetType;
+
+  const reviews = await Review.find({ targetType, targetId });
+  const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+  const roundedAvgRating = Math.round(avgRating * 10) / 10; // Làm tròn 1 chữ số thập phân
+
+  if (targetType === 'Hotel') {
     const Hotel = mongoose.model('Hotel');
-    const reviews = await mongoose.model('Review').find({ targetType: 'Hotel', targetId: doc.targetId });
-    const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-    await Hotel.findByIdAndUpdate(doc.targetId, {
-      rating: avgRating,
+    await Hotel.findByIdAndUpdate(targetId, {
+      rating: roundedAvgRating,
       review: reviews.length,
     });
-  } else if (doc.targetType === 'Suggestion') {
+  } else if (targetType === 'Suggestion') {
     const Suggestion = mongoose.model('Suggestion');
-    const reviews = await mongoose.model('Review').find({ targetType: 'Suggestion', targetId: doc.targetId });
-    const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-    await Suggestion.findByIdAndUpdate(doc.targetId, {
-      rating: avgRating,
+    await Suggestion.findByIdAndUpdate(targetId, {
+      rating: roundedAvgRating,
       review: reviews.length,
     });
   }
 });
+
+
 
 module.exports = mongoose.model('Review', ReviewSchema);

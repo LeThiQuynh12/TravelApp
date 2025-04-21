@@ -5,10 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tạo instance Axios với cấu hình mặc định
 const api = axios.create({
+  
+  baseURL: 'http://192.168.1.14:5003/api',
 
-  // baseURL: 'http://172.20.10.4:5003/api', // Địa chỉ backend
-
-  baseURL: 'http://192.168.0.111:5003/api',
 
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
@@ -314,8 +313,10 @@ export const searchBuses = async (params) => {
     const response = await api.get(`/bus/search?${queryParams.toString()}`);
     return response.data.data;
   } catch (error) {
-    console.error('Lỗi khi tìm kiếm xe khách:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || 'Không thể tìm kiếm xe khách!');
+    // console.error('Lỗi khi tìm kiếm xe khách:', error.response?.data || error.message);
+    // throw new Error(error.response?.data?.message || 'Không thể tìm kiếm xe khách!');
+    console.log('Error in searchBuses:', error.message); // Log lỗi để debug, không throw
+    return []; // Trả về mảng rỗng thay vì throw lỗi
   }
 };
 

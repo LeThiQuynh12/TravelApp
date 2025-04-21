@@ -27,6 +27,7 @@ export const COLORS = {
   lightPeach: '#FEE9E5',
   lightLavender: '#F2EDFC',
   lightPink: '#FBEBF2',
+  lightSkyBlue: "#64B5F6"
 };
 const SIZES = {
     xSmall: 10,

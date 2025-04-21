@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+
 import {
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -7,9 +9,10 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
 } from 'react-native';
+
 import { MaterialIcons } from '@expo/vector-icons';
+
 import {
   COLORS,
   SIZES,
@@ -18,8 +21,8 @@ import {
 import AppBar from './AppBar';
 import HeightSpacer from './HeightSpacer';
 
-const CustomerInfo = ({ navigation,route }) => {
-  const { room } = route.params;
+const CustomerInfo = ({ navigation, route }) => {
+  // const { room } = route.params;
   // State để lưu giá trị input
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');

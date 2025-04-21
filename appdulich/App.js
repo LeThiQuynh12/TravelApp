@@ -17,15 +17,20 @@ import AirDetail from './components/Tiles/Air/AirDetail.jsx';
 import AirList from './components/Tiles/Air/AirList.jsx';
 import BusDetail from './components/Tiles/Bus/BusDetail.jsx';
 import BusList from './components/Tiles/Bus/BusList.jsx';
+import BookingDetails from './components/Tiles/Hotels/BookingDetails.jsx';
 import HotelList from './components/Tiles/Hotels/HotelList.jsx';
-import ReviewsList from './components/Tiles/Hotels/ReviewsList.jsx';
+import ReviewsListScreen from './components/Tiles/Hotels/ReviewListScreen.jsx';
 import SelectRoom from './components/Tiles/Hotels/SelectRoom.jsx';
 import PlaceList from './components/Tiles/Place/PlaceList.jsx';
 import VerificationScreen from './components/VerificationScreen.jsx';
 import BottomTabNavigation from './navigation/BottomTabNavigation';
 import ForgotPass from './screens/authentication/ForgotPass.jsx';
+import AskQuestion from './screens/chat/AskQuestion.jsx';
+import Chat from './screens/chat/Chat.jsx';
+import Chatbot from './screens/chat/Chatbot.jsx';
 import CountryDetails from './screens/details/CountryDetails.jsx';
 import HotelDetails from './screens/details/HotelDetails.jsx';
+import NearbyLocations from './screens/details/NearbyLocations.jsx';
 import PlaceDetails from './screens/details/PlaceDetails.jsx';
 import Recommended from './screens/details/Recommended.jsx';
 import Onboarding from './screens/onboarding/Onboarding.jsx';
@@ -41,6 +46,7 @@ import PhoneNumber from './screens/profile/PhoneNumber.jsx';
 import Profile from './screens/profile/Profile.jsx';
 import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
+<<<<<<< HEAD
 import BookingDetails from './components/Tiles/Hotels/BookingDetails.jsx';
 import NearbyLocations from './screens/details/NearbyLocations.jsx';
 import Chat from './screens/chat/Chat.jsx';
@@ -49,6 +55,9 @@ import Chatbot from './screens/chat/Chatbot.jsx';
 import RenderItem from './components/Reusable/renderItem.jsx';
 import FoodDrink from './screens/details/FoodDrink.jsx';
 import ReviewComponent from './components/Reusable/ReviewComponent.jsx';
+=======
+
+>>>>>>> 9feb4088f04225497de9bb7396928a758d4ff014
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -138,8 +147,8 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="ReviewsList"
-          component={ReviewsList}
+          name="ReviewsListScreen"
+          component={ReviewsListScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
