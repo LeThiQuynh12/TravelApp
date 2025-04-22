@@ -50,6 +50,7 @@ import Profile from './screens/profile/Profile.jsx';
 import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
 
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
