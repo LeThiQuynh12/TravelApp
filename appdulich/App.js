@@ -28,8 +28,6 @@ import VerificationScreen from './components/VerificationScreen.jsx';
 import BottomTabNavigation from './navigation/BottomTabNavigation';
 import ForgotPass from './screens/authentication/ForgotPass.jsx';
 import AskQuestion from './screens/chat/AskQuestion.jsx';
-import Chat from './screens/chat/Chat.jsx';
-import Chatbot from './screens/chat/Chatbot.jsx';
 import CountryDetails from './screens/details/CountryDetails.jsx';
 import FoodDrink from './screens/details/FoodDrink.jsx';
 import HotelDetails from './screens/details/HotelDetails.jsx';

@@ -191,7 +191,7 @@ const Registration = ({navigation}) => {
   );
 };
 
-// Styles không thay đổi, giữ nguyên như bạn đã cung cấp
+
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,

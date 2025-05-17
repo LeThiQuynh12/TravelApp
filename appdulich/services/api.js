@@ -6,9 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Tạo instance Axios với cấu hình mặc định
 const api = axios.create({
   
-  baseURL: 'http://192.168.1.43:5003/api',
-
-
+  baseURL: 'http://192.168.0.111:5003/api',
   headers: {
     'Content-Type': 'application/json', // Sửa header đúng
   },
@@ -55,7 +53,7 @@ export const fetchDangNhap = async (email, password) => {
       email: email,
       password: password,
     });
-    console.log('Phản hồi từ backend:', response.data);
+    //console.log('Phản hồi từ backend:', response.data);
     return response.data; // Trả về dữ liệu từ backend
   } catch (error) {
     console.log('Lỗi đăng nhập:', error.response?.data || error.message);

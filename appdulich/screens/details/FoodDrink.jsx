@@ -1,23 +1,19 @@
-import React, { useState } from 'react';
-
+import React,{useState} from 'react';
 import {
-  Image,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Linking,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-
-import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
-
+import MapView, { Marker } from 'react-native-maps';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AppBar from '../../components/Reusable/AppBar';
+import { COLORS, SIZES } from '../../constants/theme';
 import ReviewComponent from '../../components/Reusable/ReviewComponent';
-import { COLORS } from '../../constants/theme';
-
 const FoodDrinkDetailScreen = ({ navigation }) => {
   const route = useRoute();
   const { item } = route.params;
@@ -36,10 +32,22 @@ const FoodDrinkDetailScreen = ({ navigation }) => {
       const url = `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`;
       Linking.openURL(url);
     }
+  const handleOpenMap = () => {
+    if (item.latitude && item.longitude) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`;
+      Linking.openURL(url);
+    }
   };
 
   return (
     <View style={styles.container}>
+      <AppBar
+        
+        color={COLORS.white}
+        top={50}
+        left={10}
+        right={10}
+        onPress={() => navigation.goBack()}
       <AppBar
         
         color={COLORS.white}
@@ -55,7 +63,13 @@ const FoodDrinkDetailScreen = ({ navigation }) => {
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.typeCuisine}>{item.type} - {item.cuisine}</Text>
           <Text style={styles.info}>
-            Giá: {item.price_range} | Đánh giá: {item.rating}⭐ | Cách {item.distance}
+            Giá: {item.price_range} 
+            | Đánh giá: 
+              <View style={styles.ratingContainer}>
+                <Text style={styles.reviewRating}>{item.rating}</Text>
+                <Ionicons name="star" size={14} color="#FFD700" />
+              </View> 
+            | Cách {item.distance}
           </Text>
 
           {item.description && (
@@ -105,6 +119,8 @@ const FoodDrinkDetailScreen = ({ navigation }) => {
 
 export default FoodDrinkDetailScreen;
 
+export default FoodDrinkDetailScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -112,7 +128,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+  scrollContent: {
+    paddingBottom: 20,
   },
+  image: {
   image: {
     width: '100%',
     height: 250,
@@ -135,6 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.darkGray,
     marginBottom: 12,
+    justifyContent:'space-between'
   },
   description: {
     fontSize: 14,
@@ -155,8 +175,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  ratingContainer: {
+    flexDirection: 'row',
+    marginTop:7,
+    //backgroundColor: COLORS.white,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    //padding:5
+    },
+  reviewRating: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: COLORS.green,
+    marginRight: 3,
+  },
   buttonText: {
     color: COLORS.white,
+    fontSize: 14,
+  },
+  map: {
+    width: '100%',
+    height: 200,
     fontSize: 14,
   },
   map: {

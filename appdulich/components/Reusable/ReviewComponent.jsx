@@ -151,7 +151,7 @@ export default ReviewComponent
 const styles=StyleSheet.create(
     {
         section: {
-            marginBottom: 25,
+            marginVertical: 15,
           },
           sectionHeader: {
             flexDirection: 'row',
