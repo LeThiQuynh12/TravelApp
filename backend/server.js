@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const port = 5003;
+const cors = require("cors");
+
 
 const dotenv = require('dotenv'); // Đọc biến môi trường từ file .env
 const mongoose = require('mongoose'); // Kết nối MongoDB
@@ -14,6 +16,9 @@ const placeRoute = require('./routes/place');
 const suggestionRoute = require('./routes/suggestion');
 const flightRoute = require('./routes/flight');
 const busRoute = require('./routes/buses');
+const orderRoutes = require('./routes/orders');
+const vnpayRoutes = require('./routes/vnpay');
+const vnpayController = require('./controllers/vnpayController');
 // Load biến môi trường từ file .env
 dotenv.config();
 
@@ -26,7 +31,7 @@ mongoose
 // Cho phép Express parse request body (JSON & form-data)
 app.use(express.json({ limit: '10mb' })); // Giới hạn kích thước request body là 10MB
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-
+app.use(cors());
 // Gắn các route
 app.use('/api/', authRoute); // Route auth: /api/register, /api/login
 app.use('/api/users', userRoute); // Route user: /api/users
@@ -37,6 +42,10 @@ app.use('/api', placeRoute);
 app.use('/api', suggestionRoute);
 app.use('/api', flightRoute);
 app.use('/api/bus', busRoute);
+app.use('/api', orderRoutes);
+app.use('/api', vnpayRoutes);
+app.get('/api/vnpay_return', vnpayController.vnpayReturn);
+
 // Route mặc định test server
 app.get('/', (req, res) => res.send('Hello World!'));
 

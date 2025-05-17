@@ -40,6 +40,17 @@ module.exports = {
         status: true,
         message: "Tạo tài khoản thành công",
       });
+       // Tạo token cho người dùng mới
+    const userToken = jwt.sign({ id: newUser._id, email: newUser.email}, process.env.JWT_SECRET, { expiresIn: "21d" });
+
+    // Trả về response với thông tin token và người dùng
+    res.status(201).json({
+      status: true,
+      message: "Tạo tài khoản thành công",
+      token: userToken,  // Trả về token
+      username: newUser.username,
+      email: newUser.email,
+    });
     } catch (error) {
       return next(error);
     }
@@ -90,6 +101,8 @@ module.exports = {
         status: true,
         id: user_id,
         token: userToken,
+        username: user.username, 
+        email: user.email  
       });
     } catch (error) {
       return next(error);
@@ -218,4 +231,67 @@ module.exports = {
       });
     }
   },
+  changeEmail: async (req, res, next) => {
+    const { newEmail, oldPassword } = req.body;
+    const email = req.user?.email;  // Lấy email từ thông tin user đã xác thực
+    console.log("Decoded user from token:", req.user);
+    try {
+        if (!email || !newEmail || !oldPassword) {
+            return res.status(400).json({
+                status: false,
+                message: 'Thiếu thông tin bắt buộc!',
+            });
+        }
+
+        // Tìm người dùng theo email hiện tại
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({
+                status: false,
+                message: 'Người dùng không tồn tại!',
+            });
+        }
+
+        // Giải mã mật khẩu
+        const decryptedPassword = CryptoJS.AES.decrypt(user.password, process.env.SECRET).toString(CryptoJS.enc.Utf8);
+        if (decryptedPassword !== oldPassword) {
+            return res.status(400).json({
+                status: false,
+                message: 'Mật khẩu hiện tại không đúng!',
+            });
+        }
+
+        // Kiểm tra email hợp lệ và chưa tồn tại
+        if (!/\S+@\S+\.\S+/.test(newEmail)) {
+            return res.status(400).json({
+                status: false,
+                message: 'Email không hợp lệ!',
+            });
+        }
+
+        const existingEmail = await User.findOne({ email: newEmail });
+        if (existingEmail) {
+            return res.status(400).json({
+                status: false,
+                message: 'Email này đã được sử dụng!',
+            });
+        }
+
+        // Cập nhật email
+        user.email = newEmail;
+        await user.save();
+
+        console.log('Đã thay đổi email thành công cho user ID:', user._id);
+        return res.status(200).json({
+            status: true,
+            message: 'Đổi email thành công!',
+        });
+    } catch (error) {
+        console.error('Lỗi trong quá trình thay đổi email:', error);
+        return res.status(500).json({
+            status: false,
+            message: 'Lỗi server: ' + error.message,
+        });
+    }
+}
 };
