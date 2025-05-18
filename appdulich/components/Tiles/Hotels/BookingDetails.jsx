@@ -1,8 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+import {
+  Ionicons,
+  MaterialIcons,
+} from '@expo/vector-icons';
+
+import {
+  COLORS,
+  SIZES,
+} from '../../../constants/theme';
 import AppBar from '../../Reusable/AppBar';
-import { COLORS, SIZES, TEXT } from '../../../constants/theme';
 
 const BookingDetails = ({ navigation, route }) => {
   const { bookingDetails } = route.params;
@@ -115,9 +132,9 @@ const BookingDetails = ({ navigation, route }) => {
           <View style={styles.priceContainer}>
             <Text style={styles.priceLabel}>Giá phòng:</Text>
             {room.oldPrice && (
-              <Text style={styles.oldPrice}>{room.oldPrice} </Text>
+              <Text style={styles.oldPrice}>{Number(room.oldPrice).toLocaleString('vi-VN')} VND </Text>
             )}
-            <Text style={styles.newPrice}>{room.newPrice} </Text>
+            <Text style={styles.newPrice}>{Number(room.newPrice).toLocaleString('vi-VN')} VND </Text>
           </View>
         </View>
 
@@ -261,7 +278,7 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.medium,
   },
   roomName: {
-    fontSize: SIZES.large,
+    fontSize: SIZES.large-3,
     fontWeight: 'bold',
     color: COLORS.dark,
     marginBottom: SIZES.small,
@@ -296,7 +313,7 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
   },
   newPrice: {
-    fontSize: SIZES.large,
+    fontSize: SIZES.large-5.5,
     fontWeight: 'bold',
     color: COLORS.primary,
   },

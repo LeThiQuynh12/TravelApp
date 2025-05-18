@@ -1,23 +1,33 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
+
 import {
+  FlatList,
+  ImageBackground,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
-  View,
-  ImageBackground,
   TouchableOpacity,
-  Linking,
-  FlatList,
+  View,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
-import { Ionicons, MaterialIcons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
-import NetworkImage from '../../components/Reusable/NetworkImage';
+
 import AppBar from '../../components/Reusable/AppBar';
-import { COLORS, SIZES, TEXT } from '../../constants/theme';
-import RenderItem from '../../components/Reusable/renderItem';
+import RenderItem from '../../components/Reusable/RenderItem.jsx';
 import ReviewComponent from '../../components/Reusable/ReviewComponent';
+import {
+  COLORS,
+  TEXT,
+} from '../../constants/theme';
 import ServicelModal from './ServiceModal';
+
 const PlaceDetails = ({ navigation }) => {
   const route = useRoute();
   const { item } = route.params;
@@ -47,17 +57,25 @@ const PlaceDetails = ({ navigation }) => {
       price_range: "$$",
       distance: "0.2km",
       rating: 4.5,
-      image: "https://media-cdn.tripadvisor.com/media/photo-i/2e/55/74/9d/dishes-of-co-vietnamese.jpg"
+      image: "https://media-cdn.tripadvisor.com/media/photo-i/2e/55/74/9d/dishes-of-co-vietnamese.jpg",
+      description: "Nhà hàng phục vụ món chay và món Việt hiện đại, không gian yên tĩnh và gần Hồ Gươm.",
+      contact: "0123456789",
+      latitude: 21.029449,
+      longitude: 105.852456
     },
     {
       id: 2,
-      name: "Quán cà phê Hồ Gươm ",
+      name: "Quán cà phê Hồ Gươm",
       type: "Quán cà phê",
       cuisine: "Cà phê truyền thống",
       price_range: "$",
       distance: "0.5km",
       rating: 4.2,
-      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0K1QkC9fxdB8H1O-v50Ue1w5lRj2iyudGTg&s"
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0K1QkC9fxdB8H1O-v50Ue1w5lRj2iyudGTg&s",
+      description: "Quán cà phê nhìn thẳng ra Hồ Gươm, lý tưởng cho buổi sáng yên bình.",
+      contact: "0987654321",
+      latitude: 21.028511,
+      longitude: 105.854444
     },
     {
       id: 33,
@@ -67,9 +85,42 @@ const PlaceDetails = ({ navigation }) => {
       price_range: "$",
       distance: "0.5km",
       rating: 4.2,
-      image: "https://static.vinwonders.com/production/cafe-ho-guom-2.jpg"
+      image: "https://static.vinwonders.com/production/cafe-ho-guom-2.jpg",
+      description: "LAIKA là chuỗi cà phê nổi bật với thiết kế trẻ trung, nhiều tầng và view đẹp.",
+      contact: "0909999999",
+      latitude: 21.030302,
+      longitude: 105.853210
+    },
+    {
+      id: 4,
+      name: "Bún Chả Hương Liên",
+      type: "Nhà hàng",
+      cuisine: "Ẩm thực Bắc",
+      price_range: "$",
+      distance: "1.1km",
+      rating: 4.6,
+      image: "https://cdn.tgdd.vn/Files/2021/10/05/1387760/bun-cha-ha-noi-mon-ngon-dan-da-lam-me-bao-thuc-khach-202110051408313804.jpg",
+      description: "Nổi tiếng sau khi Tổng thống Obama đến ăn. Món bún chả đậm vị truyền thống.",
+      contact: "02439723763",
+      latitude: 21.018792,
+      longitude: 105.845487
+    },
+    {
+      id: 5,
+      name: "Giảng Cafe",
+      type: "Quán cà phê",
+      cuisine: "Cà phê trứng",
+      price_range: "$",
+      distance: "0.9km",
+      rating: 4.8,
+      image: "https://cdn.vntrip.vn/cam-nang/wp-content/uploads/2017/08/cafe-trung-giang.jpg",
+      description: "Nơi khai sinh ra cà phê trứng. Không gian cổ điển và yên tĩnh giữa lòng phố cổ.",
+      contact: "02438282698",
+      latitude: 21.032342,
+      longitude: 105.850672
     }
   ];
+  
 
   // Sample data for entertainment
   const entertainment = item.entertainment || [
@@ -77,21 +128,108 @@ const PlaceDetails = ({ navigation }) => {
       id: 1,
       name: "Khu vui chơi trẻ em",
       type: "Vui chơi",
-      description: "Khu vui chơi với nhiều trò chơi cho trẻ em",
+      description: "Khu vui chơi với nhiều trò chơi cho trẻ em, không gian trong nhà và ngoài trời an toàn, thân thiện.",
       distance: "0.1km",
       rating: 4.3,
-      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgs_bOu6Xdwe7HR9775D2Ce4I1s5itZJlXLw&s"
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgs_bOu6Xdwe7HR9775D2Ce4I1s5itZJlXLw&s",
+      contact: "0901234567",
+      latitude: 21.028234,
+      longitude: 105.852321,
+      reviews: [
+        {
+          name: "LanNguyen",
+          rating: 5,
+          review: "Không gian sạch sẽ, an toàn cho bé. Nhân viên thân thiện.",
+          reviewDate: "2025-04-10"
+        },
+        {
+          name: "HoangPham",
+          rating: 4,
+          review: "Giá hơi cao một chút nhưng chất lượng tốt.",
+          reviewDate: "2025-04-05"
+        }
+      ]
     },
     {
       id: 2,
       name: "Công viên giải trí",
       type: "Giải trí",
-      description: "Công viên với nhiều trò chơi cảm giác mạnh",
+      description: "Công viên với nhiều trò chơi cảm giác mạnh như tàu lượn siêu tốc, nhà ma, và đu quay khổng lồ.",
       distance: "0.3km",
       rating: 4.7,
-      image: "https://grandworld.vinhomes.vn/wp-content/uploads/2024/03/dia-diem-vui-choi-ha-noi-12.jpg"
+      image: "https://grandworld.vinhomes.vn/wp-content/uploads/2024/03/dia-diem-vui-choi-ha-noi-12.jpg",
+      contact: "0912345678",
+      latitude: 21.030899,
+      longitude: 105.855000,
+      reviews: [
+        {
+          name: "TuanLe",
+          rating: 5,
+          review: "Rất vui, đặc biệt là tàu lượn. Hợp cho nhóm bạn.",
+          createdAt: "2025-03-28"
+        },
+        {
+          name: "MaiAnh",
+          rating: 4.5,
+          review: "Trò chơi phong phú, nhân viên hướng dẫn nhiệt tình.",
+          createdAt: "2025-04-01"
+        }
+      ]
+    },
+    {
+      id: 3,
+      name: "Rạp chiếu phim CGV Vincom",
+      type: "Rạp chiếu phim",
+      description: "Cụm rạp chiếu phim hiện đại với hệ thống âm thanh Dolby và phòng chiếu 4DX.",
+      distance: "0.6km",
+      rating: 4.5,
+      image: "https://cinestar.com.vn/pictures/Cinestar/03-2023/phong-chieu-cgv-1.jpg",
+      contact: "02437898888",
+      latitude: 21.027821,
+      longitude: 105.849871,
+      reviews: [
+        {
+          name: "MinhTran",
+          rating: 4,
+          review: "Phòng chiếu đẹp, nhưng giá hơi cao vào cuối tuần.",
+          createdAt: "2025-04-12"
+        },
+        {
+          name: "BaoNguyen",
+          rating: 5,
+          review: "Mình thích không gian ở đây, âm thanh cực đã!",
+          createdAt: "2025-04-08"
+        }
+      ]
+    },
+    {
+      id: 4,
+      name: "Phố đi bộ Hồ Gươm",
+      type: "Giải trí",
+      description: "Không gian mở với các hoạt động biểu diễn đường phố, trò chơi dân gian và ẩm thực vỉa hè.",
+      distance: "0.2km",
+      rating: 4.8,
+      image: "https://cdn.tuoitre.vn/thumb_w/730/471584752817336320/2023/10/13/pho-di-bo-ho-guom-16971636634822018572363.jpg",
+      contact: "0988112233",
+      latitude: 21.029987,
+      longitude: 105.853001,
+      reviews: [
+        {
+          name: "NgocAnh",
+          rating: 5,
+          review: "Cuối tuần dạo phố, nghe nhạc sống rất chill!",
+          createdAt: "2025-04-07"
+        },
+        {
+          name: "HuyHoang",
+          rating: 4.5,
+          review: "Vui nhưng hơi đông người.",
+          createdAt: "2025-04-06"
+        }
+      ]
     }
   ];
+  
 
   const services = [
     {
@@ -271,7 +409,7 @@ const PlaceDetails = ({ navigation }) => {
               renderItem={({item})=>(
                 <RenderItem
                       item={item}
-                      onPress={() => navigation.navigate('Entertainment', { item })}
+                      onPress={() => navigation.navigate('FoodDrink', { item })}
                     />                
                 )}
               keyExtractor={item => item.id.toString()}
@@ -460,7 +598,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: TEXT.large-1,
     fontWeight: 'bold',
     color: '#333',
     marginLeft: 8,
@@ -532,92 +670,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  ratingSummary: {
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-  },
-  averageRating: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    marginVertical: 5,
-  },
-  totalReviews: {
-    fontSize: 14,
-    color: '#666',
-  },
-  reviewItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  reviewUser: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft: 10,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F5E9',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  reviewRating: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: COLORS.green,
-    marginRight: 3,
-  },
-  reviewDate: {
-    fontSize: 12,
-    color: '#757575',
-    marginBottom: 8,
-  },
-  reviewComment: {
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20,
-  },
-  noReviews: {
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 10,
-  },
-  noReviewsText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#616161',
-    marginTop: 10,
-  },
-  noReviewsSubtext: {
-    fontSize: 14,
-    color: '#9E9E9E',
-    marginTop: 5,
-    textAlign: 'center',
-  },
+  
  
 });
 

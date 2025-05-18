@@ -144,7 +144,7 @@ const HotelDetails = ({ navigation }) => {
       <View style={[rowWithSpace('space-between'), styles.bottom]}>
         <View>
           <ReusableText
-            text={`${hotel.price} VND`}
+            text={`${hotel.price} VND   `}
             family={'medium'}
             size={SIZES.medium}
             color={COLORS.black}
@@ -161,7 +161,7 @@ const HotelDetails = ({ navigation }) => {
         <ReusableBtn
           onPress={() => navigation.navigate('SelectRoom', { hotelId: hotel._id })}
           btnText={'Chọn phòng'}
-          width={(SIZES.width - 50) / 2.8}
+          width={(SIZES.width - 50) / 2.9}
           backgroundColor={COLORS.green}
           borderColor={COLORS.green}
           borderWidth={0}

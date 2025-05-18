@@ -13,6 +13,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import CustomerInfo from './components/Reusable/CustomerInfo.jsx';
+import RenderItem from './components/Reusable/RenderItem.jsx';
+import ReviewComponent from './components/Reusable/ReviewComponent.jsx';
 import AirDetail from './components/Tiles/Air/AirDetail.jsx';
 import AirList from './components/Tiles/Air/AirList.jsx';
 import BusDetail from './components/Tiles/Bus/BusDetail.jsx';
@@ -29,6 +31,7 @@ import AskQuestion from './screens/chat/AskQuestion.jsx';
 import Chat from './screens/chat/Chat.jsx';
 import Chatbot from './screens/chat/Chatbot.jsx';
 import CountryDetails from './screens/details/CountryDetails.jsx';
+import FoodDrink from './screens/details/FoodDrink.jsx';
 import HotelDetails from './screens/details/HotelDetails.jsx';
 import NearbyLocations from './screens/details/NearbyLocations.jsx';
 import PlaceDetails from './screens/details/PlaceDetails.jsx';
@@ -46,18 +49,7 @@ import PhoneNumber from './screens/profile/PhoneNumber.jsx';
 import Profile from './screens/profile/Profile.jsx';
 import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
-<<<<<<< HEAD
-import BookingDetails from './components/Tiles/Hotels/BookingDetails.jsx';
-import NearbyLocations from './screens/details/NearbyLocations.jsx';
-import Chat from './screens/chat/Chat.jsx';
-import AskQuestion from './screens/chat/AskQuestion.jsx';
-import Chatbot from './screens/chat/Chatbot.jsx';
-import RenderItem from './components/Reusable/renderItem.jsx';
-import FoodDrink from './screens/details/FoodDrink.jsx';
-import ReviewComponent from './components/Reusable/ReviewComponent.jsx';
-=======
 
->>>>>>> 9feb4088f04225497de9bb7396928a758d4ff014
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -73,23 +65,28 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState('Onboard');
 
   // Kiểm tra trạng thái đăng nhập khi app khởi động
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (token) {
-          setIsLoggedIn(true);
-          setInitialRoute('Bottom');
-        } else {
-          setIsLoggedIn(false);
-          setInitialRoute('Onboard');
-        }
-      } catch (error) {
-        console.log('Lỗi kiểm tra token:', error);
+useEffect(() => {
+  const checkLoginStatus = async () => {
+    try {
+      // Xóa token để kiểm tra
+      await AsyncStorage.removeItem('token');
+      console.log('Token đã xóa khi khởi động');
+      const token = await AsyncStorage.getItem('token');
+      console.log('Token khi khởi động:', token);
+      if (token) {
+        setIsLoggedIn(true);
+        setInitialRoute('Bottom');
+      } else {
+        setIsLoggedIn(false);
+        setInitialRoute('Onboard');
       }
-    };
-    checkLoginStatus();
-  }, []);
+    } catch (error) {
+      console.log('Lỗi kiểm tra token:', error);
+      setInitialRoute('Onboard');
+    }
+  };
+  checkLoginStatus();
+}, []);
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {

@@ -4,6 +4,7 @@ import React, {
 } from 'react';
 
 import {
+  ActivityIndicator,
   FlatList,
   StyleSheet,
   TouchableOpacity,
@@ -47,18 +48,19 @@ const Recommendations = () => {
     loadRecommendations();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ReusableText
-          text={'Đang tải gợi ý...'}
-          family={'medium'}
-          size={TEXT.medium}
-          color={COLORS.black}
-        />
-      </View>
-    );
-  }
+if (loading) {
+  return (
+    <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <ActivityIndicator size="large" color={COLORS.red} style={{ marginBottom: 10 }} />
+      <ReusableText
+
+        family={'medium'}
+        size={TEXT.medium}
+        color={COLORS.black}
+      />
+    </View>
+  );
+}
 
   if (error) {
     return (

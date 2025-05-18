@@ -13,10 +13,14 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import { COLORS,SIZES } from '../../constants/theme';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { TEXT } from '../../constants/theme';
+import {
+  COLORS,
+  SIZES,
+  TEXT,
+} from '../../constants/theme';
 import { fetchDangNhap } from '../../services/api';
 
 const Signin = ({ navigation, route }) => {

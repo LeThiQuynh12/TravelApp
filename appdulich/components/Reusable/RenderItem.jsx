@@ -1,8 +1,20 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
+
+import {
+  COLORS,
+  TEXT,
+} from '../../constants/theme';
 import NetworkImage from './NetworkImage';
-import { COLORS, TEXT } from '../../constants/theme';
+
 const RenderItem = ({ item, onPress }) => {
   return (
     <TouchableOpacity style={styles.itemCard} onPress={onPress}>
@@ -29,7 +41,7 @@ const RenderItem = ({ item, onPress }) => {
     </TouchableOpacity>
   );
 };
-export default RenderItem
+
 const styles=StyleSheet.create(
     {
         itemCard: {
@@ -113,3 +125,4 @@ const styles=StyleSheet.create(
           },
     }
 )
+export default RenderItem

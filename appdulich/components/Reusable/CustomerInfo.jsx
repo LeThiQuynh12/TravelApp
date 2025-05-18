@@ -22,7 +22,7 @@ import AppBar from './AppBar';
 import HeightSpacer from './HeightSpacer';
 
 const CustomerInfo = ({ navigation, route }) => {
-  // const { room } = route.params;
+  const { room } = route.params;
   // State để lưu giá trị input
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');

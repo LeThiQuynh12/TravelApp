@@ -236,7 +236,7 @@ exports.deleteFlight = async (req, res, next) => {
 };
 
 // Read: Tìm kiếm chuyến bay theo tiêu chí
-// Backend flightController.js
+
 exports.searchFlights = async (req, res, next) => {
   try {
     const { departureCity, arrivalCity, outboundDate, isRoundTrip, returnDate } = req.query;

@@ -1,112 +1,168 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, ImageBackground, FlatList } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS,SIZES } from '../../constants/theme';
+
+import {
+  Image,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+
+import { Ionicons } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
+
 import AppBar from '../../components/Reusable/AppBar';
 import ReviewComponent from '../../components/Reusable/ReviewComponent';
+import { COLORS } from '../../constants/theme';
 
-const FoodDrink = ({ navigation, route }) => {
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      userName: "Nguyễn Văn A",
-      rating: 5,
-      comment: "Đồ ăn ngon, phục vụ nhiệt tình",
-      date: "2023-05-15"
-    },
-    // ... thêm đánh giá mẫu
-  ]);
+const FoodDrinkDetailScreen = ({ navigation }) => {
+  const route = useRoute();
+  const { item } = route.params;
+  const [reviews, setReviews] = useState(item.reviews || []);
+  const handleAddReview = (newReview) => {
+    setReviews([newReview, ...reviews]);
+  };
+  const handleCall = () => {
+    if (item.contact) {
+      Linking.openURL(`tel:${item.contact}`);
+    }
+  };
 
-  const foodDrinks = [
-    {
-      id: 1,
-      name: "Nhà hàng ABC",
-      rating: 4.5,
-      // ... thêm thông tin khác
-    },
-    // ... thêm địa điểm
-  ];
-
-  const handleSubmitReview = (newReview) => {
-    setReviews([...reviews, {
-      id: reviews.length + 1,
-      userName: "Bạn",
-      ...newReview,
-      date: new Date().toISOString()
-    }]);
+  const handleOpenMap = () => {
+    if (item.latitude && item.longitude) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`;
+      Linking.openURL(url);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <AppBar 
-        title="Địa điểm ăn uống" 
-        onPress={() => navigation.goBack()} 
+      <AppBar
+        
+        color={COLORS.white}
+        top={50}
+        left={10}
+        right={10}
+        onPress={() => navigation.goBack()}
       />
-      
-      {/* <ImageBackground
-        source={require()}
-        style={styles.headerImage}
-        resizeMode="cover"
-      >
-        <View style={styles.headerOverlay}>
-          <MaterialCommunityIcons name="food-fork-drink" size={40} color={COLORS.white} />
-          <Text style={styles.headerTitle}>Ẩm thực đa dạng</Text>
-        </View>
-      </ImageBackground> */}
 
-      <ScrollView>
-        {/* Danh sách địa điểm */}
-        {/* <FlatList
-          data={foodDrinks}
-          renderItem={({ item }) => (
-            <FoodDrinkCard 
-              item={item} 
-              onPress={() => navigation.navigate('FoodDetail', { item })} 
-            />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Image source={{ uri: item.image }} style={styles.image} />
+        <View style={styles.content}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.typeCuisine}>{item.type} - {item.cuisine}</Text>
+          <Text style={styles.info}>
+            Giá: {item.price_range} | Đánh giá: {item.rating}⭐ | Cách {item.distance}
+          </Text>
+
+          {item.description && (
+            <Text style={styles.description}>{item.description}</Text>
           )}
-          keyExtractor={item => item.id.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-        /> */}
 
-        {/* Component đánh giá */}
-        <ReviewComponent 
-          onSubmit={handleSubmitReview} 
-          reviews={reviews} 
-        />
+          {/* Contact & Map buttons */}
+          <View style={styles.buttonContainer}>
+            {item.contact && (
+              <TouchableOpacity style={styles.button} onPress={handleCall}>
+                <Ionicons name="call" size={18} color="white" />
+                <Text style={styles.buttonText}>Gọi điện</Text>
+              </TouchableOpacity>
+            )}
+            {(item.latitude && item.longitude) && (
+              <TouchableOpacity style={styles.button} onPress={handleOpenMap}>
+                <Ionicons name="map" size={18} color="white" />
+                <Text style={styles.buttonText}>Chỉ đường</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Map View nếu có toạ độ */}
+          {(item.latitude && item.longitude) && (
+            <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: item.latitude,
+                longitude: item.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+            >
+              <Marker
+                coordinate={{ latitude: item.latitude, longitude: item.longitude }}
+                title={item.name}
+              />
+            </MapView>
+          )}
+          {/* Reviews Section */}
+        <ReviewComponent reviews={reviews} onSubmitReview={handleAddReview} />
+        </View>
       </ScrollView>
     </View>
   );
 };
+
+export default FoodDrinkDetailScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.lightWhite,
   },
-  headerImage: {
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
+  scrollContent: {
+    paddingBottom: 20,
   },
-  headerOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.4)',
+  image: {
     width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: 250,
   },
-  headerTitle: {
-    color: COLORS.white,
-    fontSize: 24,
+  content: {
+    padding: 16,
+  },
+  name: {
+    fontSize: 22,
     fontWeight: 'bold',
-    marginTop: 10,
+    color: COLORS.primary,
+    marginBottom: 4,
   },
-  listContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 20,
+  typeCuisine: {
+    fontSize: 16,
+    color: COLORS.gray,
+    marginBottom: 6,
+  },
+  info: {
+    fontSize: 14,
+    color: COLORS.darkGray,
+    marginBottom: 12,
+  },
+  description: {
+    fontSize: 14,
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginVertical: 10,
+  },
+  button: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.green,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    gap: 6,
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontSize: 14,
+  },
+  map: {
+    width: '100%',
+    height: 200,
+    marginTop: 10,
+    borderRadius: 10,
   },
 });
-
-export default FoodDrink;

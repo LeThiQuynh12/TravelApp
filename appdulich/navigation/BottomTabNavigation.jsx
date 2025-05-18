@@ -113,8 +113,8 @@ const BottomTabNavigation = ({isLoggedIn, setIsLoggedIn, navigation}) => {
                     }} 
                     />
 
-        
-            {/* <Tab.Screen name="Explore" component={Explore} 
+{/*         
+            <Tab.Screen name="Explore" component={News} 
                     options={{
                         tabBarStyle: tabBarStyle,
                         tabBarShowLabel: false,headerShown: false,

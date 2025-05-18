@@ -213,6 +213,9 @@ const BusTicket = ({ navigation }) => {
           borderColor={COLORS.green}
         />
 
+
+        
+
         <Modal visible={showDepartureModal} transparent animationType="slide">
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>

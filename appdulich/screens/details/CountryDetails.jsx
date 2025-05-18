@@ -4,8 +4,8 @@ import React, {
 } from 'react';
 
 import {
+  ActivityIndicator,
   FlatList,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,8 +18,14 @@ import { useRoute } from '@react-navigation/native';
 
 import AppBar from '../../components/Reusable/AppBar';
 import NetworkImage from '../../components/Reusable/NetworkImage';
+import RenderItem from '../../components/Reusable/RenderItem';
+import {
+  COLORS,
+  TEXT,
+} from '../../constants/theme';
 import { fetchPlaceById } from '../../services/api';
 import NearbyLocations from './NearbyLocations';
+
 const CountryDetails = ({ navigation }) => {
   const route = useRoute();
   const { item } = route.params;
@@ -46,9 +52,14 @@ const CountryDetails = ({ navigation }) => {
     loadPlaceDetails();
   }, [item._id]);
 
-  if (loading) {
-    return <Text style={{ textAlign: 'center', marginTop: 20 }}>Đang tải dữ liệu...</Text>;
-  }
+if (loading) {
+  return (
+    <View style={{ marginTop: 40, alignItems: 'center' }}>
+      <ActivityIndicator size="large" color={COLORS.red} />
+    
+    </View>
+  );
+}
 
   if (error) {
     return <Text style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>{error}</Text>;
@@ -89,18 +100,16 @@ const CountryDetails = ({ navigation }) => {
           horizontal
           data={placeDetails.highlights}
           keyExtractor={(highlight) => highlight._id}
-          renderItem={({ item: highlight }) => (
-            <TouchableOpacity
-              style={styles.itemContainer}
-              onPress={() => navigation.navigate('PlaceDetails', { item: highlight })}
-            >
-              <Image source={{ uri: highlight.image }} style={styles.itemImage} />
-              <Text style={styles.itemTitle}>{highlight.name}</Text>
-            </TouchableOpacity>
+          renderItem={({ item }) => (
+            <RenderItem 
+              item={item} 
+              onPress={() => navigation.navigate('PlaceDetails', { item })} 
+            />
           )}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.flatListContent}
         />
+        
 
         {/* Gợi ý dành cho bạn */}
         <View style={styles.sectionHeader}>
@@ -113,16 +122,11 @@ const CountryDetails = ({ navigation }) => {
           horizontal
           data={placeDetails.suggestions}
           keyExtractor={(suggestion) => suggestion._id}
-          renderItem={({ item: suggestion }) => (
-            <TouchableOpacity
-              style={styles.suggestedItem}
-              onPress={() => navigation.navigate('PlaceDetails', { item: suggestion })}
-            >
-              <Image source={{ uri: suggestion.image }} style={styles.suggestedImage} />
-              <Text style={styles.suggestedTitle}>{suggestion.name}</Text>
-              <Text style={styles.suggestedLocation}>{suggestion.address}</Text>
-              <Text style={styles.suggestedRating}>⭐ {suggestion.rating}</Text>
-            </TouchableOpacity>
+          renderItem={({ item }) => (
+            <RenderItem 
+              item={item} 
+              onPress={() => navigation.navigate('PlaceDetails', { item })} 
+            />
           )}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.flatListContent}
@@ -151,13 +155,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   title: {
-    fontSize: 25,
+    fontSize: TEXT.large,
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 5,
   },
   description: {
-    fontSize: 16,
+    fontSize: TEXT.medium,
     color: '#666',
     lineHeight: 20,
   },

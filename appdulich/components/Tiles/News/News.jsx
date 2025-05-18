@@ -9,12 +9,8 @@ import {
 import { COLORS } from '../../../constants/theme';
 import AppBar from '../../Reusable/AppBar';
 import HeightSpacer from '../../Reusable/HeightSpacer';
-import ReviewsList
-  from './ReviewsList'; // Điều chỉnh đường dẫn theo cấu trúc dự án
 
 const ReviewsListScreen = ({ navigation, route }) => {
-       
-  const { reviews } = route.params;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -23,15 +19,15 @@ const ReviewsListScreen = ({ navigation, route }) => {
           top={10}
           left={0}
           right={20}
-          title={"Đánh giá của khách hàng"}
+          title={"Cẩm nang du lịch"}
           color={COLORS.white}
-          // color1={COLORS.white}
+          color1={COLORS.white}
           onPress={() => navigation.goBack()}
-
+          icon={'search1'}
         />
 
         <HeightSpacer height={60}/>
-      <ReviewsList reviews={reviews} />
+
         </ScrollView>
 
       

@@ -4,6 +4,7 @@ import React, {
 } from 'react';
 
 import {
+  ActivityIndicator,
   Text,
   View,
   VirtualizedList,
@@ -41,9 +42,13 @@ const Places = () => {
     loadPlaces();
   }, []);
 
-  if (loading) {
-    return <Text>Đang tải dữ liệu...</Text>;
-  }
+if (loading) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#EB6A58" />
+    </View>
+  );
+}
 
   if (error) {
     return <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>;

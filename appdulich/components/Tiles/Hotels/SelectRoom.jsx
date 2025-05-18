@@ -166,8 +166,12 @@ const RoomCard = ({ room, navigation }) => {
 
       {/* Giá tiền */}
       <View style={styles.priceContainer}>
-        <Text style={styles.oldPrice}>{room.oldPrice}</Text>
-        <Text style={styles.newPrice}>{room.newPrice}</Text>
+        <Text style={styles.oldPrice}>
+            {Number(room.oldPrice).toLocaleString('vi-VN')} VND
+          </Text>
+        <Text style={styles.newPrice}>
+          {Number(room.newPrice).toLocaleString('vi-VN')} VND
+          </Text>
       </View>
 
       {/* Nút chọn phòng */}

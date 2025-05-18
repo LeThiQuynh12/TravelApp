@@ -94,7 +94,10 @@ const Profile = ({ navigation, route }) => {
         setIsLoggedIn(false);
       }
       // Điều hướng về BottomTabNavigation và chọn tab Authentication
-      navigation.replace('Bottom', { screen: 'authentication' });
+      // navigation.replace('Bottom', { screen: 'authentication' });
+
+      navigation.replace('Onboard');
+
     } catch (error) {
       console.log('Lỗi đăng xuất:', error);
       alert('Đăng xuất thất bại!');
@@ -170,7 +173,7 @@ const Profile = ({ navigation, route }) => {
           activeOpacity={0.7}
           onPress={() => navigation.navigate('PersonalInfoScreen')}
         >
-          <View style={[styles.menuIcon, { backgroundColor: COLORS.lightSkyBlue }]}>
+          <View style={[styles.menuIcon, { backgroundColor: "#f1f1f1" }]}>
             <Icon name="user" size={20} color={COLORS.skyBlue} />
           </View>
           <Text style={styles.menuText}>Thông tin cá nhân</Text>

@@ -1,7 +1,19 @@
 // components/NearbyLocations.js
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, FlatList } from 'react-native';
-import { COLORS, SIZES } from '../../constants/theme';
+
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+import {
+  COLORS,
+  SIZES,
+} from '../../constants/theme';
 
 const NearbyLocations = ({ locations, onPress }) => {
   return (
@@ -37,7 +49,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   sectionTitle: {
-    fontSize: SIZES.large,
+    fontSize: SIZES.large-1,
     fontWeight: 'bold',
     color: COLORS.black,
     marginBottom: 15,
@@ -60,7 +72,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   locationName: {
-    fontSize: SIZES.medium,
+    fontSize: SIZES.medium-1,
     fontWeight: 'bold',
     color: COLORS.darkGray,
     paddingHorizontal: 8,

@@ -233,7 +233,7 @@ const AirList = ({ navigation, route }) => {
             </View>
           </View>
           <View style={styles.priceButtonContainer}>
-            <Text style={styles.priceText}>{item.price} VNĐ</Text>
+            <Text style={styles.priceText}>{Number(item.price).toLocaleString('vi-VN')} VNĐ</Text>
             <TouchableOpacity
               style={[styles.selectButton, isSelected && styles.selectedButton]}
               onPress={() => isOutboundView ? handleSelectOutbound(item) : handleSelectReturn(item)}

@@ -4,6 +4,7 @@ import React, {
 } from 'react';
 
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   SafeAreaView,
@@ -61,14 +62,16 @@ const PlaceList = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.statusText}>Đang tải dữ liệu...</Text>
-      </SafeAreaView>
-    );
-  }
-
+if (loading) {
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.loadingWrapper}>
+        <ActivityIndicator size="large" color={COLORS.red} style={{ marginBottom: 10 }} />
+       
+      </View>
+    </SafeAreaView>
+  );
+}
   if (error) {
     return (
       <SafeAreaView style={styles.container}>

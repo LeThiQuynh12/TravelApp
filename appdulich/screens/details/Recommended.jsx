@@ -4,6 +4,7 @@ import React, {
 } from 'react';
 
 import {
+  ActivityIndicator,
   FlatList,
   SafeAreaView,
   StyleSheet,
@@ -42,11 +43,11 @@ const Recommended = ({ navigation }) => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.statusText}>Đang tải dữ liệu...</Text>
+        <ActivityIndicator size="large" color="#007AFF" />
+
       </SafeAreaView>
     );
   }
-
   if (error) {
     return (
       <SafeAreaView style={styles.container}>

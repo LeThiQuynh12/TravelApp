@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
+
 import {
-  View,
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  Alert,
-  ScrollView
+  View,
 } from 'react-native';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
-import { COLORS,SIZES } from '../../constants/theme';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+
+import {
+  FontAwesome,
+  Ionicons,
+} from '@expo/vector-icons';
+
+import {
+  COLORS,
+  TEXT,
+} from '../../constants/theme';
 
 const ReviewComponent = ({ reviews = [], onSubmitReview }) => {
   const [rating, setRating] = useState(0);
@@ -149,10 +159,11 @@ const styles=StyleSheet.create(
             marginBottom: 10,
           },
           sectionTitle: {
-            fontSize: 20,
+            fontSize: TEXT.large-2,
             fontWeight: 'bold',
             color: '#333',
             marginLeft: 8,
+            marginVertical: 15,
           },
           sectionText: {
             fontSize: 16,
