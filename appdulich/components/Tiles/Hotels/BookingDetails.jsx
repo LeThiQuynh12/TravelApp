@@ -6,6 +6,8 @@ import { COLORS,SIZES } from '../../../constants/theme';
 import { getOrderById,getHotelByRoomId,getRoomById, deleteOrderById,
   getFlightById
  } from '../../../services/api';
+import { BottomTabBar } from '@react-navigation/bottom-tabs';
+import BottomTabNavigation from '../../../navigation/BottomTabNavigation';
 const BookingDetails = ({ navigation, route }) => {
   const { orderId } = route.params;
   const [order, setOrder] = useState(null);
@@ -427,7 +429,7 @@ useEffect(() => {
         right={20}
         title={'Chi tiết đơn hàng'}
         color={COLORS.white}
-        onPress={() => navigation.goBack()}
+        onPress={() => navigation.navigate("Bottom")}
       />
       
       <ScrollView style={styles.content}>

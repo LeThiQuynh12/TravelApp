@@ -25,7 +25,6 @@ import {
 } from '../../constants/theme';
 import { fetchPlaceById } from '../../services/api';
 import NearbyLocations from './NearbyLocations';
-import RenderItem from '../../components/Reusable/RenderItem';
 const CountryDetails = ({ navigation }) => {
   const route = useRoute();
   const { item } = route.params;

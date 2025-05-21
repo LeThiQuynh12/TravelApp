@@ -27,11 +27,7 @@ const FoodDrinkDetailScreen = ({ navigation }) => {
     }
   };
 
-  const handleOpenMap = () => {
-    if (item.latitude && item.longitude) {
-      const url = `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`;
-      Linking.openURL(url);
-    }
+  
   const handleOpenMap = () => {
     if (item.latitude && item.longitude) {
       const url = `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`;
@@ -41,13 +37,6 @@ const FoodDrinkDetailScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <AppBar
-        
-        color={COLORS.white}
-        top={50}
-        left={10}
-        right={10}
-        onPress={() => navigation.goBack()}
       <AppBar
         
         color={COLORS.white}
@@ -117,9 +106,7 @@ const FoodDrinkDetailScreen = ({ navigation }) => {
   );
 };
 
-export default FoodDrinkDetailScreen;
 
-export default FoodDrinkDetailScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -128,10 +115,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
-  scrollContent: {
-    paddingBottom: 20,
   },
-  image: {
+  
   image: {
     width: '100%',
     height: 250,
@@ -193,11 +178,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 14,
   },
-  map: {
-    width: '100%',
-    height: 200,
-    fontSize: 14,
-  },
+
   map: {
     width: '100%',
     height: 200,
@@ -205,3 +186,4 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 });
+export default FoodDrinkDetailScreen;
