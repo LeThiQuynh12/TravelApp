@@ -115,9 +115,45 @@ exports.vnpayReturn = async (req, res) => {
             },
           }
         );
-         return res.redirect(`http://localhost/Luxgo_travel/thanhtoan`);
+         return res.send(`
+            <html>
+              <head>
+                <title>Đang mở ứng dụng...</title>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <script>
+                  setTimeout(function () {
+                    window.location = "appdulich://vnpay_return?status=success&order_id=${vnpParams.vnp_TxnRef}";
+                  }, 100);
+                </script>
+              </head>
+              <body>
+                <h3>Đang chuyển hướng về ứng dụng...</h3>
+              </body>
+            </html>
+          `);
+
+
       } else {
-        return res.redirect(`http://localhost/Luxgo_travel/thanhtoan`);
+        return res.send(`
+            <html>
+              <head>
+                <title>Đang mở ứng dụng...</title>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <script>
+                  setTimeout(function () {
+                    window.location = "appdulich://vnpay_return?status=success&order_id=${vnpParams.vnp_TxnRef}";
+                  }, 100);
+                </script>
+              </head>
+              <body>
+                <h3>Đang chuyển hướng về ứng dụng...</h3>
+              </body>
+            </html>
+          `);
+
+
       }
     } else {
       console.error('Chữ ký không hợp lệ:', { vnpSecureHash, computedHash });

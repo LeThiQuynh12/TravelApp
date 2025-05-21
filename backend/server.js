@@ -18,7 +18,7 @@ const flightRoute = require('./routes/flight');
 const busRoute = require('./routes/buses');
 const orderRoutes = require('./routes/orders');
 const vnpayRoutes = require('./routes/vnpay');
-const vnpayController = require('./controllers/vnpayController');
+
 // Load biến môi trường từ file .env
 dotenv.config();
 
@@ -44,7 +44,7 @@ app.use('/api', flightRoute);
 app.use('/api/bus', busRoute);
 app.use('/api', orderRoutes);
 app.use('/api', vnpayRoutes);
-app.get('/api/vnpay_return', vnpayController.vnpayReturn);
+
 
 // Route mặc định test server
 app.get('/', (req, res) => res.send('Hello World!'));

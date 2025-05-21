@@ -185,3 +185,33 @@ exports.deleteRoom = async (req, res, next) => {
     return next(error);
   }
 };
+
+exports.getHotelByRoomId = async (req, res, next) => {
+  try {
+    const roomId = req.params.id;
+
+    // Tìm phòng theo ID và populate thông tin khách sạn
+    const room = await Room.findById(roomId).populate('hotelid');
+    if (!room) {
+      return res.status(404).json({
+        status: false,
+        message: 'Không tìm thấy phòng với ID này',
+      });
+    }
+
+    const hotel = room.hotelid;
+    if (!hotel) {
+      return res.status(404).json({
+        status: false,
+        message: 'Phòng không liên kết với khách sạn nào',
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      data: hotel,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

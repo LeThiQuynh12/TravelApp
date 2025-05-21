@@ -17,4 +17,4 @@ router.put('/suggestions/:id', suggestionController.updateSuggestion);
 // Delete suggestion
 router.delete('/suggestions/:id', suggestionController.deleteSuggestion);
 
-module.exports = router;
+module.exports = router; 

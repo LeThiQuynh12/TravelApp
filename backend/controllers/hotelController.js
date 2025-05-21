@@ -135,52 +135,72 @@ module.exports = {
   },
 
   // Read: Lấy danh sách tất cả khách sạn
-  getAllHotels: async (req, res, next) => {
-    try {
-      // Lấy danh sách khách sạn và populate contact
-      const hotels = await Hotel.find().populate('contact').lean();
+ getAllHotels: async (req, res, next) => {
+  try {
+    // Lấy page và limit từ query, mặc định: page = 1, limit = 10
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-      // Lấy danh sách đánh giá cho tất cả khách sạn
-      const hotelIds = hotels.map(hotel => hotel._id);
-      const reviews = await Review.find({ targetType: 'Hotel', targetId: { $in: hotelIds } })
-        .populate({
-          path: 'user',
-          select: 'username profile',
-        })
-        .lean();
+    // Đếm tổng số khách sạn
+    const totalItems = await Hotel.countDocuments();
 
-      // Nhóm đánh giá theo targetId
-      const reviewsByHotel = reviews.reduce((acc, review) => {
-        const hotelId = review.targetId.toString();
-        if (!acc[hotelId]) acc[hotelId] = [];
-        acc[hotelId].push({
-          _id: review._id,
-          review: review.review,
-          rating: review.rating,
-          user: {
-            id: review.user._id,
-            username: review.user.username,
-            profile: review.user.profile,
-          },
-          updatedAt: review.updatedAt,
-        });
-        return acc;
-      }, {});
+    // Lấy danh sách khách sạn theo phân trang + populate contact
+    const hotels = await Hotel.find()
+      .skip(skip)
+      .limit(limit)
+      .populate('contact')
+      .lean();
 
-      // Thêm reviews vào từng khách sạn
-      const hotelsWithReviews = hotels.map(hotel => ({
-        ...hotel,
-        reviews: reviewsByHotel[hotel._id.toString()] || [],
-      }));
+    // Lấy danh sách đánh giá cho các khách sạn trong trang hiện tại
+    const hotelIds = hotels.map(hotel => hotel._id);
+    const reviews = await Review.find({
+      targetType: 'Hotel',
+      targetId: { $in: hotelIds }
+    })
+      .populate({
+        path: 'user',
+        select: 'username profile',
+      })
+      .lean();
 
-      res.status(200).json({
-        status: true,
-        data: hotelsWithReviews,
+    // Nhóm đánh giá theo khách sạn
+    const reviewsByHotel = reviews.reduce((acc, review) => {
+      const hotelId = review.targetId.toString();
+      if (!acc[hotelId]) acc[hotelId] = [];
+      acc[hotelId].push({
+        _id: review._id,
+        review: review.review,
+        rating: review.rating,
+        user: {
+          id: review.user._id,
+          username: review.user.username,
+          profile: review.user.profile,
+        },
+        updatedAt: review.updatedAt,
       });
-    } catch (error) {
-      return next(error);
-    }
-  },
+      return acc;
+    }, {});
+
+    // Gộp đánh giá vào mỗi khách sạn
+    const hotelsWithReviews = hotels.map(hotel => ({
+      ...hotel,
+      reviews: reviewsByHotel[hotel._id.toString()] || [],
+    }));
+
+    // Trả kết quả
+    res.status(200).json({
+      status: true,
+      currentPage: page,
+      totalPages: Math.ceil(totalItems / limit),
+      totalItems,
+      data: hotelsWithReviews,
+    });
+  } catch (error) {
+    return next(error);
+  }
+},
+
 
   // Update: Cập nhật thông tin khách sạn
   updateHotel: async (req, res, next) => {

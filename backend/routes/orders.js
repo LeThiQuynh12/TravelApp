@@ -5,19 +5,53 @@ const Order = require('../models/Order');
 //  Tạo đơn hàng mới
 router.post('/orders', async (req, res) => {
   try {
-    const data = req.body;
+    const {
+      total_amount,
+      service_id,
+      service_type,
+      service_name,
+      user_id,
+      customer_name,
+      customer_phone,
+      customer_email,
+      payment_method,
+      status
+    } = req.body;
+
+    // Kiểm tra các trường bắt buộc
+    if (!total_amount || !service_id || !service_type || !user_id || !payment_method) {
+      return res.status(400).json({ success: false, message: 'Thiếu trường bắt buộc' });
+    }
+
+    // Kiểm tra số tiền hợp lệ
+    const amount = Number(total_amount);
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Số tiền không hợp lệ' });
+    }
+
     const order = new Order({
       order_id: 'ORD' + Date.now(),
-      ...data,
+      total_amount: amount,
+      service_id,
+      service_type,
+      service_name: service_name || 'Đặt dịch vụ',
+      user_id,
+      customer_name: customer_name || '',
+      customer_phone: customer_phone || '',
+      customer_email: customer_email || '',
+      payment_method,
+      status: status || 'paid',
       created_at: new Date(),
       updated_at: new Date(),
     });
+
     await order.save();
     res.status(201).json({ success: true, order });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Lỗi tạo đơn hàng', error: err.message });
   }
 });
+
 
 //  Lấy đơn hàng theo user
 router.get('/orders', async (req, res) => {

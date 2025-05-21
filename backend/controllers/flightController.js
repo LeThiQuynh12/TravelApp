@@ -126,7 +126,7 @@ exports.getFlightById = async (req, res, next) => {
   }
 };
 
-// Read: Lấy chuyến bay theo tripId (giữ lại để tương thích với dữ liệu cũ)
+// Read: Lấy chuyến bay theo tripId 
 exports.getFlightsByTripId = async (req, res, next) => {
   try {
     const tripId = req.params.tripId;

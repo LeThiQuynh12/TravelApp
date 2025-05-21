@@ -119,13 +119,24 @@ exports.createPlace = async (req, res, next) => {
 // Read: Lấy danh sách tất cả địa điểm
 exports.getAllPlaces = async (req, res, next) => {
   try {
+    // Lấy page và limit từ query, mặc định: page = 1, limit = 10
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Đếm tổng số documents
+    const totalItems = await Place.countDocuments();
+
+    // Lấy danh sách phân trang
     const places = await Place.find()
+      .skip(skip)
+      .limit(limit)
       .populate('nearbyProvinces', 'name image location')
-      .populate('highlights') // Lấy toàn bộ thông tin của Suggestion trong highlights
-      .populate('suggestions') // Lấy toàn bộ thông tin của Suggestion trong suggestions
+      .populate('highlights')
+      .populate('suggestions')
       .lean();
 
-    // Truy vấn danh sách review cho từng suggestion trong highlights và suggestions
+    // Thêm review cho từng Suggestion trong highlights và suggestions
     for (let place of places) {
       // Xử lý highlights
       if (place.highlights && Array.isArray(place.highlights)) {
@@ -134,7 +145,7 @@ exports.getAllPlaces = async (req, res, next) => {
             { targetType: 'Suggestion', targetId: suggestion._id },
             'user review rating createdAt'
           ).populate('user', 'name');
-          suggestion.reviews = reviews; // Thêm danh sách review vào suggestion
+          suggestion.reviews = reviews;
         }
       }
 
@@ -145,19 +156,23 @@ exports.getAllPlaces = async (req, res, next) => {
             { targetType: 'Suggestion', targetId: suggestion._id },
             'user review rating createdAt'
           ).populate('user', 'name');
-          suggestion.reviews = reviews; // Thêm danh sách review vào suggestion
+          suggestion.reviews = reviews;
         }
       }
     }
 
     res.status(200).json({
       status: true,
-      data: places,
+      currentPage: page,
+      totalPages: Math.ceil(totalItems / limit),
+      totalItems,
+      data: places
     });
   } catch (error) {
     return next(error);
   }
 };
+
 
 // Read: Lấy thông tin địa điểm theo ID
 exports.getPlaceById = async (req, res, next) => {
@@ -388,12 +403,11 @@ exports.getPlaceHighlights = async (req, res, next) => {
   }
 };
 
-// Lấy danh sách suggestions của một địa điểm
+
+// Lấy danh sách suggestions của một địa điểm theo phân trang
 exports.getPlaceSuggestions = async (req, res, next) => {
   try {
-    const place = await Place.findById(req.params.placeId)
-      .populate('suggestions')
-      .lean();
+    const place = await Place.findById(req.params.placeId).lean();
 
     if (!place) {
       return res.status(404).json({
@@ -402,8 +416,22 @@ exports.getPlaceSuggestions = async (req, res, next) => {
       });
     }
 
+    const page = parseInt(req.query.page) || 1;      // Trang hiện tại, mặc định 1
+    const limit = parseInt(req.query.limit) || 10;   // Số phần tử trên trang, mặc định 10
+    const skip = (page - 1) * limit;
+
+    // Lấy tổng số suggestions để tính tổng trang
+    const totalSuggestions = await mongoose.model('Suggestion').countDocuments({ _id: { $in: place.suggestions } });
+    const totalPages = Math.ceil(totalSuggestions / limit);
+
+    // Lấy danh sách suggestions phân trang
+    const suggestions = await mongoose.model('Suggestion')
+      .find({ _id: { $in: place.suggestions } })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
     // Thêm reviews cho mỗi suggestion
-    const suggestions = place.suggestions || [];
     for (let suggestion of suggestions) {
       const reviews = await mongoose.model('Review').find(
         { targetType: 'Suggestion', targetId: suggestion._id },
@@ -415,11 +443,18 @@ exports.getPlaceSuggestions = async (req, res, next) => {
     res.status(200).json({
       status: true,
       data: suggestions,
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        totalSuggestions,
+      },
     });
   } catch (error) {
     return next(error);
   }
 };
+
 
 // Lấy danh sách nearbyProvinces của một địa điểm
 exports.getPlaceNearbyProvinces = async (req, res, next) => {
