@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Linking
 } from 'react-native';
 
 import { MaterialIcons } from '@expo/vector-icons';
@@ -20,9 +21,12 @@ import {
 } from '../../constants/theme';
 import AppBar from './AppBar';
 import HeightSpacer from './HeightSpacer';
+import { getUser,createVnpayPayment,createOrder} from '../../services/api';
 
 const CustomerInfo = ({ navigation, route }) => {
-  const { room } = route.params;
+  const { room, departureBus, returnBus, departureFlight, returnFlight, numberOfSeats = 1 } = route?.params || {};
+
+
   // State để lưu giá trị input
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -31,9 +35,6 @@ const CustomerInfo = ({ navigation, route }) => {
 
   // State để lưu thông báo lỗi
   const [errors, setErrors] = useState({
-    fullName: '',
-    phoneNumber: '',
-    email: '',
     payment: '',
   });
 
@@ -62,32 +63,29 @@ const CustomerInfo = ({ navigation, route }) => {
   // Hàm validate dữ liệu
   const validateInputs = () => {
     const newErrors = {
-      fullName: '',
-      phoneNumber: '',
-      email: '',
       payment: '',
     };
     let isValid = true;
 
     // Kiểm tra họ và tên
-    if (!fullName.trim()) {
-      newErrors.fullName = 'Vui lòng nhập họ và tên.';
-      isValid = false;
-    }
+    // if (!fullName.trim()) {
+    //   newErrors.fullName = 'Vui lòng nhập họ và tên.';
+    //   isValid = false;
+    // }
 
-    // Kiểm tra số điện thoại
-    const phoneRegex = /^[0-9]{10,}$/;
-    if (!phoneRegex.test(phoneNumber)) {
-      newErrors.phoneNumber = 'Số điện thoại không hợp lệ.';
-      isValid = false;
-    }
+    // // Kiểm tra số điện thoại
+    // const phoneRegex = /^[0-9]{10,}$/;
+    // if (!phoneRegex.test(phoneNumber)) {
+    //   newErrors.phoneNumber = 'Số điện thoại không hợp lệ.';
+    //   isValid = false;
+    // }
 
-    // Kiểm tra email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      newErrors.email = 'Email không hợp lệ.';
-      isValid = false;
-    }
+    // // Kiểm tra email
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // if (!emailRegex.test(email)) {
+    //   newErrors.email = 'Email không hợp lệ.';
+    //   isValid = false;
+    // }
 
     // Kiểm tra tài khoản thanh toán
     if (!selectedPayment) {
@@ -100,36 +98,164 @@ const CustomerInfo = ({ navigation, route }) => {
   };
 
   // Hàm xử lý khi nhấn nút "Đặt ngay"
-  const handleBooking = () => {
-    const isValid = validateInputs();
+  const handleBooking = async () => {
+  try {
+    const userResponse = await getUser();
+    const user = userResponse?.data || userResponse;
 
-    if (isValid) {
-      // Tạo dữ liệu đặt phòng (giả lập)
-      const bookingDetails = {
-        fullName,
-        phoneNumber,
-        email,
-        room,
-        paymentMethod: linkedAccounts.find((account) => account.id === selectedPayment),
-        bookingDate: new Date().toLocaleString(),
-      };
-
-      // Hiển thị thông báo thành công
-      Alert.alert(
-        'Thành công',
-        'Đặt phòng thành công!',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Chuyển đến màn hình chi tiết đặt phòng
-              navigation.navigate('BookingDetails', { bookingDetails });
-            },
-          },
-        ]
-      );
+    if (!user) {
+      Alert.alert('Lỗi', 'Không lấy được thông tin người dùng');
+      return;
     }
-  };
+
+    // Kiểm tra form (nếu có dùng input người dùng)
+    const isValid = validateInputs?.(); // dùng optional chaining nếu không có validateInputs
+    if (isValid === false) return;
+
+    // Kiểm tra tài khoản thanh toán
+    const paymentAccount = linkedAccounts.find((account) => account.id === selectedPayment);
+    if (!paymentAccount) {
+      Alert.alert('Lỗi', 'Vui lòng chọn tài khoản thanh toán.');
+      return;
+    }
+
+    let orderData = null;
+
+    if (room) {
+      // 🏨 Đặt phòng khách sạn
+      orderData = {
+        user_id: user._id || user.id,
+        service_id: room._id || room.id,
+        service_type: 'hotel',
+        service_name: room.name || 'Đặt phòng khách sạn',
+        total_amount: room.newPrice || 0,
+        status: 'paid',
+        payment_method: paymentAccount.name,
+      };
+    } else if (departureBus) {
+     
+      const priceToNumber = (price) => parseFloat(String(price).replace(/[^\d]/g, '')) || 0;
+      const departurePrice = priceToNumber(departureBus.price) * numberOfSeats;
+      const returnPrice = returnBus ? priceToNumber(returnBus.price) * numberOfSeats : 0;
+
+      const total = departurePrice + returnPrice;
+
+      orderData = {
+        user_id: user._id || user.id,
+        service_id: departureBus._id || departureBus.id,
+        service_type: 'bus',
+        service_name: `Đặt vé xe khách: ${departureBus.departureCity} → ${departureBus.arrivalCity}`,
+        total_amount: total,
+        status: 'paid',
+        payment_method: paymentAccount.name,
+        extra_data: {
+          departureBus,
+          returnBus,
+          numberOfSeats,
+        },
+      };
+    } else if (departureFlight) {
+    const flightPrice = (flight) => {
+      if (flight.basePrice && flight.taxes) {
+        const base = parseFloat(String(flight.basePrice).replace(/[^\d]/g, '')) || 0;
+        const taxes = parseFloat(String(flight.taxes).replace(/[^\d]/g, '')) || 0;
+        return base + taxes;
+      } else if (flight.price) {
+        return parseFloat(String(flight.price).replace(/[^\d]/g, '')) || 0;
+      }
+      return 0;
+    };
+
+    const depPrice = flightPrice(departureFlight) * numberOfSeats;
+    const retPrice = returnFlight ? flightPrice(returnFlight) * numberOfSeats : 0;
+    const total = depPrice + retPrice;
+
+    if (total <= 0) {
+      Alert.alert('Lỗi', 'Tổng tiền đặt vé không hợp lệ.');
+      return;
+    }
+
+    orderData = {
+      user_id: user._id || user.id,
+      service_id: departureFlight._id || departureFlight.id,
+      service_type: 'flight',
+      service_name: `Đặt vé máy bay: ${departureFlight.departureCity} → ${departureFlight.arrivalCity}`,
+      total_amount: total,
+      status: 'paid',
+      payment_method: paymentAccount.name,
+      extra_data: {
+        departureFlight,
+        returnFlight,
+        numberOfSeats,
+      },
+    };
+  }
+
+    if (!orderData) {
+      Alert.alert('Lỗi', 'Không có thông tin dịch vụ để đặt.');
+      return;
+    }
+
+    console.log('Dữ liệu gửi lên:', JSON.stringify(orderData));
+
+    const res = await createOrder(orderData);
+
+    if (res?.success) {
+      Alert.alert('Thành công', 'Đặt dịch vụ thành công!', [
+        {
+          text: 'OK',
+          onPress: () => {
+            navigation.navigate('BookingDetails', { orderId: res.order.order_id });
+          },
+        },
+      ]);
+    } else {
+      console.error('Phản hồi lỗi:', res);
+      Alert.alert('Lỗi', 'Không thể tạo đơn hàng.');
+    }
+  } catch (error) {
+    console.error('Lỗi tạo đơn hàng:', error);
+    Alert.alert('Lỗi', error.message || 'Đã xảy ra lỗi khi đặt dịch vụ.');
+  }
+};
+
+  // thanh toán vnpay 
+  const handleVnpayPayment = async () => {
+  try {
+    // Lấy user từ API, response có dạng { status: true, data: user }
+    const userResponse = await getUser();
+    const user = userResponse?.data || userResponse; // nếu getUser chưa chỉnh sửa thì phải lấy data từ userResponse.data
+
+    if (!user) {
+      Alert.alert('Lỗi', 'Không lấy được thông tin người dùng');
+      return;
+    }
+
+    // Lấy thông tin phòng từ param
+    const { room } = route.params;
+
+    const data = {
+      user_id: user._id || user.id,
+      service_id: room._id || room.id,
+      service_type: 'hotel',
+      service_name: room.name || 'Đặt phòng khách sạn',
+      total_amount: room.newPrice || 0, // hoặc số tiền bạn muốn thanh toán
+    };
+
+    console.log('Gửi dữ liệu tạo thanh toán VNPay:', JSON.stringify(data));
+
+    const res = await createVnpayPayment(data);
+
+    if (res?.payment_url) {
+      Linking.openURL(res.payment_url);
+    } else {
+      Alert.alert('Lỗi', 'Không nhận được link thanh toán VNPay!');
+    }
+  } catch (error) {
+    console.error('Lỗi thanh toán VNPay:', error);
+    Alert.alert('Lỗi', error.message || 'Không thể thực hiện thanh toán!');
+  }
+};
 
   return (
     <ScrollView>
@@ -145,56 +271,9 @@ const CustomerInfo = ({ navigation, route }) => {
         />
 
         <HeightSpacer height={85} />
-        <Text style={styles.title}>Thông tin khách hàng</Text>
+        
 
-        {/* Customer information section */}
-        <View style={styles.infoContainer}>
-          <Text style={styles.text}>
-            Họ và tên <Text style={styles.must}>(*)</Text>
-          </Text>
-          <TextInput
-            style={[styles.input, errors.fullName && styles.inputError]}
-            placeholder="Nhập họ và tên"
-            value={fullName}
-            onChangeText={(text) => {
-              setFullName(text);
-              setErrors({ ...errors, fullName: '' }); // Xóa lỗi khi nhập
-            }}
-          />
-          {errors.fullName ? <Text style={styles.errorText}>{errors.fullName}</Text> : null}
-
-          <Text style={styles.text}>
-            Số điện thoại <Text style={styles.must}>(*)</Text>
-          </Text>
-          <TextInput
-            style={[styles.input, errors.phoneNumber && styles.inputError]}
-            placeholder="Nhập số điện thoại"
-            keyboardType="phone-pad"
-            value={phoneNumber}
-            onChangeText={(text) => {
-              setPhoneNumber(text);
-              setErrors({ ...errors, phoneNumber: '' }); // Xóa lỗi khi nhập
-            }}
-          />
-          {errors.phoneNumber ? <Text style={styles.errorText}>{errors.phoneNumber}</Text> : null}
-
-          <Text style={styles.text}>
-            Email <Text style={styles.must}>(*)</Text>
-          </Text>
-          <TextInput
-            style={[styles.input, errors.email && styles.inputError]}
-            placeholder="Nhập email"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              setErrors({ ...errors, email: '' }); // Xóa lỗi khi nhập
-            }}
-          />
-          {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
-        </View>
-
-        <Text style={styles.title}>Tài khoản thanh toán</Text>
+        <Text style={styles.title}>Thanh toán qua tài khoản đã liên kết</Text>
 
         {/* Linked accounts section */}
         <View style={styles.accountsContainer}>
@@ -221,7 +300,7 @@ const CustomerInfo = ({ navigation, route }) => {
               <Text style={styles.cardNumber}>{account.number}</Text>
             </TouchableOpacity>
           ))}
-
+          
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => navigation.navigate('Bank')}
@@ -240,6 +319,13 @@ const CustomerInfo = ({ navigation, route }) => {
         >
           <Text style={styles.buttonText}>Đặt ngay</Text>
         </TouchableOpacity>
+        <TouchableOpacity  onPress={handleVnpayPayment}>
+            <View style={styles.buttonvnp}>
+              <Image style={styles.bankLogo} source={{ uri: 'https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg' }} />
+              <Text style={styles.vnpay} > Thanh toán bằng VNPay  </Text>
+            </View>
+          </TouchableOpacity>
+          
       </View>
     </ScrollView>
   );
@@ -309,6 +395,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightGrey,
   },
+  vnpayCard:{
+    backgroundColor: COLORS.white,
+    borderRadius: 15,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: COLORS.lightGrey,
+  },
   selectedAccount: {
     borderColor: COLORS.primary,
     backgroundColor: COLORS.lightPrimary,
@@ -347,6 +443,12 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderStyle: 'dashed',
   },
+  vnpay:{
+    fontSize: SIZES.medium,
+    color: COLORS.white,
+    alignItems:'center',
+    fontWeight: 'bold',
+  },
   addButtonText: {
     fontSize: SIZES.medium,
     color: COLORS.primary,
@@ -360,6 +462,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: SIZES.medium,
     marginHorizontal: 10,
+  },
+  buttonvnp: {
+    backgroundColor: COLORS.green,
+    padding: SIZES.medium,
+    borderRadius: SIZES.small,
+    alignItems:'center',
+    marginTop: SIZES.medium,
+    marginHorizontal: 10,
+    flexDirection:'row',
+    justifyContent:'center',
+    
   },
   buttonText: {
     color: COLORS.white,

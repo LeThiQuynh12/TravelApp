@@ -49,6 +49,13 @@ import HotelSearch from './screens/search/HotelSearch.jsx';
 import Search from './screens/search/Search.jsx';
 
 
+import Chat from './screens/chat/Chat.jsx';
+import Chatbot from './screens/chat/Chatbot.jsx';
+import RenderItem from './components/Reusable/RenderItem.jsx';
+import FoodDrink from './screens/details/FoodDrink.jsx';
+import ReviewComponent from './components/Reusable/ReviewComponent.jsx';
+import UploadAvatarScreen from './screens/profile/UploadAvatarScreen.jsx';
+import BookingList from './screens/profile/BookingList.js';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -180,6 +187,8 @@ useEffect(() => {
         <Stack.Screen name="RenderItem" component={RenderItem} options={{ headerShown: false }} />
         <Stack.Screen name="FoodDrink" component={FoodDrink} options={{ headerShown: false }} />
         <Stack.Screen name="ReviewComponent" component={ReviewComponent} options={{ headerShown: false }} />
+        <Stack.Screen name="UploadAvatarScreen" component={UploadAvatarScreen} options={{ headerShown: false }} />
+         <Stack.Screen name="BookingList" component={BookingList} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

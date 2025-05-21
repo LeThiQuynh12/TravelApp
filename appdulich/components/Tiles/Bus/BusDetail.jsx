@@ -163,7 +163,12 @@ const BusDetail = ({ navigation, route }) => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.continueButton}
-            onPress={() => navigation.navigate('CustomerInfo')}
+            onPress={() => navigation.navigate('CustomerInfo', {
+                departureBus,
+                returnBus,
+                numberOfSeats,
+              })
+            }
           >
             <Text style={styles.continueButtonText}>Tiếp tục</Text>
           </TouchableOpacity>

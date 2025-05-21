@@ -94,7 +94,7 @@ export const resetPassword = async (emailOrPhone, type) => {
 export const updateUser = async (userData) => {
   try {
     console.log('Đang gửi yêu cầu cập nhật người dùng:', userData);
-    const response = await api.put('/user', userData);
+    const response = await api.put('/users', userData);
     console.log('Phản hồi từ backend:', response.data);
     return response.data;
   } catch (error) {
@@ -102,7 +102,20 @@ export const updateUser = async (userData) => {
     throw new Error(error.response?.data?.message || 'Cập nhật thông tin người dùng thất bại!');
   }
 };
+// đổi ảnh 
+export const updateProfileImage = async (file) => {
+  const formData = new FormData();
+  formData.append('profile', file);
 
+  const response = await api.put('/users/profile-image', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+     timeout: 30000,
+  });
+
+  return response.data;
+};
 
 // Hàm xóa người dùng
 export const deleteUser = async () => {
@@ -181,6 +194,17 @@ export const getRooms = async (hotelid) => {
   }
 };
 
+// Hàm lấy chi tiết phòng theo roomId
+export const getRoomById = async (roomId) => {
+  try {
+    const response = await api.get(`/rooms/${roomId}`);
+    return response.data; // Trả về object response (ví dụ { status: true, data: room })
+  } catch (error) {
+    console.log('Lỗi lấy chi tiết phòng:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Lấy chi tiết phòng thất bại!');
+  }
+};
+
 
 
 // Hàm lấy danh sách thành phố từ flights
@@ -240,13 +264,6 @@ export const getAllFlights = async () => {
 };
 
 
-
-
-
-
-
-
-
 export const searchBuses = async ({ departureCity, arrivalCity, outboundDate, isRoundTrip, returnDate }) => {
   try {
     const response = await api.get('/bus/search', {
@@ -283,11 +300,13 @@ export const fetchBusCities = async () => {
 
 
 
-// Hàm lấy danh sách địa điểm
-export const fetchPlaces = async () => {
+// Hàm lấy danh sách địa điểm với phân trang
+export const fetchPlaces = async (page = 1, limit = 10) => {
   try {
-    const response = await api.get('/places');
-    return response.data.data; // Giả định backend trả về { data: [...] }
+    const response = await api.get('/places', {
+      params: { page, limit }
+    });
+    return response.data.data; 
   } catch (error) {
     console.error('Lỗi khi lấy danh sách địa điểm:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Không thể tải danh sách địa điểm!');
@@ -346,13 +365,122 @@ export const fetchPlaceNearbyProvinces = async (placeId) => {
 
 
 // Hàm lấy tất cả suggestions
-export const fetchSuggestions = async () => {
+export const fetchSuggestions = async (page = 1, limit = 1) => {
   try {
-    const response = await api.get('/suggestions');
-    return response.data.data;
+    const response = await api.get('/suggestions', {
+      params: { page, limit },
+    });
+
+    // Trả nguyên response để lấy cả pagination
+    return response.data;
   } catch (error) {
-    console.error('Lỗi khi lấy danh sách suggestions:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || 'Không thể tải danh sách suggestions!');
+    throw new Error(error.response?.data?.message || 'Lỗi khi lấy suggestions');
   }
 };
 
+// ==== VNPay ====
+
+/**
+ * Gửi yêu cầu tạo thanh toán VNPay
+ * @param {Object} data - { user_id, service_id, service_type, service_name, total_amount, orderDescription, language, bankCode }
+ */
+export const createVnpayPayment = async (data) => {
+  try {
+    const payload = {
+      user_id: data.user_id,
+      service_id: data.service_id,
+      service_type: data.service_type,
+      service_name: data.service_name,
+      total_amount: data.total_amount,
+      orderDescription: data.orderDescription,
+      language: data.language,
+      bankCode: data.bankCode,
+    };
+    console.log('Gửi dữ liệu tạo thanh toán VNPay:', payload);
+    const response = await api.post('/createPayment', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi gọi createVnpayPayment:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Tạo thanh toán VNPay thất bại!');
+  }
+};
+
+/**
+ * Xử lý callback từ VNPay sau khi thanh toán thành công hoặc thất bại
+ * (nếu bạn gọi từ mobile để check lại kết quả)
+ */
+export const checkVnpayReturn = async (params) => {
+  try {
+    const response = await api.get('/vnpay_return', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi xử lý callback VNPay:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'VNPay callback thất bại!');
+  }
+};
+// Hàm tạo đơn hàng (dùng khi thanh toán bằng bank/momo)
+export const createOrder = async (orderData) => {
+  try {
+    console.log('Đang gửi yêu cầu tạo đơn hàng:', orderData);
+    const response = await api.post('/orders', orderData);
+    console.log('Phản hồi từ backend:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi khi tạo đơn hàng:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể tạo đơn hàng!');
+  }
+};
+// Gọi API lấy chi tiết đơn hàng theo ID
+export const getOrderById = async (orderId) => {
+  try {
+    const response = await api.get(`/orders/${orderId}`);
+    return response.data; // { success: true, order }
+  } catch (error) {
+    console.error('Lỗi getOrderById:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể lấy chi tiết đơn hàng!');
+  }
+};
+// Gọi API xóa đơn hàng theo ID
+export const deleteOrderById = async (orderId) => {
+  try {
+    const response = await api.delete(`/orders/${orderId}`);
+    return response.data; // { success: true, message: 'Đã xóa đơn hàng' }
+  } catch (error) {
+    console.error('Lỗi deleteOrderById:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể xóa đơn hàng!');
+  }
+};
+
+// Gọi API lấy thông tin khách sạn dựa vào roomId
+export const getHotelByRoomId = async (roomId) => {
+  try {
+    const response = await api.get(`/hotel-by-room/${roomId}`);
+    return response.data; // { status: true, data: { ...hotel } }
+  } catch (error) {
+    console.error('Lỗi getHotelByRoomId:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể lấy thông tin khách sạn từ phòng!');
+  }
+};
+// Gọi API lấy thông tin xe khách theo ID
+export const getBusById = async (busId) => {
+  try {
+    const response = await api.get(`/buses/${busId}`);
+    return response.data; // { status: true, data: { ...bus } }
+  } catch (error) {
+    console.error('Lỗi getBusById:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể lấy thông tin xe khách!');
+  }
+};
+
+// Hàm lấy đơn hàng theo user_id
+export const fetchOrdersByUser = async (user_id) => {
+  if (!user_id) throw new Error('Thiếu user_id');
+  try {
+    const response = await api.get('/orders', {
+      params: { user_id },
+    });
+    return response.data.orders; // Trả về mảng đơn hàng
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Lấy đơn hàng không thành công!');
+  }
+};

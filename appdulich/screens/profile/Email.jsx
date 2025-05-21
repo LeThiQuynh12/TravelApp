@@ -1,17 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import { View, StyleSheet, Text, ScrollView, Image, TextInput, Modal, Button } from "react-native";
 import { COLORS, SIZES } from "../../constants/theme";
 import AppBar from "../../components/Reusable/AppBar";
 import ReusableBtn from "../../components/Buttons/ReusableBtn";
+import {
+  getUser,
+  updateUser,
+} from '../../services/api';
 
 const Email=({navigation})=>{
-    const [email, setemail] = useState("");
-      const [isModalVisible, setIsModalVisible] = useState(false);
-      const [otp, setOtp] = useState("");
+  const [user, setUser] = useState(null);
+  const [email, setemail] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [otp, setOtp] = useState("");
     
-      const handleEmailChange = (text) => {
-        setemail(text);
-      };
+  useEffect(() => {
+      async function fetchUser() {
+        try {
+          const userData = await getUser();
+            console.log("Dữ liệu user lấy về:", userData);
+          setUser(userData);
+          setPhone(userData.phone || ""); // Điền số điện thoại hiện có nếu có
+        } catch (error) {
+          Alert.alert("Lỗi", "Không lấy được thông tin người dùng");
+        }
+      }
+      fetchUser();
+    }, []);
+  const handleEmailChange = (text) => {
+    setemail(text);
+  };
       
       // Hàm kiểm tra hợp lệ khi bấm "Tiếp tục"
       const isValidEmail = (email) => {
@@ -24,7 +42,7 @@ const Email=({navigation})=>{
           alert("Vui lòng nhập đúng định dạng email!");
           return;
         }
-      
+        
         // Nếu email hợp lệ, hiển thị modal nhập OTP
         setIsModalVisible(true);
       };
@@ -33,25 +51,22 @@ const Email=({navigation})=>{
         setOtp(text);
       };
     
-    //   const handleConfirmOtp = () => {
-    //     if (otp.length === 6) {
-    //       alert("Mã OTP hợp lệ!");
-    //       setIsModalVisible(false);
-    //     } else {
-    //       alert("Vui lòng nhập đúng mã OTP!");
-    //     }
-    //   };
-    
-    //Giả sử set OTP đúng 
-        const handleConfirmOtp = () => {
-            if (otp === "123456") {  // Giả lập OTP thành công
-            alert("Đã cập nhật Email mới cuả bạn !");
-            setIsModalVisible(false);
-            navigation.navigate('Profile');  
-            } else {
-            alert("Vui lòng nhập đúng mã OTP!");
-            }
-      };
+
+  const handleConfirmOtp = async () => {
+    if (otp === "123456") {
+      try {
+        await updateUser({ email: email });
+        alert("Thành công", "Đã cập nhật emailemail mới!");
+                setIsModalVisible(false);
+                navigation.navigate("Profile");
+      } catch (error) {
+        alert( error.message || "Cập nhật email thất bại!");
+      }
+    } else {
+      Alert.alert("Lỗi", "Vui lòng nhập đúng mã OTP!");
+    }
+  };
+
     return (
         <View style={styles.container}>
           <AppBar
@@ -65,12 +80,12 @@ const Email=({navigation})=>{
         <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.profileHeader}>
           <Image
-            source={{
-              uri: "https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180",
+             source={{
+              uri: user?.data?.profile || "https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180",
             }}
             style={styles.avatar}
           />
-          <Text style={styles.name}>LÊ THỊ QUỲNH</Text>
+          <Text style={styles.name}>{user?.data?.username}</Text>
         </View>
         <Text style={styles.label}>Nhập Email mới của bạn </Text>
         <Text style={styles.note}>

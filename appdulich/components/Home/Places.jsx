@@ -1,69 +1,39 @@
-import React, {
-  useEffect,
-  useState,
-} from 'react';
-
-import {
-  ActivityIndicator,
-  Text,
-  View,
-  VirtualizedList,
-} from 'react-native';
-
+import React from 'react';
+import { Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { SIZES } from '../../constants/theme';
 import { fetchPlaces } from '../../services/api';
 import HeightSpacer from '../Reusable/HeightSpacer';
 import Country from '../Tiles/Country/Country';
+import PaginatedList from '../PaginatedList';
 
 const Places = () => {
   const navigation = useNavigation();
-  const [places, setPlaces] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const limit = 5;
 
-  // Gọi API khi component được render
-  useEffect(() => {
-    const loadPlaces = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const placeList = await fetchPlaces();
-        setPlaces(placeList);
-      } catch (err) {
-        setError(err.message);
-        console.error('Lỗi khi lấy dữ liệu địa điểm:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPlaces();
-  }, []);
-
-if (loading) {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" color="#EB6A58" />
-    </View>
-  );
-}
-
-  if (error) {
-    return <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>;
-  }
+  // Tạo hàm fetchData dùng cho PaginatedList
+  // fetchPlaces(page, limit) phải trả về mảng places theo trang
+  const fetchData = async (page, limit) => {
+    try {
+      // Giả sử fetchPlaces hỗ trợ nhận page và limit, nếu không thì cần viết lại API
+      const data = await fetchPlaces(page, limit);
+      return data;
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu địa điểm:', error);
+      return [];
+    }
+  };
 
   return (
     <View>
       <HeightSpacer height={10} />
-      <VirtualizedList
-        data={places}
+      <PaginatedList
+        fetchData={fetchData}
+        limit={limit}
         horizontal
-        keyExtractor={(item) => item._id} // Backend dùng _id thay vì place_id
-        showsHorizontalScrollIndicator={false}
-        getItemCount={(data) => data.length}
-        getItem={(data, index) => data[index]}
+        keyExtractor={item => item._id}
+        contentContainerStyle={{ paddingLeft: SIZES.medium }}
         renderItem={({ item }) => (
           <View style={{ marginRight: SIZES.medium }}>
             <Country
@@ -71,6 +41,9 @@ if (loading) {
               onPress={() => navigation.navigate('CountryDetails', { item })}
             />
           </View>
+        )}
+        ListEmptyComponent={() => (
+          <Text style={{ textAlign: 'center', marginTop: 20 }}>Không có địa điểm nào</Text>
         )}
       />
     </View>

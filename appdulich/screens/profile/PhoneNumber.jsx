@@ -1,36 +1,47 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Text, ScrollView, Image, TextInput, Modal, Button } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, Text, ScrollView, Image, TextInput, Modal, Alert } from "react-native";
 import { COLORS, SIZES } from "../../constants/theme";
 import AppBar from "../../components/Reusable/AppBar";
 import ReusableBtn from "../../components/Buttons/ReusableBtn";
+import {
+  getUser,
+  updateUser,
+} from '../../services/api';
 
 const PhoneNumber = ({ navigation }) => {
+  const [user, setUser] = useState(null);
   const [phone, setPhone] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [otp, setOtp] = useState("");
 
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const userData = await getUser();
+         console.log("Dữ liệu user lấy về:", userData);
+        setUser(userData);
+        setPhone(userData.phone || ""); // Điền số điện thoại hiện có nếu có
+      } catch (error) {
+        Alert.alert("Lỗi", "Không lấy được thông tin người dùng");
+      }
+    }
+    fetchUser();
+  }, []);
+
   const handlePhoneChange = (text) => {
-    // Loại bỏ mọi ký tự không phải số
-    const cleaned = text.replace(/[^0-9]/g, '');
-  
-    // Giới hạn tối đa 10 số
+    const cleaned = text.replace(/[^0-9]/g, "");
     if (cleaned.length <= 10) {
       setPhone(cleaned);
     }
   };
-  
-  // Hàm kiểm tra hợp lệ khi bấm "Tiếp tục"
-  const isValidPhone = (number) => {
-    return /^[0-9]{10}$/.test(number);
-  };
+
+  const isValidPhone = (number) => /^[0-9]{10}$/.test(number);
 
   const handleVerify = () => {
     if (!isValidPhone(phone)) {
-        alert("Vui lòng nhập đúng số điện thoại gồm 10 chữ số!");
-        return;
-      }
-    
-    // Giả lập quá trình gửi OTP và hiển thị modal xác thực
+      Alert.alert("Lỗi", "Vui lòng nhập đúng số điện thoại gồm 10 chữ số!");
+      return;
+    }
     setIsModalVisible(true);
   };
 
@@ -38,18 +49,23 @@ const PhoneNumber = ({ navigation }) => {
     setOtp(text);
   };
 
+  const handleConfirmOtp = async () => {
+    if (otp === "123456") {
+      try {
+        // Gọi API cập nhật số điện thoại
+        await updateUser({ phoneNumber: phone });
 
-
-//Giả sử set OTP đúng 
-    const handleConfirmOtp = () => {
-        if (otp === "123456") {  // Giả lập OTP thành công
-        alert("Đã cập nhật số điện thoại mới!");
+        Alert.alert("Thành công", "Đã cập nhật số điện thoại mới!");
         setIsModalVisible(false);
-        navigation.navigate('Profile');  
-        } else {
-        alert("Vui lòng nhập đúng mã OTP!");
-        }
+        navigation.navigate("Profile");
+      } catch (error) {
+        Alert.alert("Lỗi", error.message || "Cập nhật số điện thoại thất bại!");
+      }
+    } else {
+      Alert.alert("Lỗi", "Vui lòng nhập đúng mã OTP!");
+    }
   };
+
   return (
     <View style={styles.container}>
       <AppBar
@@ -64,25 +80,25 @@ const PhoneNumber = ({ navigation }) => {
         <View style={styles.profileHeader}>
           <Image
             source={{
-              uri: "https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180",
+              uri: user?.data?.profile || "https://tse4.mm.bing.net/th?id=OIP.H3mY7p5e7n6do7W3UhDRXgHaHa&pid=Api&P=0&h=180",
             }}
             style={styles.avatar}
           />
-          <Text style={styles.name}>LÊ THỊ QUỲNH</Text>
+          <Text style={styles.name}>{user?.data?.username }</Text>
         </View>
         <Text style={styles.label}>Nhập số điện thoại mới</Text>
         <Text style={styles.note}>
           Bạn sẽ nhận được mã xác thực OTP từ tin nhắn qua số điện thoại mới
         </Text>
         <View style={styles.inputContainer}>
-            <TextInput
-                style={styles.inputText}
-                placeholder="Nhập số điện thoại"
-                keyboardType="numeric"
-                value={phone}
-                onChangeText={handlePhoneChange}
-                maxLength={10}
-            />
+          <TextInput
+            style={styles.inputText}
+            placeholder="Nhập số điện thoại"
+            keyboardType="numeric"
+            value={phone}
+            onChangeText={handlePhoneChange}
+            maxLength={10}
+          />
         </View>
         <View style={styles.button}>
           <ReusableBtn
@@ -200,7 +216,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#00000080", // Màu nền bán trong suốt
+    backgroundColor: "#00000080",
   },
   modalContent: {
     width: 300,

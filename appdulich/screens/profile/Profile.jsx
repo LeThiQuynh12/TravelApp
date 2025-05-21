@@ -154,14 +154,15 @@ const Profile = ({ navigation, route }) => {
             }}
             style={styles.avatar}
           />
-          <TouchableOpacity style={styles.editIcon} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.editIcon} activeOpacity={0.8}
+          onPress={() => navigation.navigate('UploadAvatarScreen')}>
             <Icon name="camera" size={16} color={COLORS.white} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.userInfoContainer}>
-          <Text style={styles.userName}>{user?.username || 'LÊ THỊ QUỲNH'}</Text>
-          <Text style={styles.userEmail}>{user?.email || 'quynhlt@example.com'}</Text>
+          <Text style={styles.userName}>{user?.username }</Text>
+          <Text style={styles.userEmail}>{user?.email }</Text>
         </View>
       </View>
 
@@ -243,7 +244,21 @@ const Profile = ({ navigation, route }) => {
         </TouchableOpacity>
 
         <View style={styles.divider} />
-
+        
+        {/* Lịch sử đặt  */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('BookingList')}
+        >
+          <View style={[styles.menuIcon, { backgroundColor: COLORS.lightPink }]}>
+            <Icon name="calendar-check" size={20} color={COLORS.pink} />
+          </View>
+          <Text style={styles.menuText}>Lịch sử đơn hàng </Text>
+          <Icon name="chevron-right" size={18} color={COLORS.lightGray} />
+        </TouchableOpacity>
+            
+        <View style={styles.divider} />
       
       </View>
 

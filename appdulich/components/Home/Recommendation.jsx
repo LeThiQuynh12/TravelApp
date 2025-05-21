@@ -1,79 +1,31 @@
-import React, {
-  useEffect,
-  useState,
-} from 'react';
-
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import {
-  COLORS,
-  SIZES,
-  TEXT,
-} from '../../constants/theme';
+import { COLORS, TEXT, SIZES } from '../../constants/theme';
 import { fetchSuggestions } from '../../services/api';
-import { rowWithSpace } from '../Reusable/reusable.style';
+import PaginatedList from '../PaginatedList';
 import ReusableText from '../Reusable/ReusableText';
 import ReusableTile from '../Reusable/ReusableTile';
+import { rowWithSpace } from '../Reusable/reusable.style';
 
 const Recommendations = () => {
   const navigation = useNavigation();
-  const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  // Hàm fetchData truyền cho PaginatedList, lấy suggestions theo page, limit
+  const fetchData = async (page, limit) => {
+    // fetchSuggestions trả về mảng suggestion (đã chỉnh sửa để nhận page, limit)
+    return await fetchSuggestions(page, limit);
+  };
 
-  useEffect(() => {
-    const loadRecommendations = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const suggestionList = await fetchSuggestions();
-        setRecommendations(suggestionList);
-      } catch (err) {
-        setError(err.message);
-        console.error('Lỗi khi lấy danh sách recommendations:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadRecommendations();
-  }, []);
-
-if (loading) {
-  return (
-    <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-      <ActivityIndicator size="large" color={COLORS.red} style={{ marginBottom: 10 }} />
-      <ReusableText
-
-        family={'medium'}
-        size={TEXT.medium}
-        color={COLORS.black}
-      />
-    </View>
+  // Render từng item suggestion
+  const renderItem = ({ item }) => (
+    <ReusableTile
+      item={item}
+      onPress={() => navigation.navigate('PlaceDetails', { item })}
+    />
   );
-}
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <ReusableText
-          text={error}
-          family={'medium'}
-          size={TEXT.medium}
-          color={COLORS.red}
-        />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -89,18 +41,21 @@ if (loading) {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={recommendations}
+      <PaginatedList
+        fetchData={fetchData}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => `${item._id}-${index}`}
         horizontal
-        keyExtractor={(item) => item._id}
+        limit={2}
         contentContainerStyle={{ columnGap: SIZES.medium }}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <ReusableTile
-            item={item}
-            onPress={() => navigation.navigate('PlaceDetails', { item })}
+        ListEmptyComponent={
+          <ReusableText
+            text="Không có gợi ý nào."
+            family="medium"
+            size={TEXT.medium}
+            color={COLORS.gray}
           />
-        )}
+        }
       />
     </View>
   );

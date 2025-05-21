@@ -1,11 +1,5 @@
-import React, {
-  useEffect,
-  useState,
-} from 'react';
-
+import React from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
   Image,
   SafeAreaView,
   StyleSheet,
@@ -17,29 +11,10 @@ import {
 import { COLORS } from '../../../constants/theme';
 import { fetchPlaces } from '../../../services/api';
 import AppBar from '../../Reusable/AppBar';
+import PaginatedList from '../../PaginatedList';
 
 const PlaceList = ({ navigation }) => {
-  const [places, setPlaces] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const loadPlaces = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const placeList = await fetchPlaces();
-        setPlaces(placeList);
-      } catch (err) {
-        setError(err.message);
-        console.error('Lỗi khi lấy dữ liệu địa điểm:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPlaces();
-  }, []);
+  const limit = 5;
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
@@ -47,38 +22,36 @@ const PlaceList = ({ navigation }) => {
       onPress={() => navigation.navigate('CountryDetails', { item })}
     >
       <View style={styles.row}>
-        {/* Ảnh */}
         <Image
           source={{ uri: item.image || item.image_url }}
           style={styles.image}
         />
-
-        {/* Nội dung */}
         <View style={{ marginLeft: 15, flex: 1 }}>
-          {/* Tên địa điểm */}
           <Text style={styles.name}>{item.name}</Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 
-if (loading) {
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.loadingWrapper}>
-        <ActivityIndicator size="large" color={COLORS.red} style={{ marginBottom: 10 }} />
-       
-      </View>
-    </SafeAreaView>
-  );
-}
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={[styles.statusText, { color: COLORS.red }]}>{error}</Text>
-      </SafeAreaView>
-    );
-  }
+  const keyExtractor = (item) => item._id;
+
+  // Adapter cho PaginatedList: luôn trả về mảng item (không cần totalPages)
+  const adaptedFetchPlaces = async (page, limit) => {
+    const response = await fetchPlaces(page, limit);
+
+    // Nếu API trả về mảng trực tiếp thì dùng luôn
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    // Nếu API trả về { items: [], totalPages: n }
+    if (response && response.items) {
+      return response.items;
+    }
+
+    // Trường hợp không xác định
+    return [];
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -96,14 +69,13 @@ if (loading) {
         />
       </View>
 
-      <View style={{ paddingTop: 10 }}>
-        <FlatList
-          data={places}
-          renderItem={renderItem}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
-      </View>
+      <PaginatedList
+        fetchData={adaptedFetchPlaces}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        limit={limit}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
     </SafeAreaView>
   );
 };
@@ -136,10 +108,5 @@ const styles = StyleSheet.create({
     fontFamily: 'medium',
     color: COLORS.black,
     marginBottom: 8,
-  },
-  statusText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 20,
   },
 });

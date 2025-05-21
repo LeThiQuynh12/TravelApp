@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS } from '../../constants/theme';
+import { useNavigation } from '@react-navigation/native';
 import AskQuestion from './AskQuestion';
 
 const faqData = [
@@ -67,6 +68,7 @@ const Chatbot = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const scrollViewRef = useRef(null);
   const messageAnims = useRef([new Animated.Value(0)]).current;
+  const navigation = useNavigation();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -146,15 +148,20 @@ const Chatbot = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back" size={28} color={COLORS.white} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Chatbot Du Lịch LuxGo</Text>
       </View>
 
       <KeyboardAvoidingView
-         style={{ flex: 1 }}
-         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-         keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContainer}
@@ -192,21 +199,20 @@ const Chatbot = () => {
             </Animated.View>
           ))}
         </ScrollView>
-      
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Nhập câu hỏi của bạn..."
-          placeholderTextColor={COLORS.grey}
-          value={inputText}
-          onChangeText={setInputText}
-        />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-          <Ionicons name="send" size={24} color={COLORS.white} />
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nhập câu hỏi của bạn..."
+            placeholderTextColor={COLORS.grey}
+            value={inputText}
+            onChangeText={setInputText}
+          />
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+            <Ionicons name="send" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
       <AskQuestion
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
@@ -227,20 +233,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF5E6',
   },
   header: {
+    flexDirection: 'row', // Sắp xếp nút quay lại và tiêu đề theo hàng ngang
+    alignItems: 'center',
     padding: 15,
     backgroundColor: COLORS.blue,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
+  backButton: {
+    padding: 5,
+    marginRight: 10,
+  },
   headerTitle: {
+    flex: 1, // Tiêu đề chiếm toàn bộ không gian còn lại
     fontSize: 22,
     fontWeight: 'bold',
     color: COLORS.white,
     textAlign: 'center',
-  },
-  chatContainer: {
-    flex: 1,
-    padding: 10,
   },
   scrollContainer: {
     paddingBottom: 20,
